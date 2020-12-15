@@ -15,6 +15,7 @@ module.exports = merge(common, {
   devServer: {
     inline: true,
     hot: true,
+    https: true,
   },
   plugins: [
     new Webpack.DefinePlugin({
