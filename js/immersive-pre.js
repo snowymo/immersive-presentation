@@ -10,8 +10,6 @@ import { EventBus } from "./primitive/eventbus.js";
 import * as DefaultSystemEvents from "./primitive/event.js";
 import { loadAudioSources, updateAudioSources, updateAudioNodes, stereo, resonance, audioSources, pauseAudio } from './util/positional-audio.js'
 import { Client as WSClient } from "./util/websocket-client.js";
-// import {VoIP_webrtc} from "./util/voip-webrtc.js"
-// import {Avatar} from "./primitive/avatar.js"
 
 window.wsport = 8447
 
@@ -33,7 +31,6 @@ let renderer = null;
 window.scene = new Scene();
 window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
 window.scene.standingStats(true);
-
 window.scene.addNode(stereo);
 
 function initXR() {
@@ -65,9 +62,6 @@ function initXR() {
     } else {
         window.wsclient.connect("eye.3dvar.com", window.wsport);
     }
-
-    // window.voip = new VoIP_webrtc(window.wsclient);
-    // window.microphoneInit();
 }
 
 window.testws = function () {
@@ -93,7 +87,6 @@ function initGL() {
     renderer = new Renderer(gl);
     window.scene.setRenderer(renderer);
 
-    // TODO: setup an Avartar class that contains head and hands position for conditionally rendering
     // Loads a generic controller meshes.
     window.scene.inputRenderer.setControllerMesh(new Gltf2Node({ url: 'media/gltf/controller/controller.gltf' }), 'right');
     window.scene.inputRenderer.setControllerMesh(new Gltf2Node({ url: 'media/gltf/controller/controller-left.gltf' }), 'left');
@@ -191,7 +184,7 @@ function updateInputSources(session, frame, refSpace) {
                 // If we have a grip pose use it to render a mesh showing the
                 // position of the controller.
                 window.scene.inputRenderer.addController(gripPose.transform.matrix, inputSource.handedness); // let controller = this._controllers[handedness]; // so it is updating actually
-                // TODO: ZH: update location
+                // ZH: update location
                 if (window.playerid) {
                     if (inputSource.handedness == "left") {
                         window.avatars[window.playerid].leftController.position = gripPose.transform.position;
@@ -213,7 +206,6 @@ function updateInputSources(session, frame, refSpace) {
             window.avatars[window.playerid].headset.orientation = headPose.transform.orientation;
             window.avatars[window.playerid].headset.matrix = headPose.transform.matrix;
         }
-
     }
 }
 
@@ -273,22 +265,17 @@ function onXRFrame(t, frame) {
 
     updateInputSources(session, frame, refSpace);
 
-    // TODO: send to websocket server for sync
+    // ZH: send to websocket server for self avatar sync
     if (window.playerid != null)
         window.wsclient.send("avatar", window.playerid);
 
-    updateAudioSources(frame, refSpace);
     // Update the position of all currently selected audio sources. It's
     // possible to select multiple audio sources and drag them at the same
     // time (one per controller that has the trigger held down).    
-
-    for (let peerUuid in window.peerConnections) {
-        window.updateAvatarAudio(peerUuid);
-    }
+    updateAudioSources(frame, refSpace);
 
     updateAudioNodes(window.scene);
 
-    // update the position of avatars
     updateAvatars();
 
     window.scene.drawXRFrame(frame, pose);
@@ -301,6 +288,12 @@ function onXRFrame(t, frame) {
 }
 
 function updateAvatars() {
+    // update transformation of each avatar audio source
+    for (let peerUuid in window.peerConnections) {
+        window.updateAvatarAudio(peerUuid);
+    }
+
+    // update avatar's model's matrix
     for (let id in window.avatars) {
         if (id == window.playerid)
             continue;
@@ -308,9 +301,6 @@ function updateAvatars() {
         if (avatar.headset.position.x || avatar.headset.position.y || avatar.headset.position.z) {
             // not in the default pos            
             avatar.headset.model.matrix = avatar.headset.matrix;
-            // avatar.headset.model.translation = avatar.headset.position;
-            // avatar.headset.model.rotation = avatar.headset.orientation;
-            // avatar.headset.model.scale = vec3.fromValues(1,1,1);
             avatar.leftController.model.matrix = avatar.leftController.matrix;
             avatar.rightController.model.matrix = avatar.rightController.matrix;
         }

@@ -52,7 +52,7 @@ export class Client {
                     }
                 };
                 break;
-            // TODO: seems not consistent with what we have for eyecontact
+
             case "webrtc":
                 {
                     message = {
@@ -64,6 +64,7 @@ export class Client {
                 }
                 // console.log("send webrtc", message);
                 break;
+
             case "test":
                 {
                     message = {
@@ -85,28 +86,11 @@ export class Client {
 
             // function reconnect
             this.ws.onopen = () => {
-
-                // this.heartbeat();
-                // reset t, clean up later
-                // this.t = 0;
                 console.log('websocket is connected ...');
-                // this.subs.publish('open', null);
-                // if (this.ws.readyState == WebSocket.OPEN) {
-                //     // create webrtc
-                //     // window.voip = new VoIP_webrtc(window.wsclient);
-                // } else {
-                // }
-                // ws.send('connected');
             };
 
             this.ws.onmessage = (ev) => {
                 try {
-                    // console.log(ev);
-                    // const data = JSON.parse(ev.data);
-                    // if (data.message_type) {
-                    //     MR.server.subs.publish(data.message_type, data);
-                    //     // MR.server.subsLocal.publish(data.message_type, data);
-                    // }
                     let json = JSON.parse(ev.data);
                     window.EventBus.publish(json["type"], json);
                 } catch (err) {

@@ -122,8 +122,8 @@ setInterval(() => {
     for (let id in avatars) {
         var quat = avatars[id]["state"]["rot"];
         var fwd = [0, 0, 0];
-        transformQuat(fwd, [0,0,-1], quat);
-        console.log("id", id, "pos:", avatars[id]["state"]["pos"], "fwd", fwd);
+        transformQuat(fwd, [0, 0, -1], quat);
+        console.log("id", id, "pos:", JSON.stringify(avatars[id]["state"]["pos"]), "fwd", JSON.stringify(fwd));
     }
 
 }, 5000);

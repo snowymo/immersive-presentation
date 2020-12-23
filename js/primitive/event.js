@@ -1,7 +1,6 @@
 'use strict';
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js"
-// import {setUpPeer} from '../util/voip-webrtc.js'
 
 export function init() {
     window.EventBus.subscribe("test", (json) => {
@@ -15,48 +14,35 @@ export function init() {
 
         const id = json["id"];
 
-        // let headset = new Gltf2Node({url: '../../media/gltf/headset/headset.gltf'});
-        let headset = new Headset();
-        let leftController = new Controller("left");
-        let rightController = new Controller("right");
-        let playerAvatar = new Avatar(headset, id, leftController, rightController);
+        // create self avatar
+        initAvatar(id);
+        window.playerid = id;
 
+        // create other avatars joined earlier
         for (let key in json["avatars"]) {
             const avid = json["avatars"][key]["user"];
 
-            let headset = new Headset();
-            let leftController = new Controller("left");
-            let rightController = new Controller("right");
-            // setup render nodes for new avatar
-            headset.model.name = "headset" + avid;
-            headset.matrix = json["avatars"][key]["state"]["mtx"];
-            headset.position = json["avatars"][key]["state"]["pos"];
-            headset.orientation = json["avatars"][key]["state"]["rot"];
-            window.scene.addNode(headset.model);
+            initAvatar(avid);
 
-            leftController.model.name = "LC" + avid;
-            leftController.matrix = json["avatars"][key]["state"]["controllers"]["left"]["mtx"];
-            leftController.position = json["avatars"][key]["state"]["controllers"]["left"]["pos"];
-            leftController.orientation = json["avatars"][key]["state"]["controllers"]["left"]["rot"];
-            window.scene.addNode(leftController.model);
+            window.avatars[avid].headset.matrix = json["avatars"][key]["state"]["mtx"];
+            window.avatars[avid].headset.position = json["avatars"][key]["state"]["pos"];
+            window.avatars[avid].headset.orientation = json["avatars"][key]["state"]["rot"];
 
-            rightController.model.name = "RC" + avid;
-            rightController.matrix = json["avatars"][key]["state"]["controllers"]["right"]["mtx"];
-            rightController.position = json["avatars"][key]["state"]["controllers"]["right"]["pos"];
-            rightController.orientation = json["avatars"][key]["state"]["controllers"]["right"]["rot"];
-            window.scene.addNode(rightController.model);
+            window.avatars[avid].leftController.matrix = json["avatars"][key]["state"]["controllers"]["left"]["mtx"];
+            window.avatars[avid].leftController.position = json["avatars"][key]["state"]["controllers"]["left"]["pos"];
+            window.avatars[avid].leftController.orientation = json["avatars"][key]["state"]["controllers"]["left"]["rot"];
 
-            let avatar = new Avatar(headset, avid, leftController, rightController);
-            window.avatars[avid] = avatar;
+            window.avatars[avid].rightController.matrix = json["avatars"][key]["state"]["controllers"]["right"]["mtx"];
+            window.avatars[avid].rightController.position = json["avatars"][key]["state"]["controllers"]["right"]["pos"];
+            window.avatars[avid].rightController.orientation = json["avatars"][key]["state"]["controllers"]["right"]["rot"];
         }
 
-        window.avatars[id] = playerAvatar;
-        window.playerid = id;
         console.log("receive event: initialize", {
             id: id,
             avatars: window.avatars
         });
-        // window.microphoneInit();
+
+        // start webrtc signalling
         window.webrtc_start();
     });
 
@@ -65,9 +51,7 @@ export function init() {
         // console.log(json);
         const id = json["id"];
 
-        if (id in window.avatars) {
-
-        } else {
+        if (!id in window.avatars) {
             initAvatar(id);
         }
         console.log("join window.avatars", window.avatars);
@@ -82,7 +66,6 @@ export function init() {
             window.avatars[json["user"]].leftController.model.visible = false;
             window.avatars[json["user"]].rightController.model.visible = false;
             window.avatars[json["user"]].leave = true;
-            // delete window.avatars[json["user"]];
             // TODO clean up when too many
         }
 
@@ -106,7 +89,6 @@ export function init() {
                 window.avatars[payload[key]["user"]].headset.matrix = payload[key]["state"]["mtx"];
                 window.avatars[payload[key]["user"]].headset.position = payload[key]["state"]["pos"];
                 window.avatars[payload[key]["user"]].headset.orientation = payload[key]["state"]["rot"];
-                //console.log(payload[key]["state"]);
                 window.avatars[payload[key]["user"]].leftController.matrix = payload[key]["state"]["controllers"]["left"]["mtx"];
                 window.avatars[payload[key]["user"]].leftController.position = payload[key]["state"]["controllers"]["left"]["pos"];
                 window.avatars[payload[key]["user"]].leftController.orientation = payload[key]["state"]["controllers"]["left"]["rot"];
@@ -119,18 +101,14 @@ export function init() {
                 // window.avatars[payload[key]["user"]].mode = payload[key]["state"]["mode"];
             } else {
                 // never seen, create
-                //ALEX: AVATARS WHO ARE ALSO IN BROWSER MODE GO HERE...
                 console.log("previously unseen user avatar", payload[key]["user"]);
-                if("leave" in  window.avatars[payload[key]["user"]]){
+                if ("leave" in window.avatars[payload[key]["user"]]) {
                     console.log("left already");
-                }else{
+                } else {
                     initAvatar(payload[key]["user"]);
-                }                
-                // let avatarCube = createCubeVertices();
-                // MR.avatars[payload[key]["user"]] = new Avatar(avatarCube, payload[key]["user"]);
+                }
             }
         }
-        //}
     });
 
     window.EventBus.subscribe("webrtc", (json) => {
@@ -178,31 +156,9 @@ export function init() {
                     window.peerConnections[peerUuid].pc.createAnswer().then(description => createdDescription(description, peerUuid)).catch(errorHandler);
                 }
             }).catch(errorHandler);
-
-            // if ("nego" in window.peerConnections[peerUuid]) {
-            //     console.log("already setRemoteDescription in window.peerConnections[" + peerUuid + "]");
-            // } else {
-            //     console.log("setremotedescription");
-            //     window.peerConnections[peerUuid].nego = true;
-            //     window.peerConnections[peerUuid].pc.setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(function () {
-            //         // Only create answers in response to offers
-            //         if (signal.sdp.type == 'offer') {
-            //             window.peerConnections[peerUuid].pc.createAnswer().then(description => window.createdDescription(description, peerUuid)).catch(window.errorHandler);
-            //         }
-            //     }).catch(window.errorHandler);
-            //     if("icecall" in window.peerConnections[peerUuid]){
-            //         console.log("addIceCandidate");
-            //         window.peerConnections[peerUuid].pc.addIceCandidate(new RTCIceCandidate(signal.ice)).catch(window.errorHandler);
-            //     }
-            // }
         } else if (signal.ice) {
             console.log("case 4: ice");
             window.peerConnections[peerUuid].pc.addIceCandidate(new RTCIceCandidate(signal.ice)).catch(errorHandler);
-            // window.peerConnections[peerUuid].icecall = true;
-            // if ("nego" in window.peerConnections[peerUuid]) {
-            //     // console.log("addIceCandidate");
-            //     window.peerConnections[peerUuid].pc.addIceCandidate(new RTCIceCandidate(signal.ice)).catch(window.errorHandler);
-            // }
         }
     });
 
