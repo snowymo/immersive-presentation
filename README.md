@@ -1,5 +1,5 @@
-# webxr-samples
-Samples to demonstrate use of the WebXR Device API
+# immersive-presentation
+Prototyp SIG21
 
 # How to run locally
 ``` npm install ```
