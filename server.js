@@ -84,7 +84,7 @@ const handleRequest = function (request, response) {
     }
     else if (request.url == '/') {
         response.writeHead(200, { 'Content-Type': 'text/html' });
-        response.end(fs.readFileSync("./index.html"));
+        response.end(fs.readFileSync("./sig21.html"));
     }
     else {
         if (!request.url.startsWith('.')) {
@@ -333,11 +333,11 @@ console.log('Server running with port ' + HTTPS_PORT);
 // ----------------------------------------------------------------------------------------
 
 // Separate server to redirect from http to https
-http.createServer(function (req, res) {
-    console.log(req.headers['host'] + req.url);
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-}).listen(HTTP_PORT);
+// http.createServer(function (req, res) {
+//     console.log(req.headers['host'] + req.url);
+//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//     res.end();
+// }).listen(HTTP_PORT);
 
 timers["avatar"] = setInterval(() => {
 
