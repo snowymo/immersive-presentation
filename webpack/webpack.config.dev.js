@@ -2,14 +2,17 @@ const Path = require('path');
 const Webpack = require('webpack');
 const { merge } = require('webpack-merge');
 const StylelintPlugin = require('stylelint-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const common = require('./webpack.common.js');
 const fs = require('fs');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = merge(common, {
   mode: 'development',
   devtool: 'eval-cheap-source-map',
   output: {
+    // path: Path.resolve('dist'),
     chunkFilename: 'js/[name].chunk.js',
   },
   devServer: {
@@ -21,8 +24,11 @@ module.exports = merge(common, {
     new Webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development'),
     }),
-    new StylelintPlugin({
-      files: Path.join('src', '**/*.s?(a|c)ss'),
+    // new StylelintPlugin({
+    //   files: Path.join('src', '**/*.s?(a|c)ss'),
+    // }),
+    new MiniCssExtractPlugin({
+      filename: Path.join('src', '**/*.s?(a|c)ss'),
     }),
   ],
   module: {
@@ -47,7 +53,38 @@ module.exports = merge(common, {
       },
       {
         test: /\.s?css$/i,
-        use: ['style-loader', 'css-loader?sourceMap=true', 'postcss-loader', 'sass-loader'],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          'css-loader',
+        ],
+        // use: ['style-loader', 'css-loader?sourceMap=true', 'postcss-loader', 'sass-loader'],
+        // use: [
+        //   'style-loader',
+        //   'postcss-loader', 
+        //   'sass-loader',
+        //   {
+        //     loader: 'css-loader',
+        //     options:{
+        //       sourceMap: true
+        //     }
+        //   },
+        //   {
+        //     options: {
+        //       publicPath: ''
+        //     }
+        //   },
+        // ]
+      },
+      {
+        test: /\.(ogg)$/i,
+        include: Path.resolve(__dirname, '../src'),
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]',
+          publicPath: '',
+        }
       },
     ],
   },
