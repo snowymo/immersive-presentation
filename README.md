@@ -1,5 +1,5 @@
 # immersive-presentation
-Prototyp SIG21
+Prototype SIG21
 
 # How to run locally
 ``` npm install ```
