@@ -23,15 +23,15 @@ Renders simple text using a seven-segment LED style pattern. Only really good
 for numbers and a limited number of other characters.
 */
 
-import {Material} from '../core/material.js';
-import {Node} from '../core/node.js';
-import {Primitive, PrimitiveAttribute} from '../core/primitive.js';
+import { Material } from "../core/material.js";
+import { Node } from "../core/node.js";
+import { Primitive, PrimitiveAttribute } from "../core/primitive.js";
 
 const TEXT_KERNING = 2.0;
 
 class SevenSegmentMaterial extends Material {
   get materialName() {
-    return 'SEVEN_SEGMENT_TEXT';
+    return "SEVEN_SEGMENT_TEXT";
   }
 
   get vertexSource() {
@@ -58,7 +58,7 @@ export class SevenSegmentText extends Node {
   constructor() {
     super();
 
-    this._text = '';
+    this._text = "";
     this._charNodes = [];
   }
 
@@ -75,16 +75,9 @@ export class SevenSegmentText extends Node {
 
     function defineSegment(id, left, top, right, bottom) {
       let idx = vertices.length / 2;
-      vertices.push(
-          left, top,
-          right, top,
-          right, bottom,
-          left, bottom);
+      vertices.push(left, top, right, top, right, bottom, left, bottom);
 
-      segmentIndices[id] = [
-        idx, idx+2, idx+1,
-        idx, idx+3, idx+2,
-      ];
+      segmentIndices[id] = [idx, idx + 2, idx + 1, idx, idx + 3, idx + 2];
     }
 
     let characters = {};
@@ -115,42 +108,47 @@ export class SevenSegmentText extends Node {
 
     */
 
-    defineSegment(0, -1, 1, width, 1-thickness);
-    defineSegment(1, -1, thickness*0.5, width, -thickness*0.5);
-    defineSegment(2, -1, -1+thickness, width, -1);
-    defineSegment(3, -1, 1, -1+thickness, -thickness*0.5);
-    defineSegment(4, width-thickness, 1, width, -thickness*0.5);
-    defineSegment(5, -1, thickness*0.5, -1+thickness, -1);
-    defineSegment(6, width-thickness, thickness*0.5, width, -1);
+    defineSegment(0, -1, 1, width, 1 - thickness);
+    defineSegment(1, -1, thickness * 0.5, width, -thickness * 0.5);
+    defineSegment(2, -1, -1 + thickness, width, -1);
+    defineSegment(3, -1, 1, -1 + thickness, -thickness * 0.5);
+    defineSegment(4, width - thickness, 1, width, -thickness * 0.5);
+    defineSegment(5, -1, thickness * 0.5, -1 + thickness, -1);
+    defineSegment(6, width - thickness, thickness * 0.5, width, -1);
 
-
-    defineCharacter('0', [0, 2, 3, 4, 5, 6]);
-    defineCharacter('1', [4, 6]);
-    defineCharacter('2', [0, 1, 2, 4, 5]);
-    defineCharacter('3', [0, 1, 2, 4, 6]);
-    defineCharacter('4', [1, 3, 4, 6]);
-    defineCharacter('5', [0, 1, 2, 3, 6]);
-    defineCharacter('6', [0, 1, 2, 3, 5, 6]);
-    defineCharacter('7', [0, 4, 6]);
-    defineCharacter('8', [0, 1, 2, 3, 4, 5, 6]);
-    defineCharacter('9', [0, 1, 2, 3, 4, 6]);
-    defineCharacter('A', [0, 1, 3, 4, 5, 6]);
-    defineCharacter('B', [1, 2, 3, 5, 6]);
-    defineCharacter('C', [0, 2, 3, 5]);
-    defineCharacter('D', [1, 2, 4, 5, 6]);
-    defineCharacter('E', [0, 1, 2, 4, 6]);
-    defineCharacter('F', [0, 1, 3, 5]);
-    defineCharacter('P', [0, 1, 3, 4, 5]);
-    defineCharacter('-', [1]);
-    defineCharacter(' ', []);
-    defineCharacter('_', [2]); // Used for undefined characters
+    defineCharacter("0", [0, 2, 3, 4, 5, 6]);
+    defineCharacter("1", [4, 6]);
+    defineCharacter("2", [0, 1, 2, 4, 5]);
+    defineCharacter("3", [0, 1, 2, 4, 6]);
+    defineCharacter("4", [1, 3, 4, 6]);
+    defineCharacter("5", [0, 1, 2, 3, 6]);
+    defineCharacter("6", [0, 1, 2, 3, 5, 6]);
+    defineCharacter("7", [0, 4, 6]);
+    defineCharacter("8", [0, 1, 2, 3, 4, 5, 6]);
+    defineCharacter("9", [0, 1, 2, 3, 4, 6]);
+    defineCharacter("A", [0, 1, 3, 4, 5, 6]);
+    defineCharacter("B", [1, 2, 3, 5, 6]);
+    defineCharacter("C", [0, 2, 3, 5]);
+    defineCharacter("D", [1, 2, 4, 5, 6]);
+    defineCharacter("E", [0, 1, 2, 4, 6]);
+    defineCharacter("F", [0, 1, 3, 5]);
+    defineCharacter("P", [0, 1, 3, 4, 5]);
+    defineCharacter("-", [1]);
+    defineCharacter(" ", []);
+    defineCharacter("_", [2]); // Used for undefined characters
 
     let gl = renderer.gl;
-    let vertexBuffer = renderer.createRenderBuffer(gl.ARRAY_BUFFER, new Float32Array(vertices));
-    let indexBuffer = renderer.createRenderBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices));
+    let vertexBuffer = renderer.createRenderBuffer(
+      gl.ARRAY_BUFFER,
+      new Float32Array(vertices)
+    );
+    let indexBuffer = renderer.createRenderBuffer(
+      gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(indices)
+    );
 
     let vertexAttribs = [
-      new PrimitiveAttribute('POSITION', vertexBuffer, 2, gl.FLOAT, 8, 0),
+      new PrimitiveAttribute("POSITION", vertexBuffer, 2, gl.FLOAT, 8, 0),
     ];
 
     let primitive = new Primitive(vertexAttribs, indices.length);
@@ -163,7 +161,10 @@ export class SevenSegmentText extends Node {
       let charDef = characters[char];
       primitive.elementCount = charDef.count;
       primitive.indexByteOffset = charDef.offset;
-      this._charPrimitives[char] = renderer.createRenderPrimitive(primitive, material);
+      this._charPrimitives[char] = renderer.createRenderPrimitive(
+        primitive,
+        material
+      );
     }
 
     this.text = this._text;
@@ -182,7 +183,7 @@ export class SevenSegmentText extends Node {
       if (value[i] in this._charPrimitives) {
         charPrimitive = this._charPrimitives[value[i]];
       } else {
-        charPrimitive = this._charPrimitives['_'];
+        charPrimitive = this._charPrimitives["_"];
       }
 
       if (this._charNodes.length <= i) {

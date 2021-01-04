@@ -12,14 +12,15 @@ Tangents have been computed using MikkTSpace, as the original OBJ model did not 
 I have manually inspected the normals, and it looks correct to me.
 Be aware that W is -1.0 for most of the tangent signs, you will need to handle tangent W for correct results.
 
-
 ## Sources
 
 ### http://www.crytek.com/cryengine/cryengine3/downloads
+
 - http://www.crytek.com/download/sponza\_obj.rar
 - http://www.crytek.com/download/sponza\_textures.rar
 
 ### http://www.alexandre-pestana.com/pbr-textures-sponza/
+
 - http://www.alexandre-pestana.com/downloads/SponzaPBR\_Textures.rar
 
 I needed to resize some of the alpha mask textures to the 1024x1024 resolution used by the new texture pack,
@@ -31,7 +32,7 @@ I also ran the vertices and indices through a mesh optimizer.
 
 ## Licensing notes
 
-Taken from copyright.txt in SponzaPBR\_Textures.rar
+Taken from copyright.txt in SponzaPBR_Textures.rar
 
 ```
 PBR textures for the Sponza model.

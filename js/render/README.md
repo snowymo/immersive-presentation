@@ -1,11 +1,11 @@
-WebXR Samples Renderer
-==========================================
+# WebXR Samples Renderer
+
 A simple WebGL renderering framework optimised for demonstrating WebXR concepts.
 
 This library does two things well and not much else:
 
-1) Loading and Rendering GLTF 2.0 files.
-2) Optimising for WebXR-style rendering.
+1. Loading and Rendering GLTF 2.0 files.
+2. Optimising for WebXR-style rendering.
 
 However it explicitly goes out of it's way to NOT wrap much, if any, WebXR
 functionality. This is because arguably it's sole purpose in life is to enable

@@ -24,22 +24,23 @@
 //
 
 // Not yet presenting, but ready to present
-const READY_TO_PRESENT = 'ready';
+const READY_TO_PRESENT = "ready";
 
 // In presentation mode
-const PRESENTING = 'presenting';
-const PRESENTING_FULLSCREEN = 'presenting-fullscreen';
+const PRESENTING = "presenting";
+const PRESENTING_FULLSCREEN = "presenting-fullscreen";
 
 // Checking device availability
-const PREPARING = 'preparing';
+const PREPARING = "preparing";
 
 // Errors
-const ERROR_NO_PRESENTABLE_DISPLAYS = 'error-no-presentable-displays';
-const ERROR_BROWSER_NOT_SUPPORTED = 'error-browser-not-supported';
-const ERROR_REQUEST_TO_PRESENT_REJECTED = 'error-request-to-present-rejected';
-const ERROR_EXIT_PRESENT_REJECTED = 'error-exit-present-rejected';
-const ERROR_REQUEST_STATE_CHANGE_REJECTED = 'error-request-state-change-rejected';
-const ERROR_UNKOWN = 'error-unkown';
+const ERROR_NO_PRESENTABLE_DISPLAYS = "error-no-presentable-displays";
+const ERROR_BROWSER_NOT_SUPPORTED = "error-browser-not-supported";
+const ERROR_REQUEST_TO_PRESENT_REJECTED = "error-request-to-present-rejected";
+const ERROR_EXIT_PRESENT_REJECTED = "error-exit-present-rejected";
+const ERROR_REQUEST_STATE_CHANGE_REJECTED =
+  "error-request-state-change-rejected";
+const ERROR_UNKOWN = "error-unkown";
 
 //
 // DOM element
@@ -56,9 +57,11 @@ let _WEBXR_UI_CSS_INJECTED = {};
  * @param {Number} height
  * @private
  */
-const generateInnerHTML = (cssPrefix, height)=> {
-  const logoHeight = height*_LOGO_SCALE;
-  const svgString = generateXRIconString(cssPrefix, logoHeight) + generateNoXRIconString(cssPrefix, logoHeight);
+const generateInnerHTML = (cssPrefix, height) => {
+  const logoHeight = height * _LOGO_SCALE;
+  const svgString =
+    generateXRIconString(cssPrefix, logoHeight) +
+    generateNoXRIconString(cssPrefix, logoHeight);
 
   return `<button class="${cssPrefix}-button">
           <div class="${cssPrefix}-title"></div>
@@ -71,12 +74,12 @@ const generateInnerHTML = (cssPrefix, height)=> {
  *
  * @param {string} cssText the css to inject
  */
-const injectCSS = (cssText)=> {
+const injectCSS = (cssText) => {
   // Create the css
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.innerHTML = cssText;
 
-  let head = document.getElementsByTagName('head')[0];
+  let head = document.getElementsByTagName("head")[0];
   head.insertBefore(style, head.firstChild);
 };
 
@@ -86,7 +89,7 @@ const injectCSS = (cssText)=> {
  * @return {HTMLElement}
  * @param {Object} options
  */
-const createDefaultView = (options)=> {
+const createDefaultView = (options) => {
   const fontSize = options.height / 3;
   if (options.injectCSS) {
     // Check that css isnt already injected
@@ -96,28 +99,29 @@ const createDefaultView = (options)=> {
     }
   }
 
-  const el = document.createElement('div');
+  const el = document.createElement("div");
   el.innerHTML = generateInnerHTML(options.cssprefix, fontSize);
   return el.firstChild;
 };
 
-
-const createXRIcon = (cssPrefix, height)=>{
-  const el = document.createElement('div');
+const createXRIcon = (cssPrefix, height) => {
+  const el = document.createElement("div");
   el.innerHTML = generateXRIconString(cssPrefix, height);
   return el.firstChild;
 };
 
-const createNoXRIcon = (cssPrefix, height)=>{
-  const el = document.createElement('div');
+const createNoXRIcon = (cssPrefix, height) => {
+  const el = document.createElement("div");
   el.innerHTML = generateNoXRIconString(cssPrefix, height);
   return el.firstChild;
 };
 
-const generateXRIconString = (cssPrefix, height)=> {
-    let aspect = 28 / 18;
-    return `<svg class="${cssPrefix}-svg" version="1.1" x="0px" y="0px"
-        width="${aspect * height}px" height="${height}px" viewBox="0 0 28 18" xml:space="preserve">
+const generateXRIconString = (cssPrefix, height) => {
+  let aspect = 28 / 18;
+  return `<svg class="${cssPrefix}-svg" version="1.1" x="0px" y="0px"
+        width="${
+          aspect * height
+        }px" height="${height}px" viewBox="0 0 28 18" xml:space="preserve">
         <path d="M26.8,1.1C26.1,0.4,25.1,0,24.2,0H3.4c-1,0-1.7,0.4-2.4,1.1C0.3,1.7,0,2.7,0,3.6v10.7
         c0,1,0.3,1.9,0.9,2.6C1.6,17.6,2.4,18,3.4,18h5c0.7,0,1.3-0.2,1.8-0.5c0.6-0.3,1-0.8,1.3-1.4l
         1.5-2.6C13.2,13.1,13,13,14,13v0h-0.2 h0c0.3,0,0.7,0.1,0.8,0.5l1.4,2.6c0.3,0.6,0.8,1.1,1.3,
@@ -128,10 +132,12 @@ const generateXRIconString = (cssPrefix, height)=> {
     </svg>`;
 };
 
-const generateNoXRIconString = (cssPrefix, height)=>{
-    let aspect = 28 / 18;
-    return `<svg class="${cssPrefix}-svg-error" x="0px" y="0px"
-        width="${aspect * height}px" height="${aspect * height}px" viewBox="0 0 28 28" xml:space="preserve">
+const generateNoXRIconString = (cssPrefix, height) => {
+  let aspect = 28 / 18;
+  return `<svg class="${cssPrefix}-svg-error" x="0px" y="0px"
+        width="${aspect * height}px" height="${
+    aspect * height
+  }px" viewBox="0 0 28 28" xml:space="preserve">
         <path d="M17.6,13.4c0-0.2-0.1-0.4-0.1-0.6c0-1.6,1.3-2.8,2.8-2.8s2.8,1.3,2.8,2.8s-1.3,2.8-2.8,2.8
         c-0.2,0-0.4,0-0.6-0.1l5.9,5.9c0.5-0.2,0.9-0.4,1.3-0.8
         c0.7-0.7,1.1-1.6,1.1-2.5V7.4c0-1-0.4-1.9-1.1-2.5c-0.7-0.7-1.6-1-2.5-1
@@ -151,22 +157,22 @@ const generateNoXRIconString = (cssPrefix, height)=>{
  * @param {Number} [fontSize=18]
  * @return {string}
  */
-const generateCSS = (options, fontSize=18)=> {
+const generateCSS = (options, fontSize = 18) => {
   const height = options.height;
   const borderWidth = 2;
   const borderColor = options.background ? options.background : options.color;
   const cssPrefix = options.cssprefix;
 
   let borderRadius;
-  if (options.corners == 'round') {
+  if (options.corners == "round") {
     borderRadius = options.height / 2;
-  } else if (options.corners == 'square') {
+  } else if (options.corners == "square") {
     borderRadius = 2;
   } else {
     borderRadius = options.corners;
   }
 
-  return (`
+  return `
     @font-face {
         font-family: 'Karla';
         font-style: normal;
@@ -191,7 +197,7 @@ const generateCSS = (options, fontSize=18)=> {
         border: ${borderColor} ${borderWidth}px solid;
         border-radius: ${borderRadius}px;
         box-sizing: border-box;
-        background: ${options.background ? options.background : 'none'};
+        background: ${options.background ? options.background : "none"};
 
         height: ${height}px;
         min-width: ${fontSize * 9.6}px;
@@ -222,13 +228,13 @@ const generateCSS = (options, fontSize=18)=> {
     .${cssPrefix}-svg {
         fill: ${options.color};
         margin-top: ${(height - fontSize * _LOGO_SCALE) / 2 - 2}px;
-        margin-left: ${height / 3 }px;
+        margin-left: ${height / 3}px;
     }
     .${cssPrefix}-svg-error {
         fill: ${options.color};
         display:none;
-        margin-top: ${(height - 28 / 18 * fontSize * _LOGO_SCALE) / 2 - 2}px;
-        margin-left: ${height / 3 }px;
+        margin-top: ${(height - (28 / 18) * fontSize * _LOGO_SCALE) / 2 - 2}px;
+        margin-left: ${height / 3}px;
     }
 
 
@@ -241,7 +247,9 @@ const generateCSS = (options, fontSize=18)=> {
         position: relative;
         font-size: ${fontSize}px;
         padding-left: ${height * 1.05}px;
-        padding-right: ${(borderRadius - 10 < 5) ? height / 3 : borderRadius - 10}px;
+        padding-right: ${
+          borderRadius - 10 < 5 ? height / 3 : borderRadius - 10
+        }px;
         transition: color 0.5s;
     }
 
@@ -282,7 +290,7 @@ const generateCSS = (options, fontSize=18)=> {
       90% { transform: translate(-1px, 0) }
       100% { transform: translate(0px, 0) }
     }
-  `);
+  `;
 };
 
 //
@@ -312,20 +320,20 @@ export class WebXRButton {
   constructor(options) {
     options = options || {};
 
-    options.color = options.color || 'rgb(80,168,252)';
+    options.color = options.color || "rgb(80,168,252)";
     options.background = options.background || false;
     options.disabledOpacity = options.disabledOpacity || 0.5;
     options.height = options.height || 55;
-    options.corners = options.corners || 'square';
-    options.cssprefix = options.cssprefix || 'webvr-ui';
+    options.corners = options.corners || "square";
+    options.cssprefix = options.cssprefix || "webvr-ui";
 
     // This reads VR as none of the samples are designed for other formats as of yet.
-    options.textEnterXRTitle = options.textEnterXRTitle || 'ENTER VR';
-    options.textXRNotFoundTitle = options.textXRNotFoundTitle || 'VR NOT FOUND';
-    options.textExitXRTitle = options.textExitXRTitle || 'EXIT VR';
+    options.textEnterXRTitle = options.textEnterXRTitle || "ENTER VR";
+    options.textXRNotFoundTitle = options.textXRNotFoundTitle || "VR NOT FOUND";
+    options.textExitXRTitle = options.textExitXRTitle || "EXIT VR";
 
-    options.onRequestSession = options.onRequestSession || (function() {});
-    options.onEndSession = options.onEndSession || (function() {});
+    options.onRequestSession = options.onRequestSession || function () {};
+    options.onEndSession = options.onEndSession || function () {};
 
     options.injectCSS = options.injectCSS !== false;
 
@@ -336,10 +344,10 @@ export class WebXRButton {
 
     // Pass in your own domElement if you really dont want to use ours
     this.domElement = options.domElement || createDefaultView(options);
-    this.__defaultDisplayStyle = this.domElement.style.display || 'initial';
+    this.__defaultDisplayStyle = this.domElement.style.display || "initial";
 
     // Bind button click events to __onClick
-    this.domElement.addEventListener('click', ()=> this.__onXRButtonClick());
+    this.domElement.addEventListener("click", () => this.__onXRButtonClick());
 
     this.__forceDisabled = false;
     this.__setDisabledAttribute(true);
@@ -383,12 +391,12 @@ export class WebXRButton {
    */
   setTitle(text) {
     this.domElement.title = text;
-    ifChild(this.domElement, this.options.cssprefix, 'title', (title)=> {
+    ifChild(this.domElement, this.options.cssprefix, "title", (title) => {
       if (!text) {
-        title.style.display = 'none';
+        title.style.display = "none";
       } else {
         title.innerText = text;
-        title.style.display = 'initial';
+        title.style.display = "initial";
       }
     });
 
@@ -419,7 +427,7 @@ export class WebXRButton {
    * @return {EnterXRButton}
    */
   hide() {
-    this.domElement.style.display = 'none';
+    this.domElement.style.display = "none";
     return this;
   }
 
@@ -459,9 +467,9 @@ export class WebXRButton {
    */
   __setDisabledAttribute(disabled) {
     if (disabled || this.__forceDisabled) {
-      this.domElement.setAttribute('disabled', 'true');
+      this.domElement.setAttribute("disabled", "true");
     } else {
-      this.domElement.removeAttribute('disabled');
+      this.domElement.removeAttribute("disabled");
     }
   }
 
@@ -484,10 +492,10 @@ export class WebXRButton {
 
           // Disable the button momentarily to indicate there was an issue.
           this.__setDisabledAttribute(true);
-          this.domElement.setAttribute('error', 'true');
+          this.domElement.setAttribute("error", "true");
           setTimeout(() => {
             this.__setDisabledAttribute(false);
-            this.domElement.setAttribute('error', 'false');
+            this.domElement.setAttribute("error", "false");
           }, 1000);
         });
       }
@@ -501,15 +509,15 @@ export class WebXRButton {
   __updateButtonState() {
     if (this.session) {
       this.setTitle(this.options.textExitXRTitle);
-      this.setTooltip('Exit XR presentation');
+      this.setTooltip("Exit XR presentation");
       this.__setDisabledAttribute(false);
     } else if (this._enabled) {
       this.setTitle(this.options.textEnterXRTitle);
-      this.setTooltip('Enter XR');
+      this.setTooltip("Enter XR");
       this.__setDisabledAttribute(false);
     } else {
       this.setTitle(this.options.textXRNotFoundTitle);
-      this.setTooltip('No XR headset found.');
+      this.setTooltip("No XR headset found.");
       this.__setDisabledAttribute(true);
     }
   }
@@ -524,7 +532,7 @@ export class WebXRButton {
  * @param {function} fn function to call if child is found
  * @private
  */
-const ifChild = (el, cssPrefix, suffix, fn)=> {
-  const c = el.querySelector('.' + cssPrefix + '-' + suffix);
+const ifChild = (el, cssPrefix, suffix, fn) => {
+  const c = el.querySelector("." + cssPrefix + "-" + suffix);
   c && fn(c);
 };

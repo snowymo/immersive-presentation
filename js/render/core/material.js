@@ -32,14 +32,14 @@ export const CAP = {
 };
 
 export const MAT_STATE = {
-  CAPS_RANGE: 0x000000FF,
+  CAPS_RANGE: 0x000000ff,
   BLEND_SRC_SHIFT: 8,
-  BLEND_SRC_RANGE: 0x00000F00,
+  BLEND_SRC_RANGE: 0x00000f00,
   BLEND_DST_SHIFT: 12,
-  BLEND_DST_RANGE: 0x0000F000,
-  BLEND_FUNC_RANGE: 0x0000FF00,
+  BLEND_DST_RANGE: 0x0000f000,
+  BLEND_FUNC_RANGE: 0x0000ff00,
   DEPTH_FUNC_SHIFT: 16,
-  DEPTH_FUNC_RANGE: 0x000F0000,
+  DEPTH_FUNC_RANGE: 0x000f0000,
 };
 
 export const RENDER_ORDER = {
@@ -67,16 +67,14 @@ export function stateToBlendFunc(state, mask, shift) {
     case 1:
       return value;
     default:
-      return (value - 2) + GL.SRC_COLOR;
+      return value - 2 + GL.SRC_COLOR;
   }
 }
 
 export class MaterialState {
   constructor() {
-    this._state = CAP.CULL_FACE |
-                  CAP.DEPTH_TEST |
-                  CAP.COLOR_MASK |
-                  CAP.DEPTH_MASK;
+    this._state =
+      CAP.CULL_FACE | CAP.DEPTH_TEST | CAP.COLOR_MASK | CAP.DEPTH_MASK;
 
     // Use a fairly commonly desired blend func as the default.
     this.blendFuncSrc = GL.SRC_ALPHA;
@@ -152,12 +150,16 @@ export class MaterialState {
   }
 
   get depthFunc() {
-    return ((this._state & MAT_STATE.DEPTH_FUNC_RANGE) >> MAT_STATE.DEPTH_FUNC_SHIFT) + GL.NEVER;
+    return (
+      ((this._state & MAT_STATE.DEPTH_FUNC_RANGE) >>
+        MAT_STATE.DEPTH_FUNC_SHIFT) +
+      GL.NEVER
+    );
   }
   set depthFunc(value) {
     value = value - GL.NEVER;
     this._state &= ~MAT_STATE.DEPTH_FUNC_RANGE;
-    this._state |= (value << MAT_STATE.DEPTH_FUNC_SHIFT);
+    this._state |= value << MAT_STATE.DEPTH_FUNC_SHIFT;
   }
 
   get stencilMask() {
@@ -172,7 +174,11 @@ export class MaterialState {
   }
 
   get blendFuncSrc() {
-    return stateToBlendFunc(this._state, MAT_STATE.BLEND_SRC_RANGE, MAT_STATE.BLEND_SRC_SHIFT);
+    return stateToBlendFunc(
+      this._state,
+      MAT_STATE.BLEND_SRC_RANGE,
+      MAT_STATE.BLEND_SRC_SHIFT
+    );
   }
   set blendFuncSrc(value) {
     switch (value) {
@@ -180,14 +186,18 @@ export class MaterialState {
       case 1:
         break;
       default:
-        value = (value - GL.SRC_COLOR) + 2;
+        value = value - GL.SRC_COLOR + 2;
     }
     this._state &= ~MAT_STATE.BLEND_SRC_RANGE;
-    this._state |= (value << MAT_STATE.BLEND_SRC_SHIFT);
+    this._state |= value << MAT_STATE.BLEND_SRC_SHIFT;
   }
 
   get blendFuncDst() {
-    return stateToBlendFunc(this._state, MAT_STATE.BLEND_DST_RANGE, MAT_STATE.BLEND_DST_SHIFT);
+    return stateToBlendFunc(
+      this._state,
+      MAT_STATE.BLEND_DST_RANGE,
+      MAT_STATE.BLEND_DST_SHIFT
+    );
   }
   set blendFuncDst(value) {
     switch (value) {
@@ -195,10 +205,10 @@ export class MaterialState {
       case 1:
         break;
       default:
-        value = (value - GL.SRC_COLOR) + 2;
+        value = value - GL.SRC_COLOR + 2;
     }
     this._state &= ~MAT_STATE.BLEND_DST_RANGE;
-    this._state |= (value << MAT_STATE.BLEND_DST_SHIFT);
+    this._state |= value << MAT_STATE.BLEND_DST_SHIFT;
   }
 }
 
@@ -242,7 +252,7 @@ class MaterialUniform {
 
 export class Material {
   constructor() {
-    this.state = new MaterialState;
+    this.state = new MaterialState();
     this.renderOrder = RENDER_ORDER.DEFAULT;
     this._samplers = [];
     this._uniforms = [];
@@ -254,7 +264,7 @@ export class Material {
     return sampler;
   }
 
-  defineUniform(uniformName, defaultValue=null, length=0) {
+  defineUniform(uniformName, defaultValue = null, length = 0) {
     let uniform = new MaterialUniform(uniformName, defaultValue, length);
     this._uniforms.push(uniform);
     return uniform;

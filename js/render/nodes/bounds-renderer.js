@@ -25,9 +25,9 @@ The bounds `geometry` is a series of DOMPointReadOnlys in
 clockwise-order.
 */
 
-import {Material, RENDER_ORDER} from '../core/material.js';
-import {Node} from '../core/node.js';
-import {Primitive, PrimitiveAttribute} from '../core/primitive.js';
+import { Material, RENDER_ORDER } from "../core/material.js";
+import { Node } from "../core/node.js";
+import { Primitive, PrimitiveAttribute } from "../core/primitive.js";
 
 const GL = WebGLRenderingContext; // For enums
 
@@ -46,7 +46,7 @@ class BoundsMaterial extends Material {
   }
 
   get materialName() {
-    return 'BOUNDS_RENDERER';
+    return "BOUNDS_RENDERER";
   }
 
   get vertexSource() {
@@ -109,27 +109,36 @@ export class BoundsRenderer extends Node {
 
       lastIndex += 2;
       if (i > 0) {
-        indices.push(lastIndex, lastIndex-1, lastIndex-2);
-        indices.push(lastIndex-2, lastIndex-1, lastIndex-3);
+        indices.push(lastIndex, lastIndex - 1, lastIndex - 2);
+        indices.push(lastIndex - 2, lastIndex - 1, lastIndex - 3);
       }
     }
 
     if (pointCount > 1) {
       indices.push(1, 0, lastIndex);
-      indices.push(lastIndex, 0, lastIndex-1);
+      indices.push(lastIndex, 0, lastIndex - 1);
     }
 
-    let vertexBuffer = this._renderer.createRenderBuffer(GL.ARRAY_BUFFER, new Float32Array(verts));
-    let indexBuffer = this._renderer.createRenderBuffer(GL.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices));
+    let vertexBuffer = this._renderer.createRenderBuffer(
+      GL.ARRAY_BUFFER,
+      new Float32Array(verts)
+    );
+    let indexBuffer = this._renderer.createRenderBuffer(
+      GL.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(indices)
+    );
 
     let attribs = [
-      new PrimitiveAttribute('POSITION', vertexBuffer, 3, GL.FLOAT, 12, 0),
+      new PrimitiveAttribute("POSITION", vertexBuffer, 3, GL.FLOAT, 12, 0),
     ];
 
     let primitive = new Primitive(attribs, indices.length);
     primitive.setIndexBuffer(indexBuffer);
 
-    let renderPrimitive = this._renderer.createRenderPrimitive(primitive, new BoundsMaterial());
+    let renderPrimitive = this._renderer.createRenderPrimitive(
+      primitive,
+      new BoundsMaterial()
+    );
     this.addRenderPrimitive(renderPrimitive);
   }
 }

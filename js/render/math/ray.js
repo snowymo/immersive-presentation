@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {mat3, vec3} from './gl-matrix.js';
+import { mat3, vec3 } from "./gl-matrix.js";
 
 let normalMat = mat3.create();
 
@@ -52,12 +52,13 @@ export class Ray {
     this.inv_dir = vec3.fromValues(
       1.0 / this._dir[0],
       1.0 / this._dir[1],
-      1.0 / this._dir[2]);
+      1.0 / this._dir[2]
+    );
 
     this.sign = [
-      (this.inv_dir[0] < 0) ? 1 : 0,
-      (this.inv_dir[1] < 0) ? 1 : 0,
-      (this.inv_dir[2] < 0) ? 1 : 0,
+      this.inv_dir[0] < 0 ? 1 : 0,
+      this.inv_dir[1] < 0 ? 1 : 0,
+      this.inv_dir[2] < 0 ? 1 : 0,
     ];
   }
 
@@ -70,11 +71,11 @@ export class Ray {
     let bounds = [min, max];
 
     let tmin = (bounds[r.sign[0]][0] - r.origin[0]) * r.inv_dir[0];
-    let tmax = (bounds[1-r.sign[0]][0] - r.origin[0]) * r.inv_dir[0];
+    let tmax = (bounds[1 - r.sign[0]][0] - r.origin[0]) * r.inv_dir[0];
     let tymin = (bounds[r.sign[1]][1] - r.origin[1]) * r.inv_dir[1];
-    let tymax = (bounds[1-r.sign[1]][1] - r.origin[1]) * r.inv_dir[1];
+    let tymax = (bounds[1 - r.sign[1]][1] - r.origin[1]) * r.inv_dir[1];
 
-    if ((tmin > tymax) || (tymin > tmax)) {
+    if (tmin > tymax || tymin > tmax) {
       return null;
     }
     if (tymin > tmin) {
@@ -85,9 +86,9 @@ export class Ray {
     }
 
     let tzmin = (bounds[r.sign[2]][2] - r.origin[2]) * r.inv_dir[2];
-    let tzmax = (bounds[1-r.sign[2]][2] - r.origin[2]) * r.inv_dir[2];
+    let tzmax = (bounds[1 - r.sign[2]][2] - r.origin[2]) * r.inv_dir[2];
 
-    if ((tmin > tzmax) || (tzmin > tmax)) {
+    if (tmin > tzmax || tzmin > tmax) {
       return null;
     }
     if (tzmin > tmin) {

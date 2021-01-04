@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Material} from '../core/material.js';
-import {Node} from '../core/node.js';
-import {UrlTexture} from '../core/texture.js';
-import {BoxBuilder} from '../geometry/box-builder.js';
-import {mat4} from '../math/gl-matrix.js';
+import { Material } from "../core/material.js";
+import { Node } from "../core/node.js";
+import { UrlTexture } from "../core/texture.js";
+import { BoxBuilder } from "../geometry/box-builder.js";
+import { mat4 } from "../math/gl-matrix.js";
 
 class CubeSeaMaterial extends Material {
   constructor(heavy = false) {
@@ -30,11 +30,11 @@ class CubeSeaMaterial extends Material {
 
     this.heavy = heavy;
 
-    this.baseColor = this.defineSampler('baseColor');
+    this.baseColor = this.defineSampler("baseColor");
   }
 
   get materialName() {
-    return 'CUBE_SEA';
+    return "CUBE_SEA";
   }
 
   get vertexSource() {
@@ -170,7 +170,9 @@ export class CubeSeaNode extends Node {
     // not recommended for viewing in a headset.
     this.autoRotate = !!options.autoRotate;
 
-    this._texture = new UrlTexture(options.imageUrl || 'media/textures/cube-sea.png');
+    this._texture = new UrlTexture(
+      options.imageUrl || "media/textures/cube-sea.png"
+    );
 
     this._material = new CubeSeaMaterial(this.heavyGpu);
     this._material.baseColor.texture = this._texture;
@@ -248,7 +250,10 @@ export class CubeSeaNode extends Node {
     let cubeSeaPrimitive = boxBuilder.finishPrimitive(this._renderer);
 
     if (!this._renderPrimitive) {
-      this._renderPrimitive = this._renderer.createRenderPrimitive(cubeSeaPrimitive, this._material);
+      this._renderPrimitive = this._renderer.createRenderPrimitive(
+        cubeSeaPrimitive,
+        this._material
+      );
     } else {
       this._renderPrimitive.setPrimitive(cubeSeaPrimitive);
     }

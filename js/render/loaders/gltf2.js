@@ -18,21 +18,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {PbrMaterial} from '../materials/pbr.js';
-import {Node} from '../core/node.js';
-import {Primitive, PrimitiveAttribute} from '../core/primitive.js';
-import {ImageTexture, ColorTexture} from '../core/texture.js';
+import { PbrMaterial } from "../materials/pbr.js";
+import { Node } from "../core/node.js";
+import { Primitive, PrimitiveAttribute } from "../core/primitive.js";
+import { ImageTexture, ColorTexture } from "../core/texture.js";
 
 const GL = WebGLRenderingContext; // For enums
 
-const GLB_MAGIC = 0x46546C67;
+const GLB_MAGIC = 0x46546c67;
 const CHUNK_TYPE = {
-  JSON: 0x4E4F534A,
-  BIN: 0x004E4942,
+  JSON: 0x4e4f534a,
+  BIN: 0x004e4942,
 };
 
 function isAbsoluteUri(uri) {
-  let absRegEx = new RegExp('^'+window.location.protocol, 'i');
+  let absRegEx = new RegExp("^" + window.location.protocol, "i");
   return !!uri.match(absRegEx);
 }
 
@@ -43,18 +43,23 @@ function isDataUri(uri) {
 
 function resolveUri(uri, baseUrl) {
   if (isAbsoluteUri(uri) || isDataUri(uri)) {
-      return uri;
+    return uri;
   }
   return baseUrl + uri;
 }
 
 function getComponentCount(type) {
   switch (type) {
-    case 'SCALAR': return 1;
-    case 'VEC2': return 2;
-    case 'VEC3': return 3;
-    case 'VEC4': return 4;
-    default: return 0;
+    case "SCALAR":
+      return 1;
+    case "VEC2":
+      return 2;
+    case "VEC3":
+      return 3;
+    case "VEC4":
+      return 4;
+    default:
+      return 0;
   }
 }
 
@@ -70,23 +75,22 @@ export class Gltf2Loader {
   }
 
   loadFromUrl(url) {
-    return fetch(url)
-        .then((response) => {
-          let i = url.lastIndexOf('/');
-          let baseUrl = (i !== 0) ? url.substring(0, i + 1) : '';
+    return fetch(url).then((response) => {
+      let i = url.lastIndexOf("/");
+      let baseUrl = i !== 0 ? url.substring(0, i + 1) : "";
 
-          if (url.endsWith('.gltf')) {
-            return response.json().then((json) => {
-              return this.loadFromJson(json, baseUrl);
-            });
-          } else if (url.endsWith('.glb')) {
-            return response.arrayBuffer().then((arrayBuffer) => {
-              return this.loadFromBinary(arrayBuffer, baseUrl);
-            });
-          } else {
-            throw new Error('Unrecognized file extension');
-          }
+      if (url.endsWith(".gltf")) {
+        return response.json().then((json) => {
+          return this.loadFromJson(json, baseUrl);
         });
+      } else if (url.endsWith(".glb")) {
+        return response.arrayBuffer().then((arrayBuffer) => {
+          return this.loadFromBinary(arrayBuffer, baseUrl);
+        });
+      } else {
+        throw new Error("Unrecognized file extension");
+      }
+    });
   }
 
   loadFromBinary(arrayBuffer, baseUrl) {
@@ -96,11 +100,11 @@ export class Gltf2Loader {
     let length = headerView.getUint32(8, true);
 
     if (magic != GLB_MAGIC) {
-      throw new Error('Invalid magic string in binary header.');
+      throw new Error("Invalid magic string in binary header.");
     }
 
     if (version != 2) {
-      throw new Error('Incompatible version in binary header.');
+      throw new Error("Incompatible version in binary header.");
     }
 
     let chunks = {};
@@ -109,15 +113,18 @@ export class Gltf2Loader {
       let chunkHeaderView = new DataView(arrayBuffer, chunkOffset, 8);
       let chunkLength = chunkHeaderView.getUint32(0, true);
       let chunkType = chunkHeaderView.getUint32(4, true);
-      chunks[chunkType] = arrayBuffer.slice(chunkOffset + 8, chunkOffset + 8 + chunkLength);
+      chunks[chunkType] = arrayBuffer.slice(
+        chunkOffset + 8,
+        chunkOffset + 8 + chunkLength
+      );
       chunkOffset += chunkLength + 8;
     }
 
     if (!chunks[CHUNK_TYPE.JSON]) {
-      throw new Error('File contained no json chunk.');
+      throw new Error("File contained no json chunk.");
     }
 
-    let decoder = new TextDecoder('utf-8');
+    let decoder = new TextDecoder("utf-8");
     let jsonString = decoder.decode(chunks[CHUNK_TYPE.JSON]);
     let json = JSON.parse(jsonString);
     return this.loadFromJson(json, baseUrl, chunks[CHUNK_TYPE.BIN]);
@@ -125,11 +132,11 @@ export class Gltf2Loader {
 
   loadFromJson(json, baseUrl, binaryChunk) {
     if (!json.asset) {
-      throw new Error('Missing asset description.');
+      throw new Error("Missing asset description.");
     }
 
-    if (json.asset.minVersion != '2.0' && json.asset.version != '2.0') {
-      throw new Error('Incompatible asset version.');
+    if (json.asset.minVersion != "2.0" && json.asset.version != "2.0") {
+      throw new Error("Incompatible asset version.");
     }
 
     let buffers = [];
@@ -188,11 +195,15 @@ export class Gltf2Loader {
           pbr.metallicFactor || 1.0,
           pbr.roughnessFactor || 1.0,
         ];
-        glMaterial.metallicRoughness.texture = getTexture(pbr.metallicRoughnessTexture);
+        glMaterial.metallicRoughness.texture = getTexture(
+          pbr.metallicRoughnessTexture
+        );
         glMaterial.normal.texture = getTexture(material.normalTexture);
         glMaterial.occlusion.texture = getTexture(material.occlusionTexture);
-        glMaterial.occlusionStrength.value = (material.occlusionTexture && material.occlusionTexture.strength) ?
-                                              material.occlusionTexture.strength : 1.0;
+        glMaterial.occlusionStrength.value =
+          material.occlusionTexture && material.occlusionTexture.strength
+            ? material.occlusionTexture.strength
+            : 1.0;
         glMaterial.emissiveFactor.value = material.emissiveFactor || [0, 0, 0];
         glMaterial.emissive.texture = getTexture(material.emissiveTexture);
         if (!glMaterial.emissive.texture && material.emissiveFactor) {
@@ -200,20 +211,21 @@ export class Gltf2Loader {
         }
 
         switch (material.alphaMode) {
-          case 'BLEND':
+          case "BLEND":
             glMaterial.state.blend = true;
             break;
-          case 'MASK':
+          case "MASK":
             // Not really supported.
             glMaterial.state.blend = true;
             break;
-          default: // Includes 'OPAQUE'
+          default:
+            // Includes 'OPAQUE'
             glMaterial.state.blend = false;
         }
 
         // glMaterial.alpha_mode = material.alphaMode;
         // glMaterial.alpha_cutoff = material.alphaCutoff;
-        glMaterial.state.cullFace = !(material.doubleSided);
+        glMaterial.state.cullFace = !material.doubleSided;
 
         materials.push(glMaterial);
       }
@@ -228,7 +240,7 @@ export class Gltf2Loader {
 
       for (let primitive of mesh.primitives) {
         let material = null;
-        if ('material' in primitive) {
+        if ("material" in primitive) {
           material = materials[primitive.material];
         } else {
           // Create a "default" material if the primitive has none.
@@ -258,7 +270,7 @@ export class Gltf2Loader {
           );
           glAttribute.normalized = accessor.normalized || false;
 
-          if (name == 'POSITION') {
+          if (name == "POSITION") {
             min = accessor.min;
             max = accessor.max;
           }
@@ -266,9 +278,13 @@ export class Gltf2Loader {
           attributes.push(glAttribute);
         }
 
-        let glPrimitive = new Primitive(attributes, elementCount, primitive.mode);
+        let glPrimitive = new Primitive(
+          attributes,
+          elementCount,
+          primitive.mode
+        );
 
-        if ('indices' in primitive) {
+        if ("indices" in primitive) {
           let accessor = accessors[primitive.indices];
           let bufferView = bufferViews[accessor.bufferView];
 
@@ -289,7 +305,8 @@ export class Gltf2Loader {
         // After all the attributes have been processed, get a program that is
         // appropriate for both the material and the primitive attributes.
         glMesh.primitives.push(
-            this.renderer.createRenderPrimitive(glPrimitive, material));
+          this.renderer.createRenderPrimitive(glPrimitive, material)
+        );
       }
     }
 
@@ -297,8 +314,7 @@ export class Gltf2Loader {
     let scene = json.scenes[json.scene];
     for (let nodeId of scene.nodes) {
       let node = json.nodes[nodeId];
-      sceneNode.addNode(
-          this.processNodes(node, json.nodes, meshes));
+      sceneNode.addNode(this.processNodes(node, json.nodes, meshes));
     }
 
     return sceneNode;
@@ -308,7 +324,7 @@ export class Gltf2Loader {
     let glNode = new Node();
     glNode.name = node.name;
 
-    if ('mesh' in node) {
+    if ("mesh" in node) {
       let mesh = meshes[node.mesh];
       for (let primitive of mesh.primitives) {
         glNode.addRenderPrimitive(primitive);
@@ -391,14 +407,20 @@ class Gltf2Resource {
   arrayBuffer() {
     if (!this._dataPromise) {
       if (isDataUri(this.json.uri)) {
-        let base64String = this.json.uri.replace('data:application/octet-stream;base64,', '');
-        let binaryArray = Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0));
+        let base64String = this.json.uri.replace(
+          "data:application/octet-stream;base64,",
+          ""
+        );
+        let binaryArray = Uint8Array.from(atob(base64String), (c) =>
+          c.charCodeAt(0)
+        );
         this._dataPromise = Promise.resolve(binaryArray.buffer);
         return this._dataPromise;
       }
 
-      this._dataPromise = fetch(resolveUri(this.json.uri, this.baseUrl))
-          .then((response) => response.arrayBuffer());
+      this._dataPromise = fetch(
+        resolveUri(this.json.uri, this.baseUrl)
+      ).then((response) => response.arrayBuffer());
     }
     return this._dataPromise;
   }
@@ -418,7 +440,7 @@ class Gltf2Resource {
         this._texture.genDataKey();
         let view = bufferViews[this.json.bufferView];
         view.dataView().then((dataView) => {
-          let blob = new Blob([dataView], {type: this.json.mimeType});
+          let blob = new Blob([dataView], { type: this.json.mimeType });
           img.src = window.URL.createObjectURL(blob);
         });
       }

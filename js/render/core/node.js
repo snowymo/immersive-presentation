@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Ray} from '../math/ray.js';
-import {mat4, vec3, quat} from '../math/gl-matrix.js';
+import { Ray } from "../math/ray.js";
+import { mat4, vec3, quat } from "../math/gl-matrix.js";
 
 const DEFAULT_TRANSLATION = new Float32Array([0, 0, 0]);
 const DEFAULT_ROTATION = new Float32Array([0, 0, 0, 1]);
@@ -198,7 +198,8 @@ export class Node {
         this._matrix,
         this._rotation || DEFAULT_ROTATION,
         this._translation || DEFAULT_TRANSLATION,
-        this._scale || DEFAULT_SCALE);
+        this._scale || DEFAULT_SCALE
+      );
     }
 
     return this._matrix;
@@ -236,7 +237,11 @@ export class Node {
       if (this.parent) {
         // TODO: Some optimizations that could be done here if the node matrix
         // is an identity matrix.
-        mat4.mul(this._worldMatrix, this.parent.worldMatrix, this._updateLocalMatrix());
+        mat4.mul(
+          this._worldMatrix,
+          this.parent.worldMatrix,
+          this._updateLocalMatrix()
+        );
       } else {
         mat4.copy(this._worldMatrix, this._updateLocalMatrix());
       }
@@ -366,7 +371,10 @@ export class Node {
             mat4.multiply(tmpRayMatrix, tmpRayMatrix, rigidTransform.matrix);
             localRay = new Ray(tmpRayMatrix);
           }
-          let intersection = localRay.intersectsAABB(primitive._min, primitive._max);
+          let intersection = localRay.intersectsAABB(
+            primitive._min,
+            primitive._max
+          );
           if (intersection) {
             vec3.transformMat4(intersection, intersection, this.worldMatrix);
             return intersection;
@@ -427,14 +435,10 @@ export class Node {
   }
 
   // Called when a selectable element is pointed at.
-  onHoverStart() {
-
-  }
+  onHoverStart() {}
 
   // Called when a selectable element is no longer pointed at.
-  onHoverEnd() {
-
-  }
+  onHoverEnd() {}
 
   _update(timestamp, frameDelta) {
     this.onUpdate(timestamp, frameDelta);
@@ -445,7 +449,5 @@ export class Node {
   }
 
   // Called every frame so that the nodes can animate themselves
-  onUpdate(timestamp, frameDelta) {
-
-  }
+  onUpdate(timestamp, frameDelta) {}
 }

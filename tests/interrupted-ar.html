@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
 Copyright 2018 The Immersive Web Community Group
 
@@ -21,13 +21,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <html>
   <head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
-    <meta name='mobile-web-app-capable' content='yes'>
-    <meta name='apple-mobile-web-app-capable' content='yes'>
-    <link rel='icon' type='image/png' sizes='32x32' href='favicon-32x32.png'>
-    <link rel='icon' type='image/png' sizes='96x96' href='favicon-96x96.png'>
-    <link rel='stylesheet' href='../css/common.css'>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+    <link rel="stylesheet" href="../css/common.css" />
 
     <title>Interrupted AR</title>
   </head>
@@ -46,18 +49,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       </details>
     </header>
     <script type="module">
-      import {WebXRButton} from '../js/util/webxr-button.js';
-      import {Scene} from '../js/render/scenes/scene.js';
-      import {Renderer, createWebGLContext} from '../js/render/core/renderer.js';
-      import {SkyboxNode} from '../js/render/nodes/skybox.js';
-      import {InlineViewerHelper} from '../js/util/inline-viewer-helper.js';
-      import {Gltf2Node} from '../js/render/nodes/gltf2.js';
-      import {QueryArgs} from '../js/util/query-args.js';
+      import { WebXRButton } from "../js/util/webxr-button.js";
+      import { Scene } from "../js/render/scenes/scene.js";
+      import {
+        Renderer,
+        createWebGLContext,
+      } from "../js/render/core/renderer.js";
+      import { SkyboxNode } from "../js/render/nodes/skybox.js";
+      import { InlineViewerHelper } from "../js/util/inline-viewer-helper.js";
+      import { Gltf2Node } from "../js/render/nodes/gltf2.js";
+      import { QueryArgs } from "../js/util/query-args.js";
 
       // If requested, use the polyfill to provide support for mobile devices
       // and devices which only support WebVR.
-      import WebXRPolyfill from '../js/third-party/webxr-polyfill/build/webxr-polyfill.module.js';
-      if (QueryArgs.getBool('usePolyfill', true)) {
+      import WebXRPolyfill from "../js/third-party/webxr-polyfill/build/webxr-polyfill.module.js";
+      if (QueryArgs.getBool("usePolyfill", true)) {
         let polyfill = new WebXRPolyfill();
       }
 
@@ -70,13 +76,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let gl = null;
       let renderer = null;
       let scene = new Scene();
-      let solarSystem = new Gltf2Node({url: '../media/gltf/space/space.gltf'});
+      let solarSystem = new Gltf2Node({
+        url: "../media/gltf/space/space.gltf",
+      });
       // The solar system is big (citation needed). Scale it down so that users
       // can move around the planets more easily.
       solarSystem.scale = [0.1, 0.1, 0.1];
       scene.addNode(solarSystem);
       // Still adding a skybox, but only for the benefit of the inline view.
-      let skybox = new SkyboxNode({url: '../media/textures/milky-way-4k.png'});
+      let skybox = new SkyboxNode({
+        url: "../media/textures/milky-way-4k.png",
+      });
       scene.addNode(skybox);
 
       function initXR() {
@@ -87,16 +97,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           textXRNotFoundTitle: "AR NOT FOUND",
           textExitXRTitle: "EXIT  AR",
         });
-        document.querySelector('header').appendChild(xrButton.domElement);
+        document.querySelector("header").appendChild(xrButton.domElement);
 
         if (navigator.xr) {
           // Checks to ensure that 'immersive-ar' mode is available, and only
           // enables the button if so.
-          navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+          navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
             xrButton.enabled = supported;
           });
 
-          navigator.xr.requestSession('inline').then(onSessionStarted);
+          navigator.xr.requestSession("inline").then(onSessionStarted);
         }
       }
 
@@ -105,25 +115,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         // environment will be visible either via video passthrough or a
         // transparent display. This may be presented either in a headset or
         // fullscreen on a mobile device.
-        return navigator.xr.requestSession('immersive-ar')
-            .then((session) => {
-              xrButton.setSession(session);
-              session.isImmersive = true;
+        return navigator.xr.requestSession("immersive-ar").then((session) => {
+          xrButton.setSession(session);
+          session.isImmersive = true;
 
-              // Actually pass along the session start after 5 seconds.
-              setTimeout(() => { onSessionStarted(session); }, 5000);
+          // Actually pass along the session start after 5 seconds.
+          setTimeout(() => {
+            onSessionStarted(session);
+          }, 5000);
 
-              // Throw an exception in the meantime.
-              throw new Exception('Simulated Error');
-            });
+          // Throw an exception in the meantime.
+          throw new Exception("Simulated Error");
+        });
       }
 
       function initGL() {
-        if (gl)
-          return;
+        if (gl) return;
 
         gl = createWebGLContext({
-          xrCompatible: true
+          xrCompatible: true,
         });
         document.body.appendChild(gl.canvas);
 
@@ -131,7 +141,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           gl.canvas.width = gl.canvas.clientWidth * window.devicePixelRatio;
           gl.canvas.height = gl.canvas.clientHeight * window.devicePixelRatio;
         }
-        window.addEventListener('resize', onResize);
+        window.addEventListener("resize", onResize);
         onResize();
 
         renderer = new Renderer(gl);
@@ -140,7 +150,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
 
       function onSessionStarted(session) {
-        session.addEventListener('end', onSessionEnded);
+        session.addEventListener("end", onSessionEnded);
 
         if (session.isImmersive) {
           // When in 'immersive-ar' mode don't draw an opaque background because
@@ -152,7 +162,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
 
-        let refSpaceType = session.isImmersive ? 'local' : 'viewer';
+        let refSpaceType = session.isImmersive ? "local" : "viewer";
         session.requestReferenceSpace(refSpaceType).then((refSpace) => {
           if (session.isImmersive) {
             xrImmersiveRefSpace = refSpace;
@@ -178,9 +188,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       // Called every time a XRSession requests that a new frame be drawn.
       function onXRFrame(t, frame) {
         let session = frame.session;
-        let refSpace = session.isImmersive ?
-                         xrImmersiveRefSpace :
-                         inlineViewerHelper.referenceSpace;
+        let refSpace = session.isImmersive
+          ? xrImmersiveRefSpace
+          : inlineViewerHelper.referenceSpace;
         let pose = frame.getViewerPose(refSpace);
 
         scene.startFrame();

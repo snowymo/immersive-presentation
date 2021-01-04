@@ -18,13 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {CAP, MAT_STATE, RENDER_ORDER, stateToBlendFunc} from './material.js';
-import {Node} from './node.js';
-import {Program} from './program.js';
-import {DataTexture, VideoTexture} from './texture.js';
-import {mat4, vec3} from '../math/gl-matrix.js';
-import CG from './CG.js';
-import * as RenderList from './renderList.js';
+import { CAP, MAT_STATE, RENDER_ORDER, stateToBlendFunc } from "./material.js";
+import { Node } from "./node.js";
+import { Program } from "./program.js";
+import { DataTexture, VideoTexture } from "./texture.js";
+import { mat4, vec3 } from "../math/gl-matrix.js";
+import CG from "./CG.js";
+import * as RenderList from "./renderList.js";
 
 export const ATTRIB = {
   POSITION: 1,
@@ -49,7 +49,7 @@ const GL = WebGLRenderingContext; // For enums
 const DEF_LIGHT_DIR = new Float32Array([-0.1, -1.0, -0.2]);
 const DEF_LIGHT_COLOR = new Float32Array([3.0, 3.0, 3.0]);
 
-const PRECISION_REGEX = new RegExp('precision (lowp|mediump|highp) float;');
+const PRECISION_REGEX = new RegExp("precision (lowp|mediump|highp) float;");
 
 const VERTEX_SHADER_SINGLE_ENTRY = `
 uniform mat4 PROJECTION_MATRIX, VIEW_MATRIX, MODEL_MATRIX;
@@ -78,10 +78,12 @@ function isPowerOfTwo(n) {
 
 // Creates a WebGL context and initializes it with some common default state.
 export function createWebGLContext(glAttribs) {
-  glAttribs = glAttribs || {alpha: false};
+  glAttribs = glAttribs || { alpha: false };
 
-  let webglCanvas = document.createElement('canvas');
-  let contextTypes = glAttribs.webgl2 ? ['webgl2'] : ['webgl', 'experimental-webgl'];
+  let webglCanvas = document.createElement("canvas");
+  let contextTypes = glAttribs.webgl2
+    ? ["webgl2"]
+    : ["webgl", "experimental-webgl"];
   let context = null;
 
   for (let contextType of contextTypes) {
@@ -92,8 +94,8 @@ export function createWebGLContext(glAttribs) {
   }
 
   if (!context) {
-    let webglType = (glAttribs.webgl2 ? 'WebGL 2' : 'WebGL');
-    console.error('This browser does not support ' + webglType + '.');
+    let webglType = glAttribs.webgl2 ? "WebGL 2" : "WebGL";
+    console.error("This browser does not support " + webglType + ".");
     return null;
   }
 
@@ -101,12 +103,12 @@ export function createWebGLContext(glAttribs) {
 }
 
 export class RenderView {
-  constructor(projectionMatrix, viewTransform, viewport = null, eye = 'left') {
+  constructor(projectionMatrix, viewTransform, viewport = null, eye = "left") {
     this.projectionMatrix = projectionMatrix;
     this.viewport = viewport;
     // If an eye isn't given the left eye is assumed.
     this._eye = eye;
-    this._eyeIndex = (eye == 'left' ? 0 : 1);
+    this._eyeIndex = eye == "left" ? 0 : 1;
 
     // Compute the view matrix
     if (viewTransform instanceof Float32Array) {
@@ -139,7 +141,7 @@ export class RenderView {
 
   set eye(value) {
     this._eye = value;
-    this._eyeIndex = (value == 'left' ? 0 : 1);
+    this._eyeIndex = value == "left" ? 0 : 1;
   }
 
   get eyeIndex() {
@@ -217,7 +219,9 @@ class RenderPrimitive {
         }
       }
       if (!foundBuffer) {
-        let attributeBuffer = new RenderPrimitiveAttributeBuffer(attribute.buffer);
+        let attributeBuffer = new RenderPrimitiveAttributeBuffer(
+          attribute.buffer
+        );
         attributeBuffer._attributes.push(renderAttribute);
         this._attributeBuffers.push(attributeBuffer);
       }
@@ -278,7 +282,7 @@ class RenderPrimitive {
   waitForComplete() {
     if (!this._promise) {
       if (!this._material) {
-        return Promise.reject('RenderPrimitive does not have a material');
+        return Promise.reject("RenderPrimitive does not have a material");
       }
 
       let completionPromises = [];
@@ -379,7 +383,11 @@ class RenderMaterial {
     this._samplerDictionary = {};
     this._samplers = [];
     for (let i = 0; i < material._samplers.length; ++i) {
-      let renderSampler = new RenderMaterialSampler(renderer, material._samplers[i], i);
+      let renderSampler = new RenderMaterialSampler(
+        renderer,
+        material._samplers[i],
+        i
+      );
       this._samplers.push(renderSampler);
       this._samplerDictionary[renderSampler._uniformName] = renderSampler;
     }
@@ -408,7 +416,7 @@ class RenderMaterial {
     // First time we do a binding, cache the uniform locations and remove
     // unused uniforms from the list.
     if (this._firstBind) {
-      for (let i = 0; i < this._samplers.length;) {
+      for (let i = 0; i < this._samplers.length; ) {
         let sampler = this._samplers[i];
         if (!this._program.uniform[sampler._uniformName]) {
           this._samplers.splice(i, 1);
@@ -417,7 +425,7 @@ class RenderMaterial {
         ++i;
       }
 
-      for (let i = 0; i < this._uniforms.length;) {
+      for (let i = 0; i < this._uniforms.length; ) {
         let uniform = this._uniforms[i];
         uniform._uniform = this._program.uniform[uniform._uniformName];
         if (!uniform._uniform) {
@@ -440,10 +448,18 @@ class RenderMaterial {
 
     for (let uniform of this._uniforms) {
       switch (uniform._length) {
-        case 1: gl.uniform1fv(uniform._uniform, uniform._value); break;
-        case 2: gl.uniform2fv(uniform._uniform, uniform._value); break;
-        case 3: gl.uniform3fv(uniform._uniform, uniform._value); break;
-        case 4: gl.uniform4fv(uniform._uniform, uniform._value); break;
+        case 1:
+          gl.uniform1fv(uniform._uniform, uniform._value);
+          break;
+        case 2:
+          gl.uniform2fv(uniform._uniform, uniform._value);
+          break;
+        case 3:
+          gl.uniform3fv(uniform._uniform, uniform._value);
+          break;
+        case 4:
+          gl.uniform4fv(uniform._uniform, uniform._value);
+          break;
       }
     }
   }
@@ -489,32 +505,52 @@ class RenderMaterial {
     return !!(this._state & CAP.STENCIL_MASK);
   }
   get depthFunc() {
-    return ((this._state & MAT_STATE.DEPTH_FUNC_RANGE) >> MAT_STATE.DEPTH_FUNC_SHIFT) + GL.NEVER;
+    return (
+      ((this._state & MAT_STATE.DEPTH_FUNC_RANGE) >>
+        MAT_STATE.DEPTH_FUNC_SHIFT) +
+      GL.NEVER
+    );
   }
   get blendFuncSrc() {
-    return stateToBlendFunc(this._state, MAT_STATE.BLEND_SRC_RANGE, MAT_STATE.BLEND_SRC_SHIFT);
+    return stateToBlendFunc(
+      this._state,
+      MAT_STATE.BLEND_SRC_RANGE,
+      MAT_STATE.BLEND_SRC_SHIFT
+    );
   }
   get blendFuncDst() {
-    return stateToBlendFunc(this._state, MAT_STATE.BLEND_DST_RANGE, MAT_STATE.BLEND_DST_SHIFT);
+    return stateToBlendFunc(
+      this._state,
+      MAT_STATE.BLEND_DST_RANGE,
+      MAT_STATE.BLEND_DST_SHIFT
+    );
   }
 
   // Only really for use from the renderer
   _capsDiff(otherState) {
-    return (otherState & MAT_STATE.CAPS_RANGE) ^ (this._state & MAT_STATE.CAPS_RANGE);
+    return (
+      (otherState & MAT_STATE.CAPS_RANGE) ^ (this._state & MAT_STATE.CAPS_RANGE)
+    );
   }
 
   _blendDiff(otherState) {
     if (!(this._state & CAP.BLEND)) {
       return 0;
     }
-    return (otherState & MAT_STATE.BLEND_FUNC_RANGE) ^ (this._state & MAT_STATE.BLEND_FUNC_RANGE);
+    return (
+      (otherState & MAT_STATE.BLEND_FUNC_RANGE) ^
+      (this._state & MAT_STATE.BLEND_FUNC_RANGE)
+    );
   }
 
   _depthFuncDiff(otherState) {
     if (!(this._state & CAP.DEPTH_TEST)) {
       return 0;
     }
-    return (otherState & MAT_STATE.DEPTH_FUNC_RANGE) ^ (this._state & MAT_STATE.DEPTH_FUNC_RANGE);
+    return (
+      (otherState & MAT_STATE.DEPTH_FUNC_RANGE) ^
+      (this._state & MAT_STATE.DEPTH_FUNC_RANGE)
+    );
   }
 }
 
@@ -527,10 +563,14 @@ export class Renderer {
     this._renderPrimitives = Array(RENDER_ORDER.DEFAULT);
     this._cameraPositions = [];
 
-    this._vaoExt = gl.getExtension('OES_vertex_array_object');
+    this._vaoExt = gl.getExtension("OES_vertex_array_object");
 
-    let fragHighPrecision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-    this._defaultFragPrecision = fragHighPrecision.precision > 0 ? 'highp' : 'mediump';
+    let fragHighPrecision = gl.getShaderPrecisionFormat(
+      gl.FRAGMENT_SHADER,
+      gl.HIGH_FLOAT
+    );
+    this._defaultFragPrecision =
+      fragHighPrecision.precision > 0 ? "highp" : "mediump";
 
     this._depthMaskNeedsReset = false;
     this._colorMaskNeedsReset = false;
@@ -560,17 +600,21 @@ export class Renderer {
   }
 
   createRenderBuffer(target, data, usage) {
-    if(usage === undefined) usage = GL.STATIC_DRAW;
+    if (usage === undefined) usage = GL.STATIC_DRAW;
     let gl = this._gl;
     let glBuffer = gl.createBuffer();
 
     if (data instanceof Promise) {
-      let renderBuffer = new RenderBuffer(target, usage, data.then((data) => {
-        gl.bindBuffer(target, glBuffer);
-        gl.bufferData(target, data, usage);
-        renderBuffer._length = data.byteLength;
-        return glBuffer;
-      }));
+      let renderBuffer = new RenderBuffer(
+        target,
+        usage,
+        data.then((data) => {
+          gl.bindBuffer(target, glBuffer);
+          gl.bufferData(target, data, usage);
+          renderBuffer._length = data.byteLength;
+          return glBuffer;
+        })
+      );
       return renderBuffer;
     } else {
       gl.bindBuffer(target, glBuffer);
@@ -613,7 +657,9 @@ export class Renderer {
 
   createMesh(primitive, material) {
     let meshNode = new Node();
-    meshNode.addRenderPrimitive(this.createRenderPrimitive(primitive, material));
+    meshNode.addRenderPrimitive(
+      this.createRenderPrimitive(primitive, material)
+    );
     return meshNode;
   }
 
@@ -636,7 +682,7 @@ export class Renderer {
 
     // Get the positions of the 'camera' for each view matrix.
     for (let i = 0; i < views.length; ++i) {
-      if (this._cameraPositions.length <= i) {                
+      if (this._cameraPositions.length <= i) {
         this._cameraPositions.push(vec3.create());
       }
       let p = views[i].viewTransform.position;
@@ -694,14 +740,24 @@ export class Renderer {
         }
 
         if (program.uniform.LIGHT_COLOR) {
-        gl.uniform3fv(program.uniform.LIGHT_COLOR, this._globalLightColor);
-       
+          gl.uniform3fv(program.uniform.LIGHT_COLOR, this._globalLightColor);
         }
 
         if (views.length == 1) {
-          gl.uniformMatrix4fv(program.uniform.PROJECTION_MATRIX, false, views[0].projectionMatrix);
-          gl.uniformMatrix4fv(program.uniform.VIEW_MATRIX, false, views[0].viewMatrix);
-          gl.uniform3fv(program.uniform.CAMERA_POSITION, this._cameraPositions[0]);
+          gl.uniformMatrix4fv(
+            program.uniform.PROJECTION_MATRIX,
+            false,
+            views[0].projectionMatrix
+          );
+          gl.uniformMatrix4fv(
+            program.uniform.VIEW_MATRIX,
+            false,
+            views[0].viewMatrix
+          );
+          gl.uniform3fv(
+            program.uniform.CAMERA_POSITION,
+            this._cameraPositions[0]
+          );
           gl.uniform1i(program.uniform.EYE_INDEX, views[0].eyeIndex);
         }
       }
@@ -732,9 +788,20 @@ export class Renderer {
             let vp = view.viewport;
             gl.viewport(vp.x, vp.y, vp.width, vp.height);
           }
-          gl.uniformMatrix4fv(program.uniform.PROJECTION_MATRIX, false, view.projectionMatrix);
-          gl.uniformMatrix4fv(program.uniform.VIEW_MATRIX, false, view.viewMatrix);
-          gl.uniform3fv(program.uniform.CAMERA_POSITION, this._cameraPositions[i]);
+          gl.uniformMatrix4fv(
+            program.uniform.PROJECTION_MATRIX,
+            false,
+            view.projectionMatrix
+          );
+          gl.uniformMatrix4fv(
+            program.uniform.VIEW_MATRIX,
+            false,
+            view.viewMatrix
+          );
+          gl.uniform3fv(
+            program.uniform.CAMERA_POSITION,
+            this._cameraPositions[i]
+          );
           gl.uniform1i(program.uniform.EYE_INDEX, view.eyeIndex);
         }
 
@@ -743,11 +810,19 @@ export class Renderer {
             continue;
           }
 
-          gl.uniformMatrix4fv(program.uniform.MODEL_MATRIX, false, instance.worldMatrix);
+          gl.uniformMatrix4fv(
+            program.uniform.MODEL_MATRIX,
+            false,
+            instance.worldMatrix
+          );
 
           if (primitive._indexBuffer) {
-            gl.drawElements(primitive._mode, primitive._elementCount,
-                primitive._indexType, primitive._indexByteOffset);
+            gl.drawElements(
+              primitive._mode,
+              primitive._elementCount,
+              primitive._indexType,
+              primitive._indexByteOffset
+            );
           } else {
             // gl.drawArrays(primitive._mode, 0, primitive._elementCount);
             gl.drawArrays(primitive._mode, 0, primitive._elementCount);
@@ -757,49 +832,83 @@ export class Renderer {
     }
   }
 
-  _drawRenderListPrimitive(renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror) {
-
+  _drawRenderListPrimitive(
+    renderList,
+    shape,
+    matrix,
+    color,
+    opacity,
+    textureInfo,
+    fxMode,
+    triangleMode,
+    isToon,
+    isMirror
+  ) {
     let gl = this._gl;
     let pgm = new Program(gl, vertSrc, fragSrc);
     pgm.use();
 
-    let drawArrays = () => gl.drawArrays(triangleMode == 1 ? gl.TRIANGLES: gl.TRIANGLE_STRIP, 0, shape.length / VERTEX_SIZE);
+    let drawArrays = () =>
+      gl.drawArrays(
+        triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
+        0,
+        shape.length / VERTEX_SIZE
+      );
     // let drawElements = () =>
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1);
-    gl.uniform4fv(gl.getUniformLocation(pgm.program, "uColor"), color.length == 4 ? color : color.concat([opacity === undefined ? 1 : opacity]));
-    gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uModel"), false, matrix);
+    gl.uniform4fv(
+      gl.getUniformLocation(pgm.program, "uColor"),
+      color.length == 4
+        ? color
+        : color.concat([opacity === undefined ? 1 : opacity])
+    );
+    gl.uniformMatrix4fv(
+      gl.getUniformLocation(pgm.program, "uModel"),
+      false,
+      matrix
+    );
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uFxMode"), fxMode);
-    gl.uniform3fv(gl.getUniformLocation(pgm.program, "uWindowDir"), this._globalLightDir);
+    gl.uniform3fv(
+      gl.getUniformLocation(pgm.program, "uWindowDir"),
+      this._globalLightDir
+    );
     // if (textureInfo.isValid) {
-  
+
     //   gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 0);
-  
+
     //   // base texture : 0
     //   // bump texture : 1
     //   // ...
     //   for (let i = 0; i < textureInfo.textures.length; i += 1) {
     //     gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
-  
+
     //     if (w.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
     //       w.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
     //     }
     //   }
-  
+
     //   gl.uniform1i(w.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
-  
+
     // } else {
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
+    gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
     // }
-  
-  
+
     if (shape != renderList.prev_shape) {
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
     }
 
     if (views.length == 1) {
-      gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uProj"), false, views[0].projectionMatrix);
-      gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uView"), false, views[0].viewMatrix);
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(pgm.program, "uProj"),
+        false,
+        views[0].projectionMatrix
+      );
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(pgm.program, "uView"),
+        false,
+        views[0].viewMatrix
+      );
     }
 
     for (let i = 0; i < views.length; ++i) {
@@ -807,18 +916,28 @@ export class Renderer {
       if (views.length > 1) {
         let vp = view.viewport;
         gl.viewport(vp.x, vp.y, vp.width, vp.height);
-        gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uView"), false, view.viewMatrix);
-        gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uProj"), false, view.projectionMatrix);
+        gl.uniformMatrix4fv(
+          gl.getUniformLocation(pgm.program, "uView"),
+          false,
+          view.viewMatrix
+        );
+        gl.uniformMatrix4fv(
+          gl.getUniformLocation(pgm.program, "uProj"),
+          false,
+          view.projectionMatrix
+        );
       }
       if (isToon) {
-        gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), .3 * CG.norm(m.value().slice(0, 3)));
+        gl.uniform1f(
+          gl.getUniformLocation(pgm.program, "uToon"),
+          0.3 * CG.norm(m.value().slice(0, 3))
+        );
         gl.cullFace(gl.FRONT);
         drawArrays();
         gl.cullFace(gl.BACK);
         gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
       }
-      if (isMirror)
-        gl.cullFace(gl.FRONT);
+      if (isMirror) gl.cullFace(gl.FRONT);
       drawArrays();
     }
     gl.cullFace(gl.BACK);
@@ -832,7 +951,7 @@ export class Renderer {
 
     let key = texture.textureKey;
     if (!key) {
-      throw new Error('Texure does not have a valid key');
+      throw new Error("Texure does not have a valid key");
     }
 
     if (key in this._textureCache) {
@@ -846,25 +965,48 @@ export class Renderer {
 
       if (texture instanceof DataTexture) {
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
-        gl.texImage2D(gl.TEXTURE_2D, 0, texture.format, texture.width, texture.height,
-                                     0, texture.format, texture._type, texture._data);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          texture.format,
+          texture.width,
+          texture.height,
+          0,
+          texture.format,
+          texture._type,
+          texture._data
+        );
         this._setSamplerParameters(texture);
         renderTexture._complete = true;
       } else {
         texture.waitForComplete().then(() => {
           gl.bindTexture(gl.TEXTURE_2D, textureHandle);
-          gl.texImage2D(gl.TEXTURE_2D, 0, texture.format, texture.format, gl.UNSIGNED_BYTE, texture.source);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            texture.format,
+            texture.format,
+            gl.UNSIGNED_BYTE,
+            texture.source
+          );
           this._setSamplerParameters(texture);
           renderTexture._complete = true;
 
           if (texture instanceof VideoTexture) {
             // Once the video starts playing, set a callback to update it's
             // contents each frame.
-            texture._video.addEventListener('playing', () => {
+            texture._video.addEventListener("playing", () => {
               renderTexture._activeCallback = () => {
                 if (!texture._video.paused && !texture._video.waiting) {
                   gl.bindTexture(gl.TEXTURE_2D, textureHandle);
-                  gl.texImage2D(gl.TEXTURE_2D, 0, texture.format, texture.format, gl.UNSIGNED_BYTE, texture.source);
+                  gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0,
+                    texture.format,
+                    texture.format,
+                    gl.UNSIGNED_BYTE,
+                    texture.source
+                  );
                 }
               };
             });
@@ -880,17 +1022,23 @@ export class Renderer {
     let gl = this._gl;
 
     let sampler = texture.sampler;
-    let powerOfTwo = isPowerOfTwo(texture.width) && isPowerOfTwo(texture.height);
+    let powerOfTwo =
+      isPowerOfTwo(texture.width) && isPowerOfTwo(texture.height);
     let mipmap = powerOfTwo && texture.mipmap;
     if (mipmap) {
       gl.generateMipmap(gl.TEXTURE_2D);
     }
 
-    let minFilter = sampler.minFilter || (mipmap ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+    let minFilter =
+      sampler.minFilter || (mipmap ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
     let wrapS = sampler.wrapS || (powerOfTwo ? gl.REPEAT : gl.CLAMP_TO_EDGE);
     let wrapT = sampler.wrapT || (powerOfTwo ? gl.REPEAT : gl.CLAMP_TO_EDGE);
 
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, sampler.magFilter || gl.LINEAR);
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MAG_FILTER,
+      sampler.magFilter || gl.LINEAR
+    );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
@@ -913,13 +1061,17 @@ export class Renderer {
 
     // These should always be defined for every material
     if (materialName == null) {
-      throw new Error('Material does not have a name');
+      throw new Error("Material does not have a name");
     }
     if (vertexSource == null) {
-      throw new Error(`Material "${materialName}" does not have a vertex source`);
+      throw new Error(
+        `Material "${materialName}" does not have a vertex source`
+      );
     }
     if (fragmentSource == null) {
-      throw new Error(`Material "${materialName}" does not have a fragment source`);
+      throw new Error(
+        `Material "${materialName}" does not have a fragment source`
+      );
     }
 
     let defines = material.getProgramDefines(renderPrimitive);
@@ -930,16 +1082,25 @@ export class Renderer {
     } else {
       let multiview = false; // Handle this dynamically later
       let fullVertexSource = vertexSource;
-      fullVertexSource += multiview ? VERTEX_SHADER_MULTI_ENTRY :
-                                      VERTEX_SHADER_SINGLE_ENTRY;
+      fullVertexSource += multiview
+        ? VERTEX_SHADER_MULTI_ENTRY
+        : VERTEX_SHADER_SINGLE_ENTRY;
 
       let precisionMatch = fragmentSource.match(PRECISION_REGEX);
-      let fragPrecisionHeader = precisionMatch ? '' : `precision ${this._defaultFragPrecision} float;\n`;
+      let fragPrecisionHeader = precisionMatch
+        ? ""
+        : `precision ${this._defaultFragPrecision} float;\n`;
 
       let fullFragmentSource = fragPrecisionHeader + fragmentSource;
       fullFragmentSource += FRAGMENT_SHADER_ENTRY;
 
-      let program = new Program(this._gl, fullVertexSource, fullFragmentSource, ATTRIB, defines);
+      let program = new Program(
+        this._gl,
+        fullVertexSource,
+        fullFragmentSource,
+        ATTRIB,
+        defines
+      );
       this._programCache[key] = program;
 
       program.onNextUse((program) => {
@@ -977,8 +1138,13 @@ export class Renderer {
       gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffer._buffer._buffer);
       for (let attrib of attributeBuffer._attributes) {
         gl.vertexAttribPointer(
-            attrib._attrib_index, attrib._componentCount, attrib._componentType,
-            attrib._normalized, attrib._stride, attrib._byteOffset);
+          attrib._attrib_index,
+          attrib._componentCount,
+          attrib._componentType,
+          attrib._normalized,
+          attrib._stride,
+          attrib._byteOffset
+        );
       }
     }
 
@@ -1007,20 +1173,23 @@ export class Renderer {
       setCap(gl, gl.DEPTH_TEST, CAP.DEPTH_TEST, prevState, state);
       setCap(gl, gl.STENCIL_TEST, CAP.STENCIL_TEST, prevState, state);
 
-      let colorMaskChange = (state & CAP.COLOR_MASK) - (prevState & CAP.COLOR_MASK);
+      let colorMaskChange =
+        (state & CAP.COLOR_MASK) - (prevState & CAP.COLOR_MASK);
       if (colorMaskChange) {
         let mask = colorMaskChange > 1;
         this._colorMaskNeedsReset = !mask;
         gl.colorMask(mask, mask, mask, mask);
       }
 
-      let depthMaskChange = (state & CAP.DEPTH_MASK) - (prevState & CAP.DEPTH_MASK);
+      let depthMaskChange =
+        (state & CAP.DEPTH_MASK) - (prevState & CAP.DEPTH_MASK);
       if (depthMaskChange) {
         this._depthMaskNeedsReset = !(depthMaskChange > 1);
         gl.depthMask(depthMaskChange > 1);
       }
 
-      let stencilMaskChange = (state & CAP.STENCIL_MASK) - (prevState & CAP.STENCIL_MASK);
+      let stencilMaskChange =
+        (state & CAP.STENCIL_MASK) - (prevState & CAP.STENCIL_MASK);
       if (stencilMaskChange) {
         gl.stencilMask(stencilMaskChange > 1);
       }

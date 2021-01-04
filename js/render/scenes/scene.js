@@ -18,20 +18,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {RenderView} from '../core/renderer.js';
-import {InputRenderer} from '../nodes/input-renderer.js';
-import {StatsViewer} from '../nodes/stats-viewer.js';
-import {Node} from '../core/node.js';
-import {vec3, quat} from '../math/gl-matrix.js';
-import {Ray} from '../math/ray.js';
+import { RenderView } from "../core/renderer.js";
+import { InputRenderer } from "../nodes/input-renderer.js";
+import { StatsViewer } from "../nodes/stats-viewer.js";
+import { Node } from "../core/node.js";
+import { vec3, quat } from "../math/gl-matrix.js";
+import { Ray } from "../math/ray.js";
 
 export class WebXRView extends RenderView {
   constructor(view, layer) {
     super(
       view ? view.projectionMatrix : null,
       view ? view.transform : null,
-      (layer && view) ? layer.getViewport(view) : null,
-      view ? view.eye : 'left'
+      layer && view ? layer.getViewport(view) : null,
+      view ? view.eye : "left"
     );
   }
 }
@@ -92,7 +92,7 @@ export class Scene extends Node {
         continue;
       }
 
-      if (inputSource.targetRayMode == 'tracked-pointer') {
+      if (inputSource.targetRayMode == "tracked-pointer") {
         // If we have a pointer matrix and the pointer origin is the users
         // hand (as opposed to their head or the screen) use it to render
         // a ray coming out of the input device to indicate the pointer
@@ -121,15 +121,15 @@ export class Scene extends Node {
         let targetRay = new Ray(targetRayPose.transform.matrix);
         let cursorDistance = 1.0;
         let cursorPos = vec3.fromValues(
-            targetRay.origin[0], //x
-            targetRay.origin[1], //y
-            targetRay.origin[2]  //z
-            );
+          targetRay.origin[0], //x
+          targetRay.origin[1], //y
+          targetRay.origin[2] //z
+        );
         vec3.add(cursorPos, cursorPos, [
-            targetRay.direction[0] * cursorDistance,
-            targetRay.direction[1] * cursorDistance,
-            targetRay.direction[2] * cursorDistance,
-            ]);
+          targetRay.direction[0] * cursorDistance,
+          targetRay.direction[1] * cursorDistance,
+          targetRay.direction[2] * cursorDistance,
+        ]);
         // let cursorPos = vec3.fromValues(0, 0, -1.0);
         // vec3.transformMat4(cursorPos, cursorPos, inputPose.targetRay);
         this.inputRenderer.addCursor(cursorPos);
@@ -140,11 +140,12 @@ export class Scene extends Node {
 
         // Any time that we have a grip matrix, we'll render a controller.
         if (gripPose) {
-          this.inputRenderer.addController(gripPose.transform.matrix, inputSource.handedness);
+          this.inputRenderer.addController(
+            gripPose.transform.matrix,
+            inputSource.handedness
+          );
         }
       }
-      
-
     }
 
     for (let hoverNode of this._hoveredNodes) {

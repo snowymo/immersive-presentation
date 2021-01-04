@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Node} from '../core/node.js';
-import {Gltf2Loader} from '../loaders/gltf2.js';
+import { Node } from "../core/node.js";
+import { Gltf2Loader } from "../loaders/gltf2.js";
 
 // Using a weak map here allows us to cache a loader per-renderer without
 // modifying the renderer object or leaking memory when it's garbage collected.
@@ -49,16 +49,19 @@ export class Gltf2Node extends Node {
 
     this._ensurePromise();
 
-    loader.loadFromUrl(this._url).then((sceneNode) => {
-      this.addNode(sceneNode);
-      this._resolver(sceneNode.waitForComplete());
-      this._resolver = null;
-      this._rejecter = null;
-    }).catch((err) => {
-      this._rejecter(err);
-      this._resolver = null;
-      this._rejecter = null;
-    });
+    loader
+      .loadFromUrl(this._url)
+      .then((sceneNode) => {
+        this.addNode(sceneNode);
+        this._resolver(sceneNode.waitForComplete());
+        this._resolver = null;
+        this._rejecter = null;
+      })
+      .catch((err) => {
+        this._rejecter(err);
+        this._resolver = null;
+        this._rejecter = null;
+      });
   }
 
   _ensurePromise() {

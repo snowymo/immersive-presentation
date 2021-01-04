@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
 Copyright 2020 The Immersive Web Community Group
 
@@ -21,15 +21,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <html>
   <head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
-    <meta name='mobile-web-app-capable' content='yes'>
-    <meta name='apple-mobile-web-app-capable' content='yes'>
-    <link rel='icon' type='image/png' sizes='32x32' href='/favicon-32x32.png'>
-    <link rel='icon' type='image/png' sizes='96x96' href='/favicon-96x96.png'>
-    <link rel='stylesheet' href='../css/common.css'>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="stylesheet" href="../css/common.css" />
 
-    <meta http-equiv="origin-trial" content="AmlTjhi6a1TYxVFo0Fwd+PAUO65z4LCMqEgRcQ8bM+fAU3p065iOmG4QnItkAzD5X0F0Y0VccvAp3WOAIgnGpg8AAABbeyJvcmlnaW4iOiJodHRwczovL2ltbWVyc2l2ZS13ZWIuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJYUkRlcHRoIiwiZXhwaXJ5IjoxNjA5MzczOTMzfQ==">
+    <meta
+      http-equiv="origin-trial"
+      content="AmlTjhi6a1TYxVFo0Fwd+PAUO65z4LCMqEgRcQ8bM+fAU3p065iOmG4QnItkAzD5X0F0Y0VccvAp3WOAIgnGpg8AAABbeyJvcmlnaW4iOiJodHRwczovL2ltbWVyc2l2ZS13ZWIuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJYUkRlcHRoIiwiZXhwaXJ5IjoxNjA5MzczOTMzfQ=="
+    />
 
     <title>AR Depth API - GPU access</title>
   </head>
@@ -57,12 +63,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         vTexCoord = aTexCoord;
       }
     </script>
-    <script id="fragmentShader" type="x-shader/x-fragment" src="../shaders/depth-api-gpu.frag"></script>
-    <script id="turboFragment" type="x-shader/x-fragment" src="../shaders/turbo.glsl"></script>
-    
+    <script
+      id="fragmentShader"
+      type="x-shader/x-fragment"
+      src="../shaders/depth-api-gpu.frag"
+    ></script>
+    <script
+      id="turboFragment"
+      type="x-shader/x-fragment"
+      src="../shaders/turbo.glsl"
+    ></script>
+
     <script type="module">
-      import {mat4, vec3, mat3, vec2} from '../js/render/math/gl-matrix.js';
-      import {WebXRButton} from '../js/util/webxr-button.js';
+      import { mat4, vec3, mat3, vec2 } from "../js/render/math/gl-matrix.js";
+      import { WebXRButton } from "../js/util/webxr-button.js";
 
       // XR globals.
       let xrButton = null;
@@ -87,11 +101,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           textXRNotFoundTitle: "AR NOT FOUND",
           textExitXRTitle: "EXIT AR",
         });
-        document.querySelector('header').appendChild(xrButton.domElement);
+        document.querySelector("header").appendChild(xrButton.domElement);
 
         if (navigator.xr) {
-          navigator.xr.isSessionSupported('immersive-ar')
-                      .then((supported) => {
+          navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
             xrButton.enabled = supported;
           });
         }
@@ -101,31 +114,31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         // Requests an immersive session with environment integration.
 
         let options = {
-          requiredFeatures: ['depth-sensing'],
+          requiredFeatures: ["depth-sensing"],
         };
 
-        navigator.xr.requestSession('immersive-ar', options).then((session) => {
-            session.mode = 'immersive-ar';
-            xrButton.setSession(session);
+        navigator.xr.requestSession("immersive-ar", options).then((session) => {
+          session.mode = "immersive-ar";
+          xrButton.setSession(session);
 
-            fetchShaders().then(() => {
-              onSessionStarted(session);
-            });
+          fetchShaders().then(() => {
+            onSessionStarted(session);
+          });
         });
       }
 
       function onSessionStarted(session) {
-        session.addEventListener('end', onSessionEnded);
+        session.addEventListener("end", onSessionEnded);
 
-        let canvas = document.createElement('canvas');
-        gl = canvas.getContext('webgl', {
-            xrCompatible: true
+        let canvas = document.createElement("canvas");
+        gl = canvas.getContext("webgl", {
+          xrCompatible: true,
         });
 
         initializeGL();
 
         session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
-        session.requestReferenceSpace('local').then((refSpace) => {
+        session.requestReferenceSpace("local").then((refSpace) => {
           xrRefSpace = refSpace;
           session.requestAnimationFrame(onXRFrame);
         });
@@ -152,39 +165,63 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
 
       async function fetchShaders() {
-        vertexShaderSource = document.getElementById('vertexShader').textContent;
-        fragmentShaderSource = await fetchShader("fragmentShader") + "\n"
-                             + await fetchShader("turboFragment");
-
+        vertexShaderSource = document.getElementById("vertexShader")
+          .textContent;
+        fragmentShaderSource =
+          (await fetchShader("fragmentShader")) +
+          "\n" +
+          (await fetchShader("turboFragment"));
       }
 
       function initializeGL() {
-        shaderProgram = initShaderProgram(vertexShaderSource, fragmentShaderSource);
+        shaderProgram = initShaderProgram(
+          vertexShaderSource,
+          fragmentShaderSource
+        );
 
         programInfo = {
-            program: shaderProgram,
-            attribLocations: {
-              vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-              texCoord: gl.getAttribLocation(shaderProgram, 'aTexCoord'),
-            },
-            uniformLocations: {
-              depthTexture: gl.getUniformLocation(shaderProgram, 'uDepthTexture'),
-              uvTransform: gl.getUniformLocation(shaderProgram, 'uUvTransform'),
-            },
+          program: shaderProgram,
+          attribLocations: {
+            vertexPosition: gl.getAttribLocation(
+              shaderProgram,
+              "aVertexPosition"
+            ),
+            texCoord: gl.getAttribLocation(shaderProgram, "aTexCoord"),
+          },
+          uniformLocations: {
+            depthTexture: gl.getUniformLocation(shaderProgram, "uDepthTexture"),
+            uvTransform: gl.getUniformLocation(shaderProgram, "uUvTransform"),
+          },
         };
 
         vertexBuffer = gl.createBuffer();
 
         // clip space coordinates + texture space coordinates
         const vertices_data = [
-          -1, -1,    0, 0,  // bottom left
-           1, -1,    1, 0,  // bottom right
-          -1,  1,    0, 1,  // top left
-           1,  1,    1, 1,  // top right
+          -1,
+          -1,
+          0,
+          0, // bottom left
+          1,
+          -1,
+          1,
+          0, // bottom right
+          -1,
+          1,
+          0,
+          1, // top left
+          1,
+          1,
+          1,
+          1, // top right
         ];
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_data), gl.STATIC_DRAW);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(vertices_data),
+          gl.STATIC_DRAW
+        );
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         depthTexture = gl.createTexture();
@@ -212,7 +249,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         // If creating the shader program failed, alert
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-          alert("Unable to initialize the shader program: " +
+          alert(
+            "Unable to initialize the shader program: " +
               gl.getProgramInfoLog(shaderProgram)
           );
           return null;
@@ -248,20 +286,27 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         const pose = frame.getViewerPose(xrRefSpace);
 
-        if(pose) {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
+        if (pose) {
+          gl.bindFramebuffer(
+            gl.FRAMEBUFFER,
+            session.renderState.baseLayer.framebuffer
+          );
 
           // Clear the framebuffer
           gl.clearColor(0, 0, 0, 0);
           gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-          for(const view of pose.views) {
+          for (const view of pose.views) {
             const viewport = baseLayer.getViewport(view);
-            gl.viewport(viewport.x, viewport.y,
-                        viewport.width, viewport.height);
+            gl.viewport(
+              viewport.x,
+              viewport.y,
+              viewport.width,
+              viewport.height
+            );
 
             const depthData = frame.getDepthInformation(view);
-            if(depthData){
+            if (depthData) {
               renderDepthInformationGPU(depthData, view, viewport);
             }
           }
@@ -278,27 +323,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         gl.vertexAttribPointer(
           programInfo.attribLocations.vertexPosition,
-          2,      // 2 components
+          2, // 2 components
           gl.FLOAT,
-          false,  // don't normalize
-          16,     // stride = 4 floats * 4 bytes
-          0       // start at offset 0 of the buffer
+          false, // don't normalize
+          16, // stride = 4 floats * 4 bytes
+          0 // start at offset 0 of the buffer
         );
-        gl.enableVertexAttribArray(
-          programInfo.attribLocations.vertexPosition
-        );
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 
         gl.vertexAttribPointer(
           programInfo.attribLocations.texCoord,
-          2,      // 2 components
+          2, // 2 components
           gl.FLOAT,
-          false,  // don't normalize
-          16,     // stride = 4 floats * 4 bytes
-          8       // start at offset of 2 floats * 4 bytes of the buffer
+          false, // don't normalize
+          16, // stride = 4 floats * 4 bytes
+          8 // start at offset of 2 floats * 4 bytes of the buffer
         );
-        gl.enableVertexAttribArray(
-          programInfo.attribLocations.texCoord
-        );
+        gl.enableVertexAttribArray(programInfo.attribLocations.texCoord);
 
         const dataBuffer = depthData.data;
 
@@ -307,15 +348,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         // Supply the data buffer after converting it to Uint8Array - the
         // dataBuffer.buffer is an Uint16Array, but the gl.texImage2D expects Uint8Array
         // when using gl.UNSIGNED_BYTE type.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE_ALPHA, depthData.width,
-                      depthData.height, 0, gl.LUMINANCE_ALPHA, gl.UNSIGNED_BYTE,
-                      new Uint8Array(dataBuffer.buffer, dataBuffer.byteOffset, dataBuffer.byteLength));
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.LUMINANCE_ALPHA,
+          depthData.width,
+          depthData.height,
+          0,
+          gl.LUMINANCE_ALPHA,
+          gl.UNSIGNED_BYTE,
+          new Uint8Array(
+            dataBuffer.buffer,
+            dataBuffer.byteOffset,
+            dataBuffer.byteLength
+          )
+        );
 
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(programInfo.uniformLocations.depthTexture, 0);
 
-        gl.uniformMatrix4fv(programInfo.uniformLocations.uvTransform, false,
-                            depthData.normTextureFromNormView.matrix);
+        gl.uniformMatrix4fv(
+          programInfo.uniformLocations.uvTransform,
+          false,
+          depthData.normTextureFromNormView.matrix
+        );
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
