@@ -12,7 +12,8 @@
   },
   "scripts": {
     "test": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "format": "prettier --write \"**/*.{js,json,md,html,css}\""
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/snowymo/immersive-presentation/issues"
   },
-  "homepage": "https://github.com/snowymo/immersive-presentation#readme"
+  "homepage": "https://github.com/snowymo/immersive-presentation#readme",
+  "devDependencies": {
+    "prettier": "2.2.1"
+  }
 }

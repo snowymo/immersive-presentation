@@ -23,6 +23,8 @@ import {Node} from './node.js';
 import {Program} from './program.js';
 import {DataTexture, VideoTexture} from './texture.js';
 import {mat4, vec3} from '../math/gl-matrix.js';
+import CG from './CG.js';
+import * as RenderList from './renderList.js';
 
 export const ATTRIB = {
   POSITION: 1,
@@ -557,7 +559,8 @@ export class Renderer {
     return vec3.clone(this._globalLightDir);
   }
 
-  createRenderBuffer(target, data, usage = GL.STATIC_DRAW) {
+  createRenderBuffer(target, data, usage) {
+    if(usage === undefined) usage = GL.STATIC_DRAW;
     let gl = this._gl;
     let glBuffer = gl.createBuffer();
 
@@ -633,7 +636,7 @@ export class Renderer {
 
     // Get the positions of the 'camera' for each view matrix.
     for (let i = 0; i < views.length; ++i) {
-      if (this._cameraPositions.length <= i) {
+      if (this._cameraPositions.length <= i) {                
         this._cameraPositions.push(vec3.create());
       }
       let p = views[i].viewTransform.position;
@@ -691,7 +694,8 @@ export class Renderer {
         }
 
         if (program.uniform.LIGHT_COLOR) {
-          gl.uniform3fv(program.uniform.LIGHT_COLOR, this._globalLightColor);
+        gl.uniform3fv(program.uniform.LIGHT_COLOR, this._globalLightColor);
+       
         }
 
         if (views.length == 1) {
@@ -745,11 +749,80 @@ export class Renderer {
             gl.drawElements(primitive._mode, primitive._elementCount,
                 primitive._indexType, primitive._indexByteOffset);
           } else {
+            // gl.drawArrays(primitive._mode, 0, primitive._elementCount);
             gl.drawArrays(primitive._mode, 0, primitive._elementCount);
           }
         }
       }
     }
+  }
+
+  _drawRenderListPrimitive(renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror) {
+
+    let gl = this._gl;
+    let pgm = new Program(gl, vertSrc, fragSrc);
+    pgm.use();
+
+    let drawArrays = () => gl.drawArrays(triangleMode == 1 ? gl.TRIANGLES: gl.TRIANGLE_STRIP, 0, shape.length / VERTEX_SIZE);
+    // let drawElements = () =>
+    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1);
+    gl.uniform4fv(gl.getUniformLocation(pgm.program, "uColor"), color.length == 4 ? color : color.concat([opacity === undefined ? 1 : opacity]));
+    gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uModel"), false, matrix);
+    gl.uniform1i(gl.getUniformLocation(pgm.program, "uFxMode"), fxMode);
+    gl.uniform3fv(gl.getUniformLocation(pgm.program, "uWindowDir"), this._globalLightDir);
+    // if (textureInfo.isValid) {
+  
+    //   gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 0);
+  
+    //   // base texture : 0
+    //   // bump texture : 1
+    //   // ...
+    //   for (let i = 0; i < textureInfo.textures.length; i += 1) {
+    //     gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
+  
+    //     if (w.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
+    //       w.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
+    //     }
+    //   }
+  
+    //   gl.uniform1i(w.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
+  
+    // } else {
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
+    // }
+  
+  
+    if (shape != renderList.prev_shape) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
+    }
+
+    if (views.length == 1) {
+      gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uProj"), false, views[0].projectionMatrix);
+      gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uView"), false, views[0].viewMatrix);
+    }
+
+    for (let i = 0; i < views.length; ++i) {
+      let view = views[i];
+      if (views.length > 1) {
+        let vp = view.viewport;
+        gl.viewport(vp.x, vp.y, vp.width, vp.height);
+        gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uView"), false, view.viewMatrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(pgm.program, "uProj"), false, view.projectionMatrix);
+      }
+      if (isToon) {
+        gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), .3 * CG.norm(m.value().slice(0, 3)));
+        gl.cullFace(gl.FRONT);
+        drawArrays();
+        gl.cullFace(gl.BACK);
+        gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
+      }
+      if (isMirror)
+        gl.cullFace(gl.FRONT);
+      drawArrays();
+    }
+    gl.cullFace(gl.BACK);
+    renderList.prev_shape = shape;
   }
 
   _getRenderTexture(texture) {
