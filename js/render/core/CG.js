@@ -1,6 +1,6 @@
 "use strict"
 
-let CG = {};
+export let CG = {};
 
 ////////////////////////////// SUPPORT FOR VECTORS
 
@@ -223,7 +223,7 @@ CG.matrixTranslateVectorWithBuffer = (out, v) => {
   return out;
 };
 
-let Matrix = function() {
+export let Matrix = function() {
    let topIndex = 0,
        stack = [ CG.matrixIdentity() ],
        getVal = () => stack[topIndex],
@@ -364,7 +364,7 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-const VERTEX_SIZE = 11;
+export const VERTEX_SIZE = 9;
 
 CG.createPoly4Vertices = V => {
    let A = [V[0],V[1],V[2]],
@@ -658,5 +658,3 @@ CG.tube3           = CG.createMeshVertices( 4,  3, CG.uvToTube);
 CG.gluedCylinder   = CG.glueMeshes(CG.tube,
                      CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToDisk, 1),
                                 CG.createMeshVertices(32, 16, CG.uvToDisk, 1)));
-
-export default CG;

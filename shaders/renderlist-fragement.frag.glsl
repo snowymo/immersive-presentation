@@ -25,7 +25,7 @@ uniform float uToon;
 
 uniform int uTexIndex;
 uniform float uTexScale;
-uniform float uBrightness;
+uniform float uBrightness = 1.;
 
 uniform int uFxMode;
 uniform vec3 uWindowDir;

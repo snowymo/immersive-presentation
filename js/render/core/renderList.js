@@ -1,6 +1,6 @@
 "use strict";
 
-import CG from "./CG.js";
+import { CG, Matrix } from "./CG.js";
 
 class TextureInfo {
   constructor() {
@@ -121,8 +121,6 @@ let RenderList = function () {
       this.textureInfo = new TextureInfo();
       this.fxMode = 0;
       this.vertexMode = 0;
-      this.buffer = gl.createBuffer();
-      this.prev_shape = null;
     };
     this.init();
   };
@@ -136,10 +134,11 @@ let RenderList = function () {
     if (items[n]) items[n].init();
     else items[n] = new Item();
     items[n].shape = shape;
-    items[n].matrix = w.m.value().slice();
+    // items[n].matrix = w.m.value().slice();
+    items[n].matrix = new Matrix().value;
     return items[n++];
   };
-  this.endFrame = (drawFunction) => {
+  this.endFrame = () => {
     for (let i = 0; i < n; i++) {
       let item = items[i];
       let mat = item.matrix;
@@ -152,7 +151,8 @@ let RenderList = function () {
       mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
       mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
 
-      drawFunction(
+      return [
+        this,
         item.shape,
         mat,
         item.rgb,
@@ -160,7 +160,7 @@ let RenderList = function () {
         item.textureInfo,
         item.fxMode,
         item.vertexMode
-      );
+      ];
     }
     //      console.log("there are " + n + " items in the scene");
   };
@@ -177,20 +177,21 @@ let RenderList = function () {
       mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
       mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
 
-      drawFunction(
-        item.shape,
-        mat,
-        item.rgb,
-        item.opac,
-        item.textureInfo,
-        item.fxMode
-      );
+      drawFunction(item.shape, mat, item.rgb, item.opac, item.textureInfo, item.fxMode);
     }
   };
 
   this.setTextureCatalogue = (textureCatalogue) => {
     this.textureCatalogue = textureCatalogue;
   };
+
+  this.initBuffer = (gl) => {
+    this.buffer = gl.createBuffer();
+  }
+  this.initVAO = (gl) => {
+    this.vao = gl.createVertexArray();
+  }
+  this.prev_shape = null;
 
   let w = null,
     n = 0,

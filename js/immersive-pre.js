@@ -43,7 +43,6 @@ window.scene.addNode(
 );
 window.scene.standingStats(true);
 window.scene.addNode(stereo);
-// window.scene.addNode(new ConeBuilder());
 
 function initXR() {
   xrButton = new WebXRButton({
@@ -85,6 +84,7 @@ function initGL() {
 
   gl = createWebGLContext({
     xrCompatible: true,
+    webgl2: true,
   });
   document.body.appendChild(gl.canvas);
 
@@ -284,79 +284,6 @@ function onSelectEnd(ev) {
     }
   }
 }
-
-/*
-function drawShape(shape, matrix, color, opacity, textureInfo, fxMode, triangleMode) {
-
-    let gl = w.gl;
-    let drawArrays = () => gl.drawArrays(triangleMode == 1 ? gl.TRIANGLES: gl.TRIANGLE_STRIP, 0, shape.length / VERTEX_SIZE);
-    // let drawElements = () =>
-    gl.uniform1f(w.uBrightness, 1);
-    gl.uniform4fv(w.uColor, color.length == 4 ? color : color.concat([opacity === undefined ? 1 : opacity]));
-    gl.uniformMatrix4fv(w.uModel, false, matrix);
-    gl.uniform1i(w.uFxMode, fxMode);
-    windowLightDir.set(CG.matrixTranspose(matrix));
-    windowLightDir.translate(0, rh / 2, rw / 2);
-    gl.uniform3fv(w.uWindowDir, [windowLightDir.value()[12], windowLightDir.value()[13], windowLightDir.value()[14]]);
-    if (textureInfo.isValid) {
-  
-      gl.uniform1i(w.uTexIndex, 0);
-  
-      // base texture : 0
-      // bump texture : 1
-      // ...
-      for (let i = 0; i < textureInfo.textures.length; i += 1) {
-        gl.uniform1f(w.uTexScale, textureInfo.scale);
-  
-        if (w.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
-          w.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
-        }
-      }
-  
-      gl.uniform1i(w.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
-  
-    } else {
-      gl.uniform1i(w.uTexIndex, -1);
-    }
-  
-  
-    if (shape != w.prev_shape) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, w.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
-    }
-    // if (textureInfo.isValid) {
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, w.bufferAux);
-    //     const auxData = new Float32Array(4 * (shape.length / VERTEX_SIZE));
-    //     for (let i = 0; i < auxData.length; i += 4) {
-    //         auxData[i]     = textureInfo.image.uFrac;
-    //         auxData[i + 1] = textureInfo.image.vFrac;
-  
-    //         auxData[i + 2] = textureInfo.image.w / textureInfo.textures[0].w;
-    //         auxData[i + 3] = textureInfo.image.h / textureInfo.textures[0].h;
-    //     }
-    //     gl.bufferData(gl.ARRAY_BUFFER, auxData, gl.STREAM_DRAW);
-    // }
-    for (let i = 0; i < nViews; i++) {
-      if (nViews > 1) {
-        gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
-        gl.uniformMatrix4fv(w.uView, false, viewMat[i]);
-        gl.uniformMatrix4fv(w.uProj, false, projMat[i]);
-      }
-      if (w.isToon) {
-        gl.uniform1f(w.uToon, .3 * CG.norm(m.value().slice(0, 3)));
-        gl.cullFace(gl.FRONT);
-        drawArrays();
-        gl.cullFace(gl.BACK);
-        gl.uniform1f(w.uToon, 0);
-      }
-      if (w.isMirror)
-        gl.cullFace(gl.FRONT);
-      drawArrays();
-    }
-    gl.cullFace(gl.BACK);
-    w.prev_shape = shape;
-  }
-  */
 
 function onXRFrame(t, frame) {
   let session = frame.session;

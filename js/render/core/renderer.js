@@ -23,7 +23,7 @@ import { Node } from "./node.js";
 import { Program } from "./program.js";
 import { DataTexture, VideoTexture } from "./texture.js";
 import { mat4, vec3 } from "../math/gl-matrix.js";
-import CG from "./CG.js";
+import { CG, VERTEX_SIZE } from "./CG.js";
 import * as RenderList from "./renderList.js";
 
 export const ATTRIB = {
@@ -71,6 +71,212 @@ void main() {
   gl_FragColor = fragment_main();
 }
 `;
+
+const RenderList_VERTEX_SOURCE = `#version 300 es
+precision highp float;
+
+// input vertex
+in  vec3 aPos;
+in  vec3 aNor;
+in  vec3 aTan;
+in  vec2 aUV;
+in  vec4 aUVOff;
+
+// interpolated vertex
+out vec3 vP;
+out vec3 vPos;
+out vec3 vNor;
+out vec3 vTan;
+out vec3 vBin;
+out vec2 vUV;
+
+// interpolated cursor
+out vec3 vCursor;
+
+out vec2 vXY;
+
+// matrices
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+
+uniform float uTime; // time in seconds
+uniform float uToon; // control toon shading
+
+void main(void) {
+    vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
+    vXY = pos.xy / pos.z;
+    vP = pos.xyz;
+    vPos = aPos;
+    mat4 invModel = inverse(uModel);
+    vNor = (vec4(aNor, 0.) * invModel).xyz;
+    vTan = (vec4(aTan, 0.) * invModel).xyz;
+    vBin = cross(vNor, vTan);
+
+    // image_uv + mesh_uv * (image_dimensions / atlas_dimensions)
+
+    // formula for atlas
+    //vUV = (aUVOff.xy + (aUV.xy * aUVOff.zw)) * vec2(1.,-1.) + vec2(0.,1.);
+    vUV = (aUV) * vec2(1.,-1.) + vec2(0.,1.);
+    
+    gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
+}
+`;
+
+const RenderList_FRAG_SOURCE = `#version 300 es // NEWER VERSION OF GLSL
+precision highp float; // HIGH PRECISION FLOATS
+
+uniform vec4 uColor;
+uniform vec3 uCursor; // CURSOR: xy=pos, z=mouse up/down
+uniform float uTime; // TIME, IN SECONDS
+
+in vec2 vXY; // POSITION ON IMAGE
+in vec3 vP;
+in vec3 vPos; // POSITION
+in vec3 vNor; // NORMAL
+in vec3 vTan; // TANGENT
+in vec3 vBin; // BINORMAL
+in vec2 vUV; // U,V
+
+
+#define LDIR_MAX_COUNT (1)
+
+vec3 Ldir[LDIR_MAX_COUNT];
+vec3 Lrgb[LDIR_MAX_COUNT];
+
+uniform int uBumpIndex;
+uniform float uBumpScale;
+uniform float uToon;
+
+uniform int uTexIndex;
+uniform float uTexScale;
+uniform float uBrightness;
+
+uniform int uFxMode;
+uniform vec3 uWindowDir;
+
+// base
+uniform sampler2D uTex0;
+// bump
+uniform sampler2D uTex1;
+// anything else ...
+uniform sampler2D uTex2;
+uniform sampler2D uTex3;
+uniform sampler2D uTex4;
+uniform sampler2D uTex5;
+uniform sampler2D uTex6;
+uniform sampler2D uTex7;
+
+out vec4 fragColor; // RESULT WILL GO HERE
+
+vec3 bumpTexture(vec3 normal, vec4 bump) {
+  return normalize((.5 - bump.x) * normalize(vTan) + (.5 - bump.y) * normalize(vBin) + (.5 - bump.z) * normal);
+}
+
+vec3 phong(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, float p) {
+  vec3 color = vec3(0., 0., 0.);
+  float d = dot(Ldir, normal);
+  if (d > 0.)
+    color += diffuse * d * Lrgb;
+
+  vec3 R = 2. * normal * dot(Ldir, normal) - Ldir;
+  float s = dot(R, normal);
+  if (s > 0.)
+    color += specular * pow(s, p) * Lrgb;
+  return color;
+}
+
+vec3 phongPlaster(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, float p) {
+  vec3 color = vec3(0., 0., 0.);
+  float d = dot(Ldir, normal);
+  if (d > 0.)
+    color += diffuse * d * uColor.rgb + .01 * diffuse * d * Lrgb;
+  vec3 R = 2. * normal * dot(Ldir, normal) - Ldir;
+  float s = dot(R, normal);
+  if (s > 0.)
+    color += specular * pow(s, p) * uColor.rgb + .01 * specular * pow(s, p) * Lrgb;
+  return color;
+}
+
+vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, float p) {
+  vec3 color = vec3(0., 0., 0.);
+  float d = dot(Ldir, normal);
+  if (d > 0.)
+    color += diffuse * d * Lrgb;
+  vec3 R = 2. * normal * dot(Ldir, normal) - Ldir;
+  float s = dot(R, normal);
+  if (s > 0.95)
+    color += .2 * specular;
+  return color;
+}
+
+void main() {
+  /*
+      vec4 texture0 = texture(uTex0, vUV * uTexScale);
+      vec4 texture1 = texture(uTex1, vUV * uTexScale);
+      vec4 texture2 = texture(uTex2, vUV * uTexScale);
+  */
+  vec3 ambient = .1 * uColor.rgb;
+  vec3 diffuse = .5 * uColor.rgb;
+  vec3 specular = vec3(.4, .4, .4);
+  float p = 30.;
+  float pMet = 40.;
+
+  Ldir[0] = normalize(uWindowDir);
+//  Ldir[1] = normalize(uWindowDir);
+//  Ldir[2] = normalize(uWindowDir);
+//  Ldir[1] = normalize(vec3(-1., -.5, -2.));
+//  Ldir[2] = normalize(vec3(-1., 0, 0.5));
+  Lrgb[0] = vec3(0.85, .75, .7);
+//  Lrgb[1] = vec3(.8, .75, .7);
+//  Lrgb[2] = vec3(.1, .15, .2);
+
+  vec3 normal = normalize(vNor);
+  vec3 color = ambient;
+
+  if (uTexIndex < 0) {
+    if (uFxMode == 0) {      //default
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 1) {      // plaster
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+    } else if (uFxMode == 2) {      // metallic
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+    } else if (uFxMode == 3) {      // glossy rubber
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 4) {      // 2D
+        color += uColor.rgb;
+    }
+    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
+  } else {
+    normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
+
+    if (uFxMode == 0) {      //default
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 1) {      // plaster
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+    } else if (uFxMode == 2) {      // metallic
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+    } else if (uFxMode == 3) {      // glossy rubber
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 4) {      // 2D
+        color += uColor.rgb;
+    }
+
+    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
+
+    fragColor *= texture(uTex0, vUV);
+  }
+}
+
+`
 
 function isPowerOfTwo(n) {
   return (n & (n - 1)) === 0;
@@ -563,7 +769,7 @@ export class Renderer {
     this._renderPrimitives = Array(RENDER_ORDER.DEFAULT);
     this._cameraPositions = [];
 
-    this._vaoExt = gl.getExtension("OES_vertex_array_object");
+    this._vaoExt = gl.createVertexArray();
 
     let fragHighPrecision = gl.getShaderPrecisionFormat(
       gl.FRAGMENT_SHADER,
@@ -702,9 +908,14 @@ export class Renderer {
         this._drawRenderPrimitiveSet(views, renderPrimitives);
       }
     }
+    RenderList.renderList.initBuffer(this._gl);
+    RenderList.renderList.beginFrame();
+    RenderList.mCube().move(0,5,0);
+    // TODO: Write a function for creating and moving renderList objects
+    this._drawRenderListPrimitive(views, ...RenderList.renderList.endFrame());
 
     if (this._vaoExt) {
-      this._vaoExt.bindVertexArrayOES(null);
+      this._gl.bindVertexArray(null);
     }
 
     if (this._depthMaskNeedsReset) {
@@ -719,7 +930,6 @@ export class Renderer {
     let gl = this._gl;
     let program = null;
     let material = null;
-    let attribMask = 0;
 
     // Loop through every primitive known to the renderer.
     for (let primitive of renderPrimitives) {
@@ -770,10 +980,10 @@ export class Renderer {
 
       if (this._vaoExt) {
         if (primitive._vao) {
-          this._vaoExt.bindVertexArrayOES(primitive._vao);
+          this._gl.bindVertexArray(primitive._vao);
         } else {
-          primitive._vao = this._vaoExt.createVertexArrayOES();
-          this._vaoExt.bindVertexArrayOES(primitive._vao);
+          primitive._vao = gl.createVertexArray();
+          this._gl.bindVertexArray(primitive._vao);
           this._bindPrimitive(primitive);
         }
       } else {
@@ -832,20 +1042,9 @@ export class Renderer {
     }
   }
 
-  _drawRenderListPrimitive(
-    renderList,
-    shape,
-    matrix,
-    color,
-    opacity,
-    textureInfo,
-    fxMode,
-    triangleMode,
-    isToon,
-    isMirror
-  ) {
+  _drawRenderListPrimitive(views, renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror) {
     let gl = this._gl;
-    let pgm = new Program(gl, vertSrc, fragSrc);
+    let pgm = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
     pgm.use();
 
     let drawArrays = () =>
@@ -854,8 +1053,38 @@ export class Renderer {
         0,
         shape.length / VERTEX_SIZE
       );
-    // let drawElements = () =>
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1);
+
+    if(!renderList.vao) {
+      renderList.initVAO(gl);
+      gl.bindVertexArray(renderList.vao);
+      gl.useProgram(pgm.program);
+
+      renderList.buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+
+      let bpe = Float32Array.BYTES_PER_ELEMENT;
+
+      let aPos = gl.getAttribLocation(pgm.program, 'aPos');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 0);
+
+      let aNor = gl.getAttribLocation(pgm.program, 'aNor');
+      gl.enableVertexAttribArray(aNor);
+      gl.vertexAttribPointer(aNor, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 3);
+
+      let aTan = gl.getAttribLocation(pgm.program, 'aTan');
+      gl.enableVertexAttribArray(aTan);
+      gl.vertexAttribPointer(aTan, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 6);
+
+      let aUV = gl.getAttribLocation(pgm.program, 'aUV');
+      gl.enableVertexAttribArray(aUV);
+      gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 9);
+
+      renderList.bufferAux = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
+    }
+
+    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
     gl.uniform4fv(
       gl.getUniformLocation(pgm.program, "uColor"),
       color.length == 4
@@ -882,14 +1111,15 @@ export class Renderer {
     //   for (let i = 0; i < textureInfo.textures.length; i += 1) {
     //     gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
 
-    //     if (w.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
-    //       w.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
+    //     if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
+    //       renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
     //     }
     //   }
 
-    //   gl.uniform1i(w.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
+    //   gl.uniform1i(renderList.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
 
     // } else {
+    gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
     // }
 
