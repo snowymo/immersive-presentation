@@ -135,7 +135,12 @@ let RenderList = function () {
     else items[n] = new Item();
     items[n].shape = shape;
     // items[n].matrix = w.m.value().slice();
-    items[n].matrix = new Matrix().value;
+    items[n].matrix = [
+      1,0,0,0,
+      0,1,0,0,
+      0,0,1,0,
+      0,0,0,1,
+    ];
     return items[n++];
   };
   this.endFrame = () => {
@@ -195,7 +200,8 @@ let RenderList = function () {
 
   let w = null,
     n = 0,
-    items = [];
+    items = [],
+    program = null;
 };
 
 export let renderList = new RenderList();

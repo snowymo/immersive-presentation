@@ -364,7 +364,7 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-export const VERTEX_SIZE = 9;
+export const VERTEX_SIZE = 11;
 
 CG.createPoly4Vertices = V => {
    let A = [V[0],V[1],V[2]],

@@ -222,9 +222,7 @@ void main() {
   float p = 30.;
   float pMet = 40.;
 
-  Ldir[0] = normalize(uWindowDir);
-//  Ldir[1] = normalize(uWindowDir);
-//  Ldir[2] = normalize(uWindowDir);
+  Ldir[0] = -1. * normalize(uWindowDir);
 //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
 //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
   Lrgb[0] = vec3(0.85, .75, .7);
@@ -234,7 +232,7 @@ void main() {
   vec3 normal = normalize(vNor);
   vec3 color = ambient;
 
-  if (uTexIndex < 0) {
+  // if (uTexIndex < 0) {
     if (uFxMode == 0) {      //default
       for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
         color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
@@ -251,31 +249,30 @@ void main() {
         color += uColor.rgb;
     }
     fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
-  } else {
-    normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
+  // } else {
+  //   normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
 
-    if (uFxMode == 0) {      //default
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 1) {      // plaster
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-    } else if (uFxMode == 2) {      // metallic
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-    } else if (uFxMode == 3) {      // glossy rubber
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 4) {      // 2D
-        color += uColor.rgb;
-    }
+  //   if (uFxMode == 0) {      //default
+  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+  //       color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+  //   } else if (uFxMode == 1) {      // plaster
+  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+  //       color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+  //   } else if (uFxMode == 2) {      // metallic
+  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+  //       color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+  //   } else if (uFxMode == 3) {      // glossy rubber
+  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+  //       color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+  //   } else if (uFxMode == 4) {      // 2D
+  //       color += uColor.rgb;
+  //   }
 
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
+  //   fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
 
-    fragColor *= texture(uTex0, vUV);
-  }
+  //   fragColor *= texture(uTex0, vUV);
+  // }
 }
-
 `
 
 function isPowerOfTwo(n) {
@@ -908,12 +905,7 @@ export class Renderer {
         this._drawRenderPrimitiveSet(views, renderPrimitives);
       }
     }
-    RenderList.renderList.initBuffer(this._gl);
-    RenderList.renderList.beginFrame();
-    RenderList.mCube().move(0,5,0);
-    // TODO: Write a function for creating and moving renderList objects
-    this._drawRenderListPrimitive(views, ...RenderList.renderList.endFrame());
-
+ 
     if (this._vaoExt) {
       this._gl.bindVertexArray(null);
     }
@@ -924,6 +916,13 @@ export class Renderer {
     if (this._colorMaskNeedsReset) {
       gl.colorMask(true, true, true, true);
     }
+
+    RenderList.renderList.initBuffer(this._gl);
+    RenderList.renderList.beginFrame();
+    RenderList.mCube().color(1,0,0).size(0.3).move(0,2,-2);
+    // TODO: Write a function for creating and moving renderList objects
+    this._drawRenderListPrimitive(views, ...RenderList.renderList.endFrame());
+
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1036,7 +1035,7 @@ export class Renderer {
           } else {
             // gl.drawArrays(primitive._mode, 0, primitive._elementCount);
             gl.drawArrays(primitive._mode, 0, primitive._elementCount);
-          }
+          } 
         }
       }
     }
@@ -1044,24 +1043,38 @@ export class Renderer {
 
   _drawRenderListPrimitive(views, renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror) {
     let gl = this._gl;
-    let pgm = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
-    pgm.use();
+    if(!renderList.program) {
+      renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+    }
+    renderList.program.use();
+    let pgm = renderList.program;
 
-    let drawArrays = () =>
+    let drawArrays = () => {
       gl.drawArrays(
         triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
         0,
         shape.length / VERTEX_SIZE
       );
+    }
+
+    let vertices = [
+      -.5 , .5,0,   .5 , .5,0,
+      // -.5, 0,0,   .5, 0,0,
+      -.5 ,-.5,0,   .5 ,-.5,0,
+    ];
 
     if(!renderList.vao) {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
-
+      renderList.buffer = gl.createBuffer();
+    }
+    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    // if (shape != renderList.prev_shape) {
       renderList.buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
-
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
       let bpe = Float32Array.BYTES_PER_ELEMENT;
 
       let aPos = gl.getAttribLocation(pgm.program, 'aPos');
@@ -1082,7 +1095,11 @@ export class Renderer {
 
       renderList.bufferAux = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
-    }
+    // }
+    // let aPos = gl.getAttribLocation(pgm.program, 'aPos');                      // Set aPos attribute for each vertex.
+    // gl.enableVertexAttribArray(aPos);
+    // gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertices.length/3);
 
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
     gl.uniform4fv(
@@ -1122,11 +1139,6 @@ export class Renderer {
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
     // }
-
-    if (shape != renderList.prev_shape) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
-    }
 
     if (views.length == 1) {
       gl.uniformMatrix4fv(
@@ -1431,8 +1443,8 @@ export class Renderer {
     }
 
     // Depth testing enabled and depth func changed?
-    if (material._depthFuncDiff(prevState)) {
-      gl.depthFunc(material.depthFunc);
-    }
+    // if (material._depthFuncDiff(prevState)) {
+    //   gl.depthFunc(material.depthFunc);
+    // }
   }
 }

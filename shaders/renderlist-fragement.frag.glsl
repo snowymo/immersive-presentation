@@ -25,7 +25,7 @@ uniform float uToon;
 
 uniform int uTexIndex;
 uniform float uTexScale;
-uniform float uBrightness = 1.;
+uniform float uBrightness;
 
 uniform int uFxMode;
 uniform vec3 uWindowDir;
@@ -98,8 +98,6 @@ void main() {
   float pMet = 40.;
 
   Ldir[0] = normalize(uWindowDir);
-//  Ldir[1] = normalize(uWindowDir);
-//  Ldir[2] = normalize(uWindowDir);
 //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
 //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
   Lrgb[0] = vec3(0.85, .75, .7);
