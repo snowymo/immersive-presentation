@@ -4,6 +4,7 @@ import { UrlTexture } from '../render/core/texture.js';
 import { ButtonNode } from '../render/nodes/button.js';
 import { Gltf2Node } from '../render/nodes/gltf2.js';
 import { mat4, vec3 } from '../render/math/gl-matrix.js';
+import { initObject, updateObject } from './object-sync.js';
 
 const ANALYSER_FFT_SIZE = 1024;
 const DEFAULT_HEIGHT = 1.5;
@@ -126,6 +127,18 @@ export function updateAudioNodes(scene) {
             source.node.visible = true;
             source.node.selectable = true;
             scene.addNode(source.node);
+            // ZH
+            let mymatrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+            mat4.identity(mymatrix);
+            console.log("mymatrix", mymatrix);
+            let mypos = source.position;
+            mypos[1] -= 0.5;
+            mat4.translate(mymatrix, mymatrix, mypos);
+            console.log("mymatrix", mymatrix);
+            mat4.rotateY(mymatrix, mymatrix, source.rotateY);
+            let scale = getLoudnessScale(source.analyser);
+            mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);
+            initObject("stereo", mymatrix, window.envObjID++); // 0 means for environment
         }
 
         let node = source.node;
@@ -180,22 +193,33 @@ window.addEventListener('blur', () => {
     pauseAudio();
 });
 
-export function updateAudioSources(frame, refSpace){
+export function updateAudioSources(frame, refSpace) {
     let tmpMatrix = mat4.create();
-    for (let source of audioSources) {
-        if (source.draggingInput) {
-            let draggingPose = frame.getPose(source.draggingInput.targetRaySpace, refSpace);
+    // for (let source of audioSources) {
+    //     if (source.draggingInput) {
+    //         let draggingPose = frame.getPose(source.draggingInput.targetRaySpace, refSpace);
+    //         if (draggingPose) {
+    //             let pos = source.position;
+    //             mat4.multiply(tmpMatrix, draggingPose.transform.matrix, source.draggingTransform);
+    //             vec3.transformMat4(pos, [0, 0, 0], tmpMatrix);
+    //             source.source.setPosition(pos[0], pos[1], pos[2]);
+    //         }
+    //     }
+    // }
+    for (let id in window.objects) {
+        if (window.objects[id].draggingInput) {
+            let draggingPose = frame.getPose(window.objects[id].draggingInput.targetRaySpace, refSpace);
             if (draggingPose) {
-                let pos = source.position;
-                mat4.multiply(tmpMatrix, draggingPose.transform.matrix, source.draggingTransform);
-                vec3.transformMat4(pos, [0, 0, 0], tmpMatrix);
-                source.source.setPosition(pos[0], pos[1], pos[2]);
+                // let pos = window.objects[id].matrix.position;
+                mat4.multiply(window.objects[id].matrix, draggingPose.transform.matrix, window.objects[id].draggingTransform);
+                updateObject(id, window.objects[id].matrix);
+                window.objects[id].node.matrix = tmpMatrix;
             }
         }
     }
 }
 
-export function loadAudioSources(scene){
+export function loadAudioSources(scene) {
     Promise.all([
         createAudioSource({
             url: '../media/sound/guitar.ogg',

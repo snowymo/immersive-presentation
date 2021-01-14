@@ -84,6 +84,7 @@ class DataStore {
 
     setObjectData(key, data) {
         this.state['objects'][key]['state'] = data;
+        this.state['objects'][key]['dirty'] = true;
     }
 
     exists(key) {

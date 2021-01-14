@@ -62,7 +62,27 @@ export class Client {
                 }
                 // console.log("send webrtc", message);
                 break;
-
+            case "object": {
+                // ZH: object update
+                message = {
+                    type: "object",
+                    ts: Date.now(),
+                    uid: window.playerid,
+                    id: data['id'],
+                    state: data['state']
+                }
+            }
+                break;
+            case "objectInit": {
+                // ZH: object init
+                message = {
+                    type: "objectInit",
+                    ts: Date.now(),
+                    uid: window.playerid,
+                    state: data
+                }
+            }
+                break;
             case "test":
                 {
                     message = {
