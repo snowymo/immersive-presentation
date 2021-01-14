@@ -5,12 +5,13 @@
 import { Gltf2Node } from '../render/nodes/gltf2.js';
 import { mat4, vec3 } from '../render/math/gl-matrix.js';
 
-export function initObject(objectType, objectMatrix) {
+window.envObjID = 10000;
+export function initObject(objectType, objectMatrix, objid=0) {
     // add objects
     // client side: request an ID from the server with curObject: type, transformation
     // server side: send object updates
 
-    window.wsclient.send("objectInit", { type: objectType, matrix: objectMatrix });
+    window.wsclient.send("objectInit", { type: objectType, matrix: objectMatrix, objid: objid});
 }
 
 export function updateObject(objectID, objectMatrix) {

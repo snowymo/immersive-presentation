@@ -138,7 +138,7 @@ export function updateAudioNodes(scene) {
             mat4.rotateY(mymatrix, mymatrix, source.rotateY);
             let scale = getLoudnessScale(source.analyser);
             mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);
-            initObject("stereo", mymatrix);
+            initObject("stereo", mymatrix, window.envObjID++); // 0 means for environment
         }
 
         let node = source.node;

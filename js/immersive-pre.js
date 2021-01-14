@@ -39,7 +39,7 @@ function initModels() {
 }
 
 
-// window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
+window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
 window.scene.standingStats(true);
 // window.scene.addNode(window.models['stereo']);
 

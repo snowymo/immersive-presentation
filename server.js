@@ -209,8 +209,18 @@ wss.on('connection', function (ws, req) {
     ws.index = wsIndex++;
     websocketMap.set(ws.index, ws);
     console.log("connection:", req.connection.remoteAddress, ws.index);
-    const payload = { "type": "initialize", "id": ws.index, "objects": datastore.state["objects"], "avatars": avatars };
-    send(ws.index, -1, payload);
+    console.log('datastore.state["objects"]', datastore.state["objects"]);
+    const payload2others = { "type": "initialize", "id": ws.index, "avatars": avatars };
+    const payload2self = {
+        "type": "object",
+        "data": {
+            len: Object.keys(datastore.state["objects"]).length,
+            ds: datastore.state["objects"]
+        }, "ts": Date.now()
+    };
+
+    send(ws.index, -1, payload2others);
+    // send('*', ws.index, payload2self);
 
     // notify the world that a player joined, should be a separate process from initialize
     // TODO: change id to username or something
@@ -240,44 +250,29 @@ wss.on('connection', function (ws, req) {
                 const state = json["state"];
 
                 datastore.setObjectData(id, state);
-                // console.log(datastore.get(id));
-
-                // if (datastore.acquire(key, lockid)) {
-                //     datastore.setObjectData(key, state);
-                //     // console.log(datastore.state);
-
-                //     // tell everyone else about this update
-                //     const response = {
-                //         "type": "object",
-                //         "uid": key,
-                //         "state": state,
-                //         "lockid": lockid,
-                //         "success": true
-                //     };
-
-                //     send("*", -1, response);
-                // } else {
-                //     // respond to sender only with failure, only need to indicate what uid is
-                //     const response = {
-                //         "type": "object",
-                //         "uid": key,
-                //         "success": false
-                //     };
-
-                //     send(ws.index, -1, response);
-                //     console.log("object in use.");
-                // }
                 break;
             }
             // ZH: obj init
             case "objectInit": {
-                console.log("receive ws msg:", json["type"]);
                 const key = json["uid"];
                 const state = json["state"];
-                var currentObjId = objectIndex++;
-
-                datastore.add(currentObjId);
-                datastore.setObjectData(currentObjId, state);
+                console.log("receive ws msg:", json["type"]);
+                if (state['objid'] == 0) {
+                    // create by user
+                    console.log("create object from user", json["uid"]);
+                    var currentObjId = objectIndex++;
+                    datastore.add(currentObjId);
+                    datastore.setObjectData(currentObjId, state);
+                } else {
+                    // create for the environment
+                    if (datastore.exists(state['objid'])) {
+                        // already create, then ignore this request
+                    } else {
+                        console.log("create object for environment", state["objid"]);
+                        datastore.add(state['objid']);
+                        datastore.setObjectData(state['objid'], state);
+                    }
+                }
 
                 // tell everyone else about this update, with entire list of objects
                 var dirtyObjects = {};
@@ -285,8 +280,8 @@ wss.on('connection', function (ws, req) {
                     // console.log(key, datastore.state["objects"][key]);
                     if (datastore.state["objects"][key]['dirty']) {
                         datastore.state["objects"][key]['dirty'] = false;
-                        dirtyObjects[key] = datastore.state["objects"][key];
                     }
+                    dirtyObjects[key] = datastore.state["objects"][key];
                 });
 
                 const response = {
@@ -301,12 +296,9 @@ wss.on('connection', function (ws, req) {
             }
             case "avatar":
                 {
-                    // console.log("receive avatar msg");
-                    // console.log(json);
+                    // console.log("receive avatar msg");                    // console.log(json);
                     const userid = json["user"];
                     const state = json["state"];
-                    // console.log("userid", userid);
-
                     avatars[userid] = {
                         'user': userid,
                         'state': state,
