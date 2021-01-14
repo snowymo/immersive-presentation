@@ -114,17 +114,19 @@ const datastore = new DataStore();
 let avatars = {};
 let timers = {};
 const AVATAR_RATE = 10;
+const OBJECT_RATE = 10;
+let objectIndex = 1000;
 setInterval(() => {
     console.log("current connections:");
     console.log(Array.from(websocketMap.keys()));
-    console.log("avatars: ");
+    // console.log("avatars: ");
     // console.log(avatars);
-    for (let id in avatars) {
-        var quat = avatars[id]["state"]["rot"];
-        var fwd = [0, 0, 0];
-        transformQuat(fwd, [0, 0, -1], quat);
-        console.log("id", id, "pos:", JSON.stringify(avatars[id]["state"]["pos"]), "fwd", JSON.stringify(fwd));
-    }
+    // for (let id in avatars) {
+    //     var quat = avatars[id]["state"]["rot"];
+    //     var fwd = [0, 0, 0];
+    //     transformQuat(fwd, [0, 0, -1], quat);
+    //     console.log("id", id, "pos:", JSON.stringify(avatars[id]["state"]["pos"]), "fwd", JSON.stringify(fwd));
+    // }
 
 }, 5000);
 
@@ -229,37 +231,72 @@ wss.on('connection', function (ws, req) {
         }
 
         switch (json["type"]) {
+            // ZH: obj
             case "object": {
+                // about manipulation
                 console.log("receive ws msg:", json["type"]);
                 const key = json["uid"];
-                const lockid = json["lockid"];
+                const id = json["id"];
                 const state = json["state"];
 
-                if (datastore.acquire(key, lockid)) {
-                    datastore.setObjectData(key, state);
-                    // console.log(datastore.state);
+                datastore.setObjectData(id, state);
+                // console.log(datastore.get(id));
 
-                    // tell everyone else about this update
-                    const response = {
-                        "type": "object",
-                        "uid": key,
-                        "state": state,
-                        "lockid": lockid,
-                        "success": true
-                    };
+                // if (datastore.acquire(key, lockid)) {
+                //     datastore.setObjectData(key, state);
+                //     // console.log(datastore.state);
 
-                    send("*", -1, response);
-                } else {
-                    // respond to sender only with failure, only need to indicate what uid is
-                    const response = {
-                        "type": "object",
-                        "uid": key,
-                        "success": false
-                    };
+                //     // tell everyone else about this update
+                //     const response = {
+                //         "type": "object",
+                //         "uid": key,
+                //         "state": state,
+                //         "lockid": lockid,
+                //         "success": true
+                //     };
 
-                    send(ws.index, -1, response);
-                    console.log("object in use.");
-                }
+                //     send("*", -1, response);
+                // } else {
+                //     // respond to sender only with failure, only need to indicate what uid is
+                //     const response = {
+                //         "type": "object",
+                //         "uid": key,
+                //         "success": false
+                //     };
+
+                //     send(ws.index, -1, response);
+                //     console.log("object in use.");
+                // }
+                break;
+            }
+            // ZH: obj init
+            case "objectInit": {
+                console.log("receive ws msg:", json["type"]);
+                const key = json["uid"];
+                const state = json["state"];
+                var currentObjId = objectIndex++;
+
+                datastore.add(currentObjId);
+                datastore.setObjectData(currentObjId, state);
+
+                // tell everyone else about this update, with entire list of objects
+                var dirtyObjects = {};
+                Object.keys(datastore.state["objects"]).forEach(function (key) {
+                    // console.log(key, datastore.state["objects"][key]);
+                    if (datastore.state["objects"][key]['dirty']) {
+                        datastore.state["objects"][key]['dirty'] = false;
+                        dirtyObjects[key] = datastore.state["objects"][key];
+                    }
+                });
+
+                const response = {
+                    "type": "object",
+                    "uid": key,
+                    "data": dirtyObjects,
+                    "success": true
+                };
+                console.log(response);
+                send("*", -1, response);
                 break;
             }
             case "avatar":
@@ -353,3 +390,27 @@ timers["avatar"] = setInterval(() => {
     // console.log("timers[avatar] ", avatars);
     send("*", -1, response);
 }, AVATAR_RATE);
+
+timers["object"] = setInterval(() => {
+
+    if (Object.keys(datastore.state["objects"]).length === 0) {
+        return;
+    }
+    // zhenyi
+    var dirtyObjects = {};
+    Object.keys(datastore.state["objects"]).forEach(function (key) {
+        // console.log(key, datastore.state["objects"][key]);
+        if (datastore.state["objects"][key]['dirty']) {
+            datastore.state["objects"][key]['dirty'] = false;
+            dirtyObjects[key] = datastore.state["objects"][key];
+        }
+    });
+
+    const response = {
+        "type": "object",
+        "data": dirtyObjects,
+        "ts": Date.now(),
+    };
+    // console.log("timers[avatar] ", avatars);
+    send("*", -1, response);
+}, OBJECT_RATE);

@@ -1,6 +1,7 @@
 'use strict';
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js"
+import {SyncObject} from "../util/object-sync.js"
 
 export function init() {
     window.EventBus.subscribe("test", (json) => {
@@ -265,19 +266,28 @@ export function init() {
 
     // });
 
+    // ZH: object
     window.EventBus.subscribe("object", (json) => {
-        const success = json["success"];
-        if (success) {
-            console.log("object moved: ", json);
-            // update update metadata for next frame's rendering
-            let current = window.objs[json["uid"]];
-            console.log(json);
-            current.position = [json["state"]["position"][0], json["state"]["position"][1], json["state"]["position"][2]];
-            //current.orientation = MR.objs[json["state"]["orientation"]];
+        if (!window.objects) {
+            window.objects = {};
         }
-        else {
-            console.log("failed object message", json);
-        }
+
+        // const success = json["success"];
+        // if (success) {
+            // console.log("object update: ", json);
+            // update metadata for next frame's rendering
+            let dirtyObjects = json["data"];
+            Object.keys(dirtyObjects).forEach(function (key) {
+                console.log("object update: ", key, dirtyObjects[key]);
+                if (! (key in window.objects))
+                    window.objects[key] = new SyncObject(key, dirtyObjects[key]['state']['type']);
+                window.objects[key].matrix = dirtyObjects[key]['state']['matrix'];
+            });
+
+        // }
+        // else {
+        //     console.log("failed object message", json);
+        // }
     });
 
     // on success

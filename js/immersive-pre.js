@@ -16,6 +16,7 @@ window.wsport = 8447
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
 import WebXRPolyfill from './third-party/webxr-polyfill/build/webxr-polyfill.module.js';
+import { updateObject } from './util/object-sync.js';
 if (QueryArgs.getBool('usePolyfill', true)) {
     let polyfill = new WebXRPolyfill();
 }
@@ -29,9 +30,20 @@ let inlineViewerHelper = null;
 let gl = null;
 let renderer = null;
 window.scene = new Scene();
-window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
+
+function initModels() {
+    window.models = {};
+    window.models['stereo'] = new Gltf2Node({ url: '../media/gltf/stereo/stereo.gltf' });
+    window.models['stereo'].visible = true;
+    // window.scene.addNode(window.models['stereo']);
+}
+
+
+// window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
 window.scene.standingStats(true);
-window.scene.addNode(stereo);
+// window.scene.addNode(window.models['stereo']);
+
+
 
 function initXR() {
     xrButton = new WebXRButton({
@@ -53,7 +65,7 @@ function initXR() {
 
     // custom init
     window.EventBus = new EventBus();
-    window.objs = [];
+    // window.objs = [];
     DefaultSystemEvents.init();
     // websocket
     window.wsclient = new WSClient();
@@ -62,6 +74,7 @@ function initXR() {
     } else {
         window.wsclient.connect("eye.3dvar.com", window.wsport);
     }
+    initModels();
 }
 
 window.testws = function () {
@@ -217,20 +230,37 @@ function hitTest(inputSource, frame, refSpace) {
 
     let hitResult = window.scene.hitTest(targetRayPose.transform);
     if (hitResult) {
-        for (let source of audioSources) {
-            if (hitResult.node === source.node) {
+        // for (let source of audioSources) {
+        //     if (hitResult.node === source.node) {
+        //         // Associate the input source with the audio source object until
+        //         // onSelectEnd event is raised with the same input source.
+        //         source.draggingInput = inputSource;
+        //         source.draggingTransform = mat4.create();
+        //         mat4.invert(source.draggingTransform, targetRayPose.transform.matrix);
+        //         mat4.multiply(source.draggingTransform, source.draggingTransform, source.node.matrix);
+        //         return true;
+        //     }
+        // }
+        for (let id in window.objects) {
+            if (hitResult.node === window.objects[id].node) {
                 // Associate the input source with the audio source object until
                 // onSelectEnd event is raised with the same input source.
-                source.draggingInput = inputSource;
-                source.draggingTransform = mat4.create();
-                mat4.invert(source.draggingTransform, targetRayPose.transform.matrix);
-                mat4.multiply(source.draggingTransform, source.draggingTransform, source.node.matrix);
+                window.objects[id].draggingInput = inputSource;
+                window.objects[id].draggingTransform = mat4.create();
+                mat4.invert(window.objects[id].draggingTransform, targetRayPose.transform.matrix);
+                mat4.multiply(window.objects[id].draggingTransform, window.objects[id].draggingTransform, window.objects[id].node.matrix);
+                updateObject(id, window.objects[id].node.matrix);
                 return true;
             }
         }
     }
 
     return false;
+}
+
+window.testObjSync = function(id){
+    mat4.translate(window.objects[id].node.matrix, window.objects[id].node.matrix, [0.2,0.1,0]);
+    updateObject(id, window.objects[id].node.matrix);
 }
 
 function onSelectStart(ev) {
@@ -244,10 +274,18 @@ function onSelectStart(ev) {
 // that the objects are not dragged any further after the user releases
 // the trigger.
 function onSelectEnd(ev) {
-    for (let source of audioSources) {
-        if (source.draggingInput === ev.inputSource) {
-            source.draggingInput = undefined;
-            source.draggingTransform = undefined;
+    // for (let source of audioSources) {
+    //     if (source.draggingInput === ev.inputSource) {
+    //         source.draggingInput = undefined;
+    //         source.draggingTransform = undefined;
+    //     }
+    // }
+    for (let id in window.objects) {
+        if (window.objects[id].draggingInput === ev.inputSource) {
+            // Associate the input source with the audio source object until
+            // onSelectEnd event is raised with the same input source.
+            window.objects[id].draggingInput = undefined;
+            window.objects[id].draggingTransform = undefined;
         }
     }
 }
@@ -278,6 +316,8 @@ function onXRFrame(t, frame) {
 
     updateAvatars();
 
+    updateObjects();
+
     window.scene.drawXRFrame(frame, pose);
 
     if (pose) {
@@ -304,6 +344,24 @@ function updateAvatars() {
             avatar.leftController.model.matrix = avatar.leftController.matrix;
             avatar.rightController.model.matrix = avatar.rightController.matrix;
         }
+    }
+}
+
+function updateObjects() {
+    // update objects' attributes
+    for (let id in window.objects) {
+        let type = window.objects[id]['type'];
+        let matrix = window.objects[id]['matrix'];
+        // create the model if model is null
+        if (!window.objects[id].node) {
+            // create the model, this is the sample by gltf model
+            // we may need other model style like CG.js later
+            window.objects[id].node = new Gltf2Node({ url: window.models[type]._url });
+            window.objects[id].node.visible = true;
+            window.objects[id].node.selectable = true;
+            window.scene.addNode(window.objects[id].node);
+        }
+        window.objects[id].node.matrix = matrix;
     }
 }
 
