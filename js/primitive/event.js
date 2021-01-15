@@ -1,6 +1,7 @@
 "use strict";
 
-import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
+import { Headset, Controller, Avatar, initAvatar } from "./avatar.js"
+import {SyncObject} from "../util/object-sync.js"
 
 export function init() {
   window.EventBus.subscribe("test", (json) => {
@@ -286,55 +287,61 @@ export function init() {
 
     });*/
 
-  // TODO:
-  // add to MR.objs
-  // window.EventBus.subscribe("spawn", (json) => {
+    // TODO:
+    // add to MR.objs
+    // window.EventBus.subscribe("spawn", (json) => {
 
-  //     const success = json["success"];
+    //     const success = json["success"];
 
-  //     if (success) {
-  //         console.log("object created ", json);
-  //         // add to MR.objs
-  //     } else {
-  //         console.log("failed spawn message", json);
-  //     }
+    //     if (success) {
+    //         console.log("object created ", json);
+    //         // add to MR.objs
+    //     } else {
+    //         console.log("failed spawn message", json);
+    //     }
 
-  // });
+    // });
 
-  window.EventBus.subscribe("object", (json) => {
-    const success = json["success"];
-    if (success) {
-      console.log("object moved: ", json);
-      // update update metadata for next frame's rendering
-      let current = window.objs[json["uid"]];
-      console.log(json);
-      current.position = [
-        json["state"]["position"][0],
-        json["state"]["position"][1],
-        json["state"]["position"][2],
-      ];
-      //current.orientation = MR.objs[json["state"]["orientation"]];
-    } else {
-      console.log("failed object message", json);
-    }
-  });
+    // ZH: object
+    window.EventBus.subscribe("object", (json) => {
+        if (!window.objects) {
+            window.objects = {};
+        }
 
-  // on success
-  // const response = {
-  //   "type": "calibrate",
-  //   "x": ret.x,
-  //   "z": ret.z,
-  //   "theta": ret.theta,
-  //   "success": true
-  // };
+        // const success = json["success"];
+        // if (success) {
+            // console.log("object update: ", json);
+            // update metadata for next frame's rendering
+            let dirtyObjects = json["data"];
+            Object.keys(dirtyObjects).forEach(function (key) {
+                console.log("object update: ", key, dirtyObjects[key]);
+                if (! (key in window.objects))
+                    window.objects[key] = new SyncObject(key, dirtyObjects[key]['state']['type']);
+                window.objects[key].matrix = dirtyObjects[key]['state']['matrix'];
+            });
 
-  // on failure:
-  //   const response = {
-  //     "type": "calibrate",
-  //     "success": false
-  // };
+        // }
+        // else {
+        //     console.log("failed object message", json);
+        // }
+    });
 
-  // window.EventBus.subscribe("calibration", (json) => {
-  //     console.log("world tick: ", json);
-  // });
+    // on success
+    // const response = {
+    //   "type": "calibrate",
+    //   "x": ret.x,
+    //   "z": ret.z,
+    //   "theta": ret.theta,
+    //   "success": true
+    // };
+
+    // on failure:
+    //   const response = {
+    //     "type": "calibrate",
+    //     "success": false
+    // };
+
+    // window.EventBus.subscribe("calibration", (json) => {
+    //     console.log("world tick: ", json);
+    // });
 }
