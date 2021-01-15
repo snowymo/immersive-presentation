@@ -31,7 +31,7 @@ QueryArgs.getInt("particleSize", 10); // Not in URL, returns default of 10
 */
 
 let urlArgs = null;
-window.onhashchange = function() {
+window.onhashchange = function () {
   // Force re-parsing on next access
   urlArgs = null;
 };
@@ -39,10 +39,11 @@ window.onhashchange = function() {
 function ensureArgsCached() {
   if (!urlArgs) {
     urlArgs = {};
-    let query = window.location.search.substring(1) || window.location.hash.substring(1);
-    let vars = query.split('&');
+    let query =
+      window.location.search.substring(1) || window.location.hash.substring(1);
+    let vars = query.split("&");
     for (let i = 0; i < vars.length; i++) {
-      let pair = vars[i].split('=');
+      let pair = vars[i].split("=");
       urlArgs[pair[0].toLowerCase()] = decodeURIComponent(pair[1]);
     }
   }

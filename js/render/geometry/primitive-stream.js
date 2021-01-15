@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Primitive, PrimitiveAttribute} from '../core/primitive.js';
-import {mat3, vec3} from '../math/gl-matrix.js';
+import { Primitive, PrimitiveAttribute } from "../core/primitive.js";
+import { mat3, vec3 } from "../math/gl-matrix.js";
 
 const GL = WebGLRenderingContext; // For enums
 
@@ -46,7 +46,9 @@ export class PrimitiveStream {
 
   set flipWinding(value) {
     if (this._geometryStarted) {
-      throw new Error(`Cannot change flipWinding before ending the current geometry.`);
+      throw new Error(
+        `Cannot change flipWinding before ending the current geometry.`
+      );
     }
     this._flipWinding = value;
   }
@@ -57,7 +59,9 @@ export class PrimitiveStream {
 
   set invertNormals(value) {
     if (this._geometryStarted) {
-      throw new Error(`Cannot change invertNormals before ending the current geometry.`);
+      throw new Error(
+        `Cannot change invertNormals before ending the current geometry.`
+      );
     }
     this._invertNormals = value;
   }
@@ -68,7 +72,9 @@ export class PrimitiveStream {
 
   set transform(value) {
     if (this._geometryStarted) {
-      throw new Error(`Cannot change transform before ending the current geometry.`);
+      throw new Error(
+        `Cannot change transform before ending the current geometry.`
+      );
     }
     this._transform = value;
     if (this._transform) {
@@ -85,7 +91,9 @@ export class PrimitiveStream {
 
   startGeometry() {
     if (this._geometryStarted) {
-      throw new Error(`Attempted to start a new geometry before the previous one was ended.`);
+      throw new Error(
+        `Attempted to start a new geometry before the previous one was ended.`
+      );
     }
 
     this._geometryStarted = true;
@@ -192,16 +200,24 @@ export class PrimitiveStream {
 
   finishPrimitive(renderer) {
     if (!this._vertexOffset) {
-      throw new Error(`Attempted to call finishPrimitive() before creating any geometry.`);
+      throw new Error(
+        `Attempted to call finishPrimitive() before creating any geometry.`
+      );
     }
 
-    let vertexBuffer = renderer.createRenderBuffer(GL.ARRAY_BUFFER, new Float32Array(this._vertices));
-    let indexBuffer = renderer.createRenderBuffer(GL.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices));
+    let vertexBuffer = renderer.createRenderBuffer(
+      GL.ARRAY_BUFFER,
+      new Float32Array(this._vertices)
+    );
+    let indexBuffer = renderer.createRenderBuffer(
+      GL.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(this._indices)
+    );
 
     let attribs = [
-      new PrimitiveAttribute('POSITION', vertexBuffer, 3, GL.FLOAT, 32, 0),
-      new PrimitiveAttribute('TEXCOORD_0', vertexBuffer, 2, GL.FLOAT, 32, 12),
-      new PrimitiveAttribute('NORMAL', vertexBuffer, 3, GL.FLOAT, 32, 20),
+      new PrimitiveAttribute("POSITION", vertexBuffer, 3, GL.FLOAT, 32, 0),
+      new PrimitiveAttribute("TEXCOORD_0", vertexBuffer, 2, GL.FLOAT, 32, 12),
+      new PrimitiveAttribute("NORMAL", vertexBuffer, 3, GL.FLOAT, 32, 20),
     ];
 
     let primitive = new Primitive(attribs, this._indices.length);

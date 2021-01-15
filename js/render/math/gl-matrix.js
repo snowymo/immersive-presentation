@@ -18,26 +18,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as glMatrix from '../../third-party/gl-matrix/src/gl-matrix/common.js';
-import * as mat2 from '../../third-party/gl-matrix/src/gl-matrix/mat2.js';
-import * as mat2d from '../../third-party/gl-matrix/src/gl-matrix/mat2d.js';
-import * as mat3 from '../../third-party/gl-matrix/src/gl-matrix/mat3.js';
-import * as mat4 from '../../third-party/gl-matrix/src/gl-matrix/mat4.js';
-import * as quat from '../../third-party/gl-matrix/src/gl-matrix/quat.js';
-import * as quat2 from '../../third-party/gl-matrix/src/gl-matrix/quat2.js';
-import * as vec2 from '../../third-party/gl-matrix/src/gl-matrix/vec2.js';
-import * as vec3 from '../../third-party/gl-matrix/src/gl-matrix/vec3.js';
-import * as vec4 from '../../third-party/gl-matrix/src/gl-matrix/vec4.js';
+import * as glMatrix from "../../third-party/gl-matrix/src/gl-matrix/common.js";
+import * as mat2 from "../../third-party/gl-matrix/src/gl-matrix/mat2.js";
+import * as mat2d from "../../third-party/gl-matrix/src/gl-matrix/mat2d.js";
+import * as mat3 from "../../third-party/gl-matrix/src/gl-matrix/mat3.js";
+import * as mat4 from "../../third-party/gl-matrix/src/gl-matrix/mat4.js";
+import * as quat from "../../third-party/gl-matrix/src/gl-matrix/quat.js";
+import * as quat2 from "../../third-party/gl-matrix/src/gl-matrix/quat2.js";
+import * as vec2 from "../../third-party/gl-matrix/src/gl-matrix/vec2.js";
+import * as vec3 from "../../third-party/gl-matrix/src/gl-matrix/vec3.js";
+import * as vec4 from "../../third-party/gl-matrix/src/gl-matrix/vec4.js";
 
-export {
-  glMatrix,
-  mat2,
-  mat2d,
-  mat3,
-  mat4,
-  quat,
-  quat2,
-  vec2,
-  vec3,
-  vec4,
-};
+export { glMatrix, mat2, mat2d, mat3, mat4, quat, quat2, vec2, vec3, vec4 };

@@ -24,7 +24,7 @@ which XRSession. Also handles the necessary logic for enabling mouse/touch-based
 view rotation for inline sessions if desired.
 */
 
-import {quat} from '../render/math/gl-matrix.js';
+import { quat } from "../render/math/gl-matrix.js";
 
 const LOOK_SPEED = 0.0025;
 
@@ -40,9 +40,9 @@ export class InlineViewerHelper {
 
     this.dirty = false;
 
-    canvas.style.cursor = 'grab';
+    canvas.style.cursor = "grab";
 
-    canvas.addEventListener('mousemove', (event) => {
+    canvas.addEventListener("mousemove", (event) => {
       // Only rotate when the left button is pressed
       if (event.buttons & 1) {
         this.rotateView(event.movementX, event.movementY);
@@ -102,11 +102,11 @@ export class InlineViewerHelper {
   rotateView(dx, dy) {
     this.lookYaw += dx * LOOK_SPEED;
     this.lookPitch += dy * LOOK_SPEED;
-    if (this.lookPitch < -Math.PI*0.5) {
-      this.lookPitch = -Math.PI*0.5;
+    if (this.lookPitch < -Math.PI * 0.5) {
+      this.lookPitch = -Math.PI * 0.5;
     }
-    if (this.lookPitch > Math.PI*0.5) {
-      this.lookPitch = Math.PI*0.5;
+    if (this.lookPitch > Math.PI * 0.5) {
+      this.lookPitch = Math.PI * 0.5;
     }
     this.dirty = true;
   }
@@ -128,10 +128,11 @@ export class InlineViewerHelper {
       quat.rotateX(invOrient, invOrient, -this.lookPitch);
       quat.rotateY(invOrient, invOrient, -this.lookYaw);
       let xform = new XRRigidTransform(
-          {},
-          {x: invOrient[0], y: invOrient[1], z: invOrient[2], w: invOrient[3]});
+        {},
+        { x: invOrient[0], y: invOrient[1], z: invOrient[2], w: invOrient[3] }
+      );
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
-      xform = new XRRigidTransform({y: -this.viewerHeight});
+      xform = new XRRigidTransform({ y: -this.viewerHeight });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
       this.dirty = false;
     }

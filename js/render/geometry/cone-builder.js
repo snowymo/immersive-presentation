@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {GeometryBuilderBase} from './primitive-stream.js';
+import { GeometryBuilderBase } from "./primitive-stream.js";
 
 export class ConeBuilder extends GeometryBuilderBase {
   pushCone(size = 0.5) {
@@ -37,40 +37,67 @@ export class ConeBuilder extends GeometryBuilderBase {
       let rad2 = ((Math.PI * 2) / coneSegments) * (i + 1);
 
       stream.pushVertex(
-          Math.sin(rad) * (size / 2), -size, Math.cos(rad) * (size / 2),
-          i / coneSegments, 0.0,
-          Math.sin(rad), 0.25, Math.cos(rad));
+        Math.sin(rad) * (size / 2),
+        -size,
+        Math.cos(rad) * (size / 2),
+        i / coneSegments,
+        0.0,
+        Math.sin(rad),
+        0.25,
+        Math.cos(rad)
+      );
 
       stream.pushVertex(
-          Math.sin(rad2) * (size / 2), -size, Math.cos(rad2) * (size / 2),
-          i / coneSegments, 0.0,
-          Math.sin(rad2), 0.25, Math.cos(rad2));
+        Math.sin(rad2) * (size / 2),
+        -size,
+        Math.cos(rad2) * (size / 2),
+        i / coneSegments,
+        0.0,
+        Math.sin(rad2),
+        0.25,
+        Math.cos(rad2)
+      );
 
       stream.pushVertex(
-          0, size, 0,
-          i / coneSegments, 1.0,
-          Math.sin((rad + rad2) / 2), 0.25, Math.cos((rad + rad2) / 2));
+        0,
+        size,
+        0,
+        i / coneSegments,
+        1.0,
+        Math.sin((rad + rad2) / 2),
+        0.25,
+        Math.cos((rad + rad2) / 2)
+      );
     }
 
     // Base triangles
     let baseCenterIndex = stream.nextVertexIndex;
-    stream.pushVertex(
-        0, -size, 0,
-        0.5, 0.5,
-        0, -1, 0);
+    stream.pushVertex(0, -size, 0, 0.5, 0.5, 0, -1, 0);
     for (let i = 0; i < coneSegments; ++i) {
       let idx = stream.nextVertexIndex;
       stream.pushTriangle(baseCenterIndex, idx, idx + 1);
       let rad = ((Math.PI * 2) / coneSegments) * i;
       let rad2 = ((Math.PI * 2) / coneSegments) * (i + 1);
       stream.pushVertex(
-          Math.sin(rad2) * (size / 2.0), -size, Math.cos(rad2) * (size / 2.0),
-          (Math.sin(rad2) + 1.0) * 0.5, (Math.cos(rad2) + 1.0) * 0.5,
-          0, -1, 0);
+        Math.sin(rad2) * (size / 2.0),
+        -size,
+        Math.cos(rad2) * (size / 2.0),
+        (Math.sin(rad2) + 1.0) * 0.5,
+        (Math.cos(rad2) + 1.0) * 0.5,
+        0,
+        -1,
+        0
+      );
       stream.pushVertex(
-          Math.sin(rad) * (size / 2.0), -size, Math.cos(rad) * (size / 2.0),
-          (Math.sin(rad) + 1.0) * 0.5, (Math.cos(rad) + 1.0) * 0.5,
-          0, -1, 0);
+        Math.sin(rad) * (size / 2.0),
+        -size,
+        Math.cos(rad) * (size / 2.0),
+        (Math.sin(rad) + 1.0) * 0.5,
+        (Math.cos(rad) + 1.0) * 0.5,
+        0,
+        -1,
+        0
+      );
     }
 
     stream.endGeometry();

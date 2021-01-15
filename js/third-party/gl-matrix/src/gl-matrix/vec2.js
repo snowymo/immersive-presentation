@@ -12,7 +12,7 @@ import * as glMatrix from "./common.js";
  */
 export function create() {
   let out = new glMatrix.ARRAY_TYPE(2);
-  if(glMatrix.ARRAY_TYPE != Float32Array) {
+  if (glMatrix.ARRAY_TYPE != Float32Array) {
     out[0] = 0;
     out[1] = 0;
   }
@@ -190,7 +190,7 @@ export function max(out, a, b) {
  * @param {vec2} a vector to round
  * @returns {vec2} out
  */
-export function round (out, a) {
+export function round(out, a) {
   out[0] = Math.round(a[0]);
   out[1] = Math.round(a[1]);
   return out;
@@ -220,8 +220,8 @@ export function scale(out, a, b) {
  * @returns {vec2} out
  */
 export function scaleAndAdd(out, a, b, scale) {
-  out[0] = a[0] + (b[0] * scale);
-  out[1] = a[1] + (b[1] * scale);
+  out[0] = a[0] + b[0] * scale;
+  out[1] = a[1] + b[1] * scale;
   return out;
 }
 
@@ -235,7 +235,7 @@ export function scaleAndAdd(out, a, b, scale) {
 export function distance(a, b) {
   var x = b[0] - a[0],
     y = b[1] - a[1];
-  return Math.sqrt(x*x + y*y);
+  return Math.sqrt(x * x + y * y);
 }
 
 /**
@@ -248,7 +248,7 @@ export function distance(a, b) {
 export function squaredDistance(a, b) {
   var x = b[0] - a[0],
     y = b[1] - a[1];
-  return x*x + y*y;
+  return x * x + y * y;
 }
 
 /**
@@ -260,7 +260,7 @@ export function squaredDistance(a, b) {
 export function length(a) {
   var x = a[0],
     y = a[1];
-  return Math.sqrt(x*x + y*y);
+  return Math.sqrt(x * x + y * y);
 }
 
 /**
@@ -269,10 +269,10 @@ export function length(a) {
  * @param {vec2} a vector to calculate squared length of
  * @returns {Number} squared length of a
  */
-export function squaredLength (a) {
+export function squaredLength(a) {
   var x = a[0],
     y = a[1];
-  return x*x + y*y;
+  return x * x + y * y;
 }
 
 /**
@@ -311,7 +311,7 @@ export function inverse(out, a) {
 export function normalize(out, a) {
   var x = a[0],
     y = a[1];
-  var len = x*x + y*y;
+  var len = x * x + y * y;
   if (len > 0) {
     //TODO: evaluate use of glm_invsqrt here?
     len = 1 / Math.sqrt(len);
@@ -458,13 +458,13 @@ export function transformMat4(out, a, m) {
 export function rotate(out, a, b, c) {
   //Translate point to the origin
   let p0 = a[0] - b[0],
-  p1 = a[1] - b[1],
-  sinC = Math.sin(c),
-  cosC = Math.cos(c);
-  
+    p1 = a[1] - b[1],
+    sinC = Math.sin(c),
+    cosC = Math.cos(c);
+
   //perform rotation and translate to correct position
-  out[0] = p0*cosC - p1*sinC + b[0];
-  out[1] = p0*sinC + p1*cosC + b[1];
+  out[0] = p0 * cosC - p1 * sinC + b[0];
+  out[1] = p0 * sinC + p1 * cosC + b[1];
 
   return out;
 }
@@ -480,26 +480,24 @@ export function angle(a, b) {
     y1 = a[1],
     x2 = b[0],
     y2 = b[1];
-  
-  let len1 = x1*x1 + y1*y1;
+
+  let len1 = x1 * x1 + y1 * y1;
   if (len1 > 0) {
     //TODO: evaluate use of glm_invsqrt here?
     len1 = 1 / Math.sqrt(len1);
   }
-  
-  let len2 = x2*x2 + y2*y2;
+
+  let len2 = x2 * x2 + y2 * y2;
   if (len2 > 0) {
     //TODO: evaluate use of glm_invsqrt here?
     len2 = 1 / Math.sqrt(len2);
   }
-  
+
   let cosine = (x1 * x2 + y1 * y2) * len1 * len2;
-  
-  
-  if(cosine > 1.0) {
+
+  if (cosine > 1.0) {
     return 0;
-  }
-  else if(cosine < -1.0) {
+  } else if (cosine < -1.0) {
     return Math.PI;
   } else {
     return Math.acos(cosine);
@@ -513,7 +511,7 @@ export function angle(a, b) {
  * @returns {String} string representation of the vector
  */
 export function str(a) {
-  return 'vec2(' + a[0] + ', ' + a[1] + ')';
+  return "vec2(" + a[0] + ", " + a[1] + ")";
 }
 
 /**
@@ -535,10 +533,16 @@ export function exactEquals(a, b) {
  * @returns {Boolean} True if the vectors are equal, false otherwise.
  */
 export function equals(a, b) {
-  let a0 = a[0], a1 = a[1];
-  let b0 = b[0], b1 = b[1];
-  return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
-          Math.abs(a1 - b1) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a1), Math.abs(b1)));
+  let a0 = a[0],
+    a1 = a[1];
+  let b0 = b[0],
+    b1 = b[1];
+  return (
+    Math.abs(a0 - b0) <=
+      glMatrix.EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+    Math.abs(a1 - b1) <=
+      glMatrix.EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1))
+  );
 }
 
 /**
@@ -595,29 +599,31 @@ export const sqrLen = squaredLength;
  * @returns {Array} a
  * @function
  */
-export const forEach = (function() {
+export const forEach = (function () {
   let vec = create();
 
-  return function(a, stride, offset, count, fn, arg) {
+  return function (a, stride, offset, count, fn, arg) {
     let i, l;
-    if(!stride) {
+    if (!stride) {
       stride = 2;
     }
 
-    if(!offset) {
+    if (!offset) {
       offset = 0;
     }
 
-    if(count) {
-      l = Math.min((count * stride) + offset, a.length);
+    if (count) {
+      l = Math.min(count * stride + offset, a.length);
     } else {
       l = a.length;
     }
 
-    for(i = offset; i < l; i += stride) {
-      vec[0] = a[i]; vec[1] = a[i+1];
+    for (i = offset; i < l; i += stride) {
+      vec[0] = a[i];
+      vec[1] = a[i + 1];
       fn(vec, vec, arg);
-      a[i] = vec[0]; a[i+1] = vec[1];
+      a[i] = vec[0];
+      a[i + 1] = vec[1];
     }
 
     return a;

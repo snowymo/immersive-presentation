@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import { Gltf2Node } from '../render/nodes/gltf2.js';
-import { mat4, vec3 } from '../render/math/gl-matrix.js';
+import { Gltf2Node } from "../render/nodes/gltf2.js";
+import { mat4, vec3 } from "../render/math/gl-matrix.js";
 
 export function initAvatar(id) {
   let headset = new Headset();
@@ -24,8 +24,8 @@ export class Avatar {
     this.headset = head;
     this.leftController = leftController;
     this.rightController = rightController;
-    //TODO: Do we really want this to be the default?
-    // this.mode = MR.UserType.browser; 
+    // TODO: Do we really want this to be the default?
+    // this.mode = MR.UserType.browser;
     // webrtc
     this.roomID = "chalktalk";
     this.localUuid = this.createUUID();

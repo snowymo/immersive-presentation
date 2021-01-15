@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Material} from '../core/material.js';
-import {Node} from '../core/node.js';
-import {PrimitiveStream} from '../geometry/primitive-stream.js';
+import { Material } from "../core/material.js";
+import { Node } from "../core/node.js";
+import { PrimitiveStream } from "../geometry/primitive-stream.js";
 
 const GL = WebGLRenderingContext; // For enums
 
@@ -44,7 +44,7 @@ class DropShadowMaterial extends Material {
   }
 
   get materialName() {
-    return 'DROP_SHADOW_MATERIAL';
+    return "DROP_SHADOW_MATERIAL";
   }
 
   get vertexSource() {
@@ -83,7 +83,7 @@ export class DropShadowNode extends Node {
     // Shadow center
     stream.pushVertex(0, SHADOW_GROUND_OFFSET, 0, SHADOW_CENTER_ALPHA);
 
-    let segRad = ((Math.PI * 2.0) / SHADOW_SEGMENTS);
+    let segRad = (Math.PI * 2.0) / SHADOW_SEGMENTS;
 
     let idx;
     for (let i = 0; i < SHADOW_SEGMENTS; ++i) {
@@ -92,28 +92,41 @@ export class DropShadowNode extends Node {
       let rad = i * segRad;
       let x = Math.cos(rad);
       let y = Math.sin(rad);
-      stream.pushVertex(x * SHADOW_INNER_RADIUS, SHADOW_GROUND_OFFSET, y * SHADOW_INNER_RADIUS, SHADOW_INNER_ALPHA);
-      stream.pushVertex(x * SHADOW_OUTER_RADIUS, SHADOW_GROUND_OFFSET, y * SHADOW_OUTER_RADIUS, SHADOW_OUTER_ALPHA);
+      stream.pushVertex(
+        x * SHADOW_INNER_RADIUS,
+        SHADOW_GROUND_OFFSET,
+        y * SHADOW_INNER_RADIUS,
+        SHADOW_INNER_ALPHA
+      );
+      stream.pushVertex(
+        x * SHADOW_OUTER_RADIUS,
+        SHADOW_GROUND_OFFSET,
+        y * SHADOW_OUTER_RADIUS,
+        SHADOW_OUTER_ALPHA
+      );
 
       if (i > 0) {
         // Inner circle
-        stream.pushTriangle(0, idx, idx-2);
+        stream.pushTriangle(0, idx, idx - 2);
 
         // Outer circle
-        stream.pushTriangle(idx, idx+1, idx-1);
-        stream.pushTriangle(idx, idx-1, idx-2);
+        stream.pushTriangle(idx, idx + 1, idx - 1);
+        stream.pushTriangle(idx, idx - 1, idx - 2);
       }
     }
 
     stream.pushTriangle(0, 1, idx);
 
-    stream.pushTriangle(1, 2, idx+1);
-    stream.pushTriangle(1, idx+1, idx);
+    stream.pushTriangle(1, 2, idx + 1);
+    stream.pushTriangle(1, idx + 1, idx);
 
     stream.endGeometry();
 
     let shadowPrimitive = stream.finishPrimitive(renderer);
-    this._shadowRenderPrimitive = renderer.createRenderPrimitive(shadowPrimitive, new DropShadowMaterial());
+    this._shadowRenderPrimitive = renderer.createRenderPrimitive(
+      shadowPrimitive,
+      new DropShadowMaterial()
+    );
     this.addRenderPrimitive(this._shadowRenderPrimitive);
   }
 }

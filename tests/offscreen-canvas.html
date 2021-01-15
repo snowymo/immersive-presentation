@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
 Copyright 2018 The Immersive Web Community Group
 
@@ -21,39 +21,52 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <html>
   <head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
-    <meta name='mobile-web-app-capable' content='yes'>
-    <meta name='apple-mobile-web-app-capable' content='yes'>
-    <link rel='icon' type='image/png' sizes='32x32' href='../favicon-32x32.png'>
-    <link rel='icon' type='image/png' sizes='96x96' href='../favicon-96x96.png'>
-    <link rel='stylesheet' href='../css/common.css'>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="../favicon-96x96.png"
+    />
+    <link rel="stylesheet" href="../css/common.css" />
 
     <title>Offscreen Canvas</title>
 
-    <script src='../js/third-party/dat.gui.min.js'></script>
+    <script src="../js/third-party/dat.gui.min.js"></script>
   </head>
   <body>
     <header>
-      <details id='details-panel' open>
+      <details id="details-panel" open>
         <summary>Offscreen Canvas</summary>
         <p>
-          A simple test to ensure that the browser's WebXR implementation works with a WebGL context created
-          from an OffscreenCanvas.
+          A simple test to ensure that the browser's WebXR implementation works
+          with a WebGL context created from an OffscreenCanvas.
           <a class="back" href="./">Back</a>
         </p>
       </details>
     </header>
     <script type="module">
-      import {WebXRSampleApp} from '../js/webxr-sample-app.js';
-      import {Gltf2Node} from '../js/render/nodes/gltf2.js';
-      import {SkyboxNode} from '../js/render/nodes/skybox.js';
-      import {QueryArgs} from '../js/util/query-args.js';
+      import { WebXRSampleApp } from "../js/webxr-sample-app.js";
+      import { Gltf2Node } from "../js/render/nodes/gltf2.js";
+      import { SkyboxNode } from "../js/render/nodes/skybox.js";
+      import { QueryArgs } from "../js/util/query-args.js";
 
       // If requested, use the polyfill to provide support for mobile devices
       // and devices which only support WebVR.
-      import WebXRPolyfill from '../js/third-party/webxr-polyfill/build/webxr-polyfill.module.js';
-      if (QueryArgs.getBool('usePolyfill', true)) {
+      import WebXRPolyfill from "../js/third-party/webxr-polyfill/build/webxr-polyfill.module.js";
+      if (QueryArgs.getBool("usePolyfill", true)) {
         let polyfill = new WebXRPolyfill();
       }
 
@@ -63,17 +76,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // This sample will create an offscreen canvas for WebGL rather than
           // the usual canvas Dom element.
           let offscreenCanvas = new OffscreenCanvas(16, 16);
-          return offscreenCanvas.getContext('webgl', {
-            xrCompatible: true
+          return offscreenCanvas.getContext("webgl", {
+            xrCompatible: true,
           });
         }
-      };
+      }
 
       let app = new CustomWebXRSampleApp();
-      document.querySelector('header').appendChild(app.xrButton.domElement);
+      document.querySelector("header").appendChild(app.xrButton.domElement);
 
-      app.scene.addNode(new Gltf2Node({url: '../media/gltf/space/space.gltf'}));
-      app.scene.addNode(new SkyboxNode({url: '../media/textures/milky-way-4k.png'}));
+      app.scene.addNode(
+        new Gltf2Node({ url: "../media/gltf/space/space.gltf" })
+      );
+      app.scene.addNode(
+        new SkyboxNode({ url: "../media/textures/milky-way-4k.png" })
+      );
 
       // Start the XR application.
       app.run();
