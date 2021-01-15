@@ -112,12 +112,7 @@ CG.extracScale = a => {
   return s;
 }
 CG.extracRotation = a => {
-  let r = [];
-  s.push( Math.sqrt(Math.pow(a[0],2) + Math.pow(a[1],2) + Math.pow(a[2],2)),
-          Math.sqrt(Math.pow(a[4],2) + Math.pow(a[5],2) + Math.pow(a[6],2)),
-          Math.sqrt(Math.pow(a[8],2) + Math.pow(a[9],2) + Math.pow(a[10],2)),
-  )
-  return s;
+ //TODO
 }
 CG.setTranslate = (m,t)      => {
   m[12] = t[0]; m[13] = t[1]; m[14] = t[2];

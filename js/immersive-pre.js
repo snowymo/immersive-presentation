@@ -18,13 +18,13 @@ import {
   pauseAudio,
 } from "./util/positional-audio.js";
 import { Client as WSClient } from "./util/websocket-client.js";
-import * as RenderList from "./render/core/renderList.js";
 
 window.wsport = 8447;
 
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
 import WebXRPolyfill from "./third-party/webxr-polyfill/build/webxr-polyfill.module.js";
+import { updateController } from "./render/scenes/renderListScene.js";
 if (QueryArgs.getBool("usePolyfill", true)) {
   let polyfill = new WebXRPolyfill();
 }
@@ -33,6 +33,7 @@ if (QueryArgs.getBool("usePolyfill", true)) {
 let xrButton = null;
 let xrImmersiveRefSpace = null;
 let inlineViewerHelper = null;
+let time = 0;
 
 // WebGL scene globals.
 let gl = null;
@@ -41,6 +42,7 @@ window.scene = new Scene();
 window.scene.addNode(
   new Gltf2Node({ url: "../media/gltf/garage/garage.gltf" })
 );
+
 window.scene.standingStats(true);
 window.scene.addNode(stereo);
 
@@ -286,6 +288,8 @@ function onSelectEnd(ev) {
 }
 
 function onXRFrame(t, frame) {
+  time = t / 1000;
+
   let session = frame.session;
   let refSpace = session.isImmersive
     ? xrImmersiveRefSpace
@@ -310,7 +314,19 @@ function onXRFrame(t, frame) {
 
   updateAvatars();
 
-  window.scene.drawXRFrame(frame, pose);
+  if (window.playerid) {
+    const thisAvatar = window.avatars[window.playerid];
+    for (let source of session.inputSources) {
+      if (source.handedness && source.gamepad) {
+        updateController(thisAvatar, {
+          handedness: source.handedness,
+          buttons: source.gamepad.buttons,
+        });
+      }
+    }
+  }
+
+  window.scene.drawXRFrame(frame, pose, time);
 
   if (pose) {
     resonance.setListenerFromMatrix({ elements: pose.transform.matrix });

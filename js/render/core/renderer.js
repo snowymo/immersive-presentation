@@ -24,7 +24,8 @@ import { Program } from "./program.js";
 import { DataTexture, VideoTexture } from "./texture.js";
 import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
-import * as RenderList from "./renderList.js";
+import { renderList } from "./renderList.js";
+import { renderListScene } from "../scenes/renderListScene.js"
 
 export const ATTRIB = {
   POSITION: 1,
@@ -46,7 +47,7 @@ export const ATTRIB_MASK = {
 
 const GL = WebGLRenderingContext; // For enums
 
-const DEF_LIGHT_DIR = new Float32Array([-0.1, -1.0, -0.2]);
+const DEF_LIGHT_DIR = new Float32Array([-0.1,-1.0, 1]);
 const DEF_LIGHT_COLOR = new Float32Array([3.0, 3.0, 3.0]);
 
 const PRECISION_REGEX = new RegExp("precision (lowp|mediump|highp) float;");
@@ -866,7 +867,7 @@ export class Renderer {
     return meshNode;
   }
 
-  drawViews(views, rootNode) {
+  drawViews(views, rootNode, time) {
     if (!rootNode) {
       return;
     }
@@ -917,12 +918,15 @@ export class Renderer {
       gl.colorMask(true, true, true, true);
     }
 
-    RenderList.renderList.initBuffer(this._gl);
-    RenderList.renderList.beginFrame();
-    RenderList.mCube().color(1,0,0).size(0.3).move(0,2,-2);
-    // TODO: Write a function for creating and moving renderList objects
-    this._drawRenderListPrimitive(views, ...RenderList.renderList.endFrame());
-
+    renderList.initBuffer(this._gl);
+    renderList.beginFrame();
+    // RenderList.mCube().color(1,0,0).size(0.3).move(0,2,-2);
+    renderListScene(time);
+    // // TODO: Write a function for creating and moving renderList objects
+    if (renderList.num > 0) {
+      for(let i = 0; i < renderList.num; i ++)
+        this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
+    }
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1057,21 +1061,13 @@ export class Renderer {
       );
     }
 
-    let vertices = [
-      -.5 , .5,0,   .5 , .5,0,
-      // -.5, 0,0,   .5, 0,0,
-      -.5 ,-.5,0,   .5 ,-.5,0,
-    ];
-
     if(!renderList.vao) {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
       renderList.buffer = gl.createBuffer();
     }
-    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    // if (shape != renderList.prev_shape) {
+   // if (shape != renderList.prev_shape) {
       renderList.buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
@@ -1096,11 +1092,7 @@ export class Renderer {
       renderList.bufferAux = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
     // }
-    // let aPos = gl.getAttribLocation(pgm.program, 'aPos');                      // Set aPos attribute for each vertex.
-    // gl.enableVertexAttribArray(aPos);
-    // gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
-    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertices.length/3);
-
+   
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
     gl.uniform4fv(
       gl.getUniformLocation(pgm.program, "uColor"),
@@ -1169,10 +1161,16 @@ export class Renderer {
           view.projectionMatrix
         );
       }
-      if (isToon) {
+      if (isToon == false) {
+        let m = [
+          1,0,0,0,
+          0,1,0,0,
+          0,0,1,0,
+          0,0,0,1,
+        ];
         gl.uniform1f(
           gl.getUniformLocation(pgm.program, "uToon"),
-          0.3 * CG.norm(m.value().slice(0, 3))
+          0.3 * CG.norm(m.slice(0, 3))
         );
         gl.cullFace(gl.FRONT);
         drawArrays();

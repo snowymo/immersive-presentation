@@ -1,6 +1,9 @@
 "use strict";
 
 import { CG, Matrix } from "./CG.js";
+import { ImprovedNoise } from "../math/improvedNoise.js";
+
+export let m = new Matrix();
 
 class TextureInfo {
   constructor() {
@@ -14,9 +17,9 @@ class TextureInfo {
 let RenderList = function () {
   let Item = function () {
     this.move = (x, y, z) => {
-      this.mx = Array.isArray(x) ? x[0] : x;
-      this.my = Array.isArray(x) ? x[1] : y;
-      this.mz = Array.isArray(x) ? x[2] : z;
+      this.mx = x;
+      this.my = y;
+      this.mz = z;
       return this;
     };
     this.turnX = (a) => {
@@ -79,6 +82,15 @@ let RenderList = function () {
       this.vertexMode = mode;
       return this;
     };
+    this.isToon = (toon) => {
+      this.toon = toon;
+      return this;
+    };
+
+    this.isMirror = (mirror) => {
+      this.mirror = mirror;
+      return this;
+    };
 
     this.textureView = (img, sc = 1) => {
       this.textureInfo.image = img;
@@ -100,6 +112,11 @@ let RenderList = function () {
       cl.turnZ(this.rz);
       cl.move(this.mx, this.my, this.mz);
       cl.opac = this.opac;
+      cl.textureInfo = this.textureInfo;
+      cl.fxMode = this.fxMode;
+      cl.vertexMode = this.vertexMode;
+      cl.isToon = this.isToon;
+      cl.isMirror = this.isMirror;
 
       for (let i = 0; i < this.matrix.length; i += 1) {
         cl.matrix[i] = this.matrix[i];
@@ -121,53 +138,54 @@ let RenderList = function () {
       this.textureInfo = new TextureInfo();
       this.fxMode = 0;
       this.vertexMode = 0;
+      this.isToon = false;
+      this.isMirror = false;
     };
     this.init();
   };
 
-  this.setWorld = (_w) => (w = _w);
-  this.world = () => {
-    return w;
-  };
-  this.beginFrame = () => (n = 0);
+  // this.setWorld = (_w) => (w = _w);
+  // this.world = () => {
+  //   return w;
+  // };
+
+  this.beginFrame = () => ((n = 0), (this.num = 0));
   this.add = (shape) => {
     if (items[n]) items[n].init();
     else items[n] = new Item();
     items[n].shape = shape;
-    // items[n].matrix = w.m.value().slice();
-    items[n].matrix = [
-      1,0,0,0,
-      0,1,0,0,
-      0,0,1,0,
-      0,0,0,1,
-    ];
+    items[n].matrix = m.value().slice();
+    // items[n].matrix = [
+    //   1,0,0,0,
+    //   0,1,0,0,
+    //   0,0,1,0,
+    //   0,0,0,1,
+    // ];
+    this.num++;
     return items[n++];
   };
-  this.endFrame = () => {
-    for (let i = 0; i < n; i++) {
-      let item = items[i];
-      let mat = item.matrix;
-      mat = CG.matrixMultiply(
-        mat,
-        CG.matrixTranslate(item.mx, item.my, item.mz)
-      );
-      mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
-      mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
-      mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
-      mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
+  this.endFrame = (i) => {
+    let item = items[i];
+    let mat = item.matrix;
+    mat = CG.matrixMultiply(mat, CG.matrixTranslate(item.mx, item.my, item.mz));
+    mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
+    mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
+    mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
+    mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
 
-      return [
-        this,
-        item.shape,
-        mat,
-        item.rgb,
-        item.opac,
-        item.textureInfo,
-        item.fxMode,
-        item.vertexMode
-      ];
-    }
-    //      console.log("there are " + n + " items in the scene");
+    return [
+      this,
+      item.shape,
+      mat,
+      item.rgb,
+      item.opac,
+      item.textureInfo,
+      item.fxMode,
+      item.vertexMode,
+      item.toon,
+      item.mirror,
+    ];
+    //  console.log("there are " + n + " items in the scene");
   };
   this.endFrameWithRange = (drawFunction, i, j) => {
     for (; i < j; i += 1) {
@@ -182,7 +200,14 @@ let RenderList = function () {
       mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
       mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
 
-      drawFunction(item.shape, mat, item.rgb, item.opac, item.textureInfo, item.fxMode);
+      drawFunction(
+        item.shape,
+        mat,
+        item.rgb,
+        item.opac,
+        item.textureInfo,
+        item.fxMode
+      );
     }
   };
 
@@ -192,34 +217,64 @@ let RenderList = function () {
 
   this.initBuffer = (gl) => {
     this.buffer = gl.createBuffer();
-  }
+  };
   this.initVAO = (gl) => {
     this.vao = gl.createVertexArray();
-  }
-  this.prev_shape = null;
+  };
 
-  let w = null,
+  this.prev_shape = null;
+  this.program = null;
+  this.num = 0;
+
+  let items = [],
     n = 0,
-    items = [],
-    program = null;
+    improvedNoise = new ImprovedNoise();
+};
+
+RenderList.prototype.mCube = function () {
+  return this.add(CG.cube);
+};
+RenderList.prototype.mPoly4 = function (V) {
+  return this.add(CG.createPoly4Vertices(V));
+};
+RenderList.prototype.mPolyhedron = function (V) {
+  return this.add(CG.createPoly4Vertices(V));
+};
+RenderList.prototype.mQuad = function () {
+  return this.add(CG.quad);
+};
+RenderList.prototype.mSquare = function () {
+  return this.add(CG.quad);
+};
+RenderList.prototype.mSphere = function () {
+  return this.add(CG.sphere);
+};
+RenderList.prototype.mCylinder = function () {
+  return this.add(CG.cylinder);
+};
+RenderList.prototype.mRoundedCylinder = function () {
+  return this.add(CG.roundedCylinder);
+};
+RenderList.prototype.mTorus = function () {
+  return this.add(CG.torus);
+};
+RenderList.prototype.mDisk = function () {
+  return this.add(CG.disk);
+};
+RenderList.prototype.mCone = function () {
+  return this.add(CG.cone);
+};
+RenderList.prototype.mTube = function () {
+  return this.add(CG.tube);
+};
+RenderList.prototype.mTube3 = function () {
+  return this.add(CG.tube3);
+};
+RenderList.prototype.mGluedCylinder = function () {
+  return this.add(CG.gluedCylinder);
 };
 
 export let renderList = new RenderList();
-
-export let mCube = () => renderList.add(CG.cube);
-export let mPoly4 = (V) => renderList.add(CG.createPoly4Vertices(V));
-export let mPolyhedron = (V) => renderList.add(CG.createPoly4Vertices(V));
-export let mQuad = () => renderList.add(CG.quad);
-export let mSquare = () => renderList.add(CG.quad);
-export let mSphere = () => renderList.add(CG.sphere);
-export let mCylinder = () => renderList.add(CG.cylinder);
-export let mRoundedCylinder = () => renderList.add(CG.roundedCylinder);
-export let mTorus = () => renderList.add(CG.torus);
-export let mDisk = () => renderList.add(CG.disk);
-export let mCone = () => renderList.add(CG.cone);
-export let mTube = () => renderList.add(CG.tube);
-export let mTube3 = () => renderList.add(CG.tube3);
-export let mGluedCylinder = () => renderList.add(CG.gluedCylinder);
 
 // TO DO:
 

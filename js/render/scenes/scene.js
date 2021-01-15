@@ -229,7 +229,7 @@ export class Scene extends Node {
   }
 
   /** Draws the scene into the base layer of the XRFrame's session */
-  drawXRFrame(xrFrame, pose) {
+  drawXRFrame(xrFrame, pose, time) {
     if (!this._renderer || !pose) {
       return;
     }
@@ -254,16 +254,16 @@ export class Scene extends Node {
       views.push(new WebXRView(view, layer));
     }
 
-    this.drawViewArray(views);
+    this.drawViewArray(views, time);
   }
 
-  drawViewArray(views) {
+  drawViewArray(views, time) {
     // Don't draw when we don't have a valid context
     if (!this._renderer) {
       return;
     }
 
-    this._renderer.drawViews(views, this);
+    this._renderer.drawViews(views, this, time);
   }
 
   startFrame() {

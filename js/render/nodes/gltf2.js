@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 import { Node } from "../core/node.js";
-import { Gltf2Loader } from "../loaders/gltf2.js";
+import { Gltf2Loader } from "../gltf/gltf2.js";
 
 // Using a weak map here allows us to cache a loader per-renderer without
 // modifying the renderer object or leaking memory when it's garbage collected.

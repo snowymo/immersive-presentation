@@ -13,7 +13,8 @@
   "scripts": {
     "test": "node server.js",
     "start": "node server.js",
-    "format": "prettier --write \"**/*.{js,json,md,html,css}\""
+    "format": "prettier --write \"**/*.{js,json,md,html,css}\"",
+    "convert": "gltf-import-export"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   },
   "homepage": "https://github.com/snowymo/immersive-presentation#readme",
   "devDependencies": {
+    "gltf-import-export": "^1.0.16",
     "prettier": "2.2.1"
   }
 }
