@@ -139,112 +139,112 @@ let terrainMesh;
 
 export function renderListScene(time) {
   // NOISE GRID
-  if (tMode == 2) {
-    m.save();
-    //  m.translate(0, 0.5, 0);
-    m.rotateX(-3.14159 / 2);
-    //  m.scale(0.9);
-    let n = 0;
-    for (let y = -N; y <= N; y += 0.1)
-      for (let x = -N; x <= N; x += 0.1) {
-        if (nMode < 4 && x < N) line([x, y, 0], [x + 1, y, 0], [4, 4, 4]);
-        if (nMode < 4 && y < N) line([x, y, 0], [x, y + 1, 0], [4, 4, 4]);
+  // if (tMode == 2) {
+  //   m.save();
+  //   //  m.translate(0, 0.5, 0);
+  //   m.rotateX(-3.14159 / 2);
+  //   //  m.scale(0.9);
+  //   let n = 0;
+  //   for (let y = -N; y <= N; y += 0.1)
+  //     for (let x = -N; x <= N; x += 0.1) {
+  //       if (nMode < 4 && x < N) line([x, y, 0], [x + 1, y, 0], [4, 4, 4]);
+  //       if (nMode < 4 && y < N) line([x, y, 0], [x, y + 1, 0], [4, 4, 4]);
 
-        if (nMode > 0 && nMode < 4)
-          line(
-            [x - 0.25, y, -vecs[n][0] / 2],
-            [x + 0.25, y, vecs[n][0] / 2],
-            [4, 0, 0]
-          );
+  //       if (nMode > 0 && nMode < 4)
+  //         line(
+  //           [x - 0.25, y, -vecs[n][0] / 2],
+  //           [x + 0.25, y, vecs[n][0] / 2],
+  //           [4, 0, 0]
+  //         );
 
-        if (nMode > 1 && nMode < 4)
-          line(
-            [x, y - 0.25, -vecs[n][1] / 2],
-            [x, y + 0.25, vecs[n][1] / 2],
-            [0, 3, 6]
-          );
+  //       if (nMode > 1 && nMode < 4)
+  //         line(
+  //           [x, y - 0.25, -vecs[n][1] / 2],
+  //           [x, y + 0.25, vecs[n][1] / 2],
+  //           [0, 3, 6]
+  //         );
 
-        /*
-              let e = 1/5;
-              if (nMode >= 3 && x < N && y < N)
-                 for (let v = 0 ; v <= 1.001 ; v += e)
-                 for (let u = 0 ; u <= 1.001 ; u += e) {
-                let z00 = nZ(u  , v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-                let z10 = nZ(u+e, v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-                let z01 = nZ(u  , v+e, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-                if (u < .99) line([x+u,y+v,z00],[x+u+e,y+v,z10],[4,2,4],.003, renderList);
-                if (v < .99) line([x+u,y+v,z00],[x+u,y+v+e,z01],[4,2,4],.003, renderList);
-             }
+  //       /*
+  //             let e = 1/5;
+  //             if (nMode >= 3 && x < N && y < N)
+  //                for (let v = 0 ; v <= 1.001 ; v += e)
+  //                for (let u = 0 ; u <= 1.001 ; u += e) {
+  //               let z00 = nZ(u  , v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+  //               let z10 = nZ(u+e, v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+  //               let z01 = nZ(u  , v+e, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+  //               if (u < .99) line([x+u,y+v,z00],[x+u+e,y+v,z10],[4,2,4],.003, renderList);
+  //               if (v < .99) line([x+u,y+v,z00],[x+u,y+v+e,z01],[4,2,4],.003, renderList);
+  //            }
        
-       */
-        if (nMode >= 3 && x < N && y < N) {
-          let e = 1 / 8,
-            f = 1 / 4;
+  //      */
+  //       if (nMode >= 3 && x < N && y < N) {
+  //         let e = 1 / 8,
+  //           f = 1 / 4;
 
-          for (let u = 0; u <= 0.999; u += e)
-            for (let v = 0; v <= 1.01; v += f) {
-              let z0 = nZ(
-                u,
-                v,
-                vecs[n],
-                vecs[n + 1],
-                vecs[n + 2 * N + 1],
-                vecs[n + 2 * N + 2]
-              );
-              let z1 = nZ(
-                u + e,
-                v,
-                vecs[n],
-                vecs[n + 1],
-                vecs[n + 2 * N + 1],
-                vecs[n + 2 * N + 2]
-              );
-              line(
-                [x + u, y + v, z0],
-                [x + u + e, y + v, z1],
-                [4, 2, 4],
-                0.003
-              );
-            }
+  //         for (let u = 0; u <= 0.999; u += e)
+  //           for (let v = 0; v <= 1.01; v += f) {
+  //             let z0 = nZ(
+  //               u,
+  //               v,
+  //               vecs[n],
+  //               vecs[n + 1],
+  //               vecs[n + 2 * N + 1],
+  //               vecs[n + 2 * N + 2]
+  //             );
+  //             let z1 = nZ(
+  //               u + e,
+  //               v,
+  //               vecs[n],
+  //               vecs[n + 1],
+  //               vecs[n + 2 * N + 1],
+  //               vecs[n + 2 * N + 2]
+  //             );
+  //             line(
+  //               [x + u, y + v, z0],
+  //               [x + u + e, y + v, z1],
+  //               [4, 2, 4],
+  //               0.003
+  //             );
+  //           }
 
-          for (let v = 0; v <= 0.999; v += e)
-            for (let u = 0; u <= 1.01; u += f) {
-              let z0 = nZ(
-                u,
-                v,
-                vecs[n],
-                vecs[n + 1],
-                vecs[n + 2 * N + 1],
-                vecs[n + 2 * N + 2]
-              );
-              let z1 = nZ(
-                u,
-                v + e,
-                vecs[n],
-                vecs[n + 1],
-                vecs[n + 2 * N + 1],
-                vecs[n + 2 * N + 2]
-              );
-              line(
-                [x + u, y + v, z0],
-                [x + u, y + v + e, z1],
-                [4, 2, 4],
-                0.004
-              );
-            }
-        }
+  //         for (let v = 0; v <= 0.999; v += e)
+  //           for (let u = 0; u <= 1.01; u += f) {
+  //             let z0 = nZ(
+  //               u,
+  //               v,
+  //               vecs[n],
+  //               vecs[n + 1],
+  //               vecs[n + 2 * N + 1],
+  //               vecs[n + 2 * N + 2]
+  //             );
+  //             let z1 = nZ(
+  //               u,
+  //               v + e,
+  //               vecs[n],
+  //               vecs[n + 1],
+  //               vecs[n + 2 * N + 1],
+  //               vecs[n + 2 * N + 2]
+  //             );
+  //             line(
+  //               [x + u, y + v, z0],
+  //               [x + u, y + v + e, z1],
+  //               [4, 2, 4],
+  //               0.004
+  //             );
+  //           }
+  //       }
 
-        n++;
-      }
-    /*
-           if (terrainMesh) {
-              let r = renderList.add(terrainMesh);
-              r.color(white);
-           }
-       */
+  //       n++;
+  //     }
+  //   /*
+  //          if (terrainMesh) {
+  //             let r = renderList.add(terrainMesh);
+  //             r.color(white);
+  //          }
+  //      */
 
-    m.restore();
-  }
+  //   m.restore();
+  // }
 
   if (flatten >= 0) {
     zScale *= 0.97;
