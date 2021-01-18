@@ -20,6 +20,26 @@ CG.normalize = a => {
    let s = Math.sqrt(CG.dot(a,a));
    return [ a[0] / s, a[1] / s, a[2] / s ];
 }
+CG.random = function() {
+   let seed, x, y, z;
+   let init = s => {
+      seed = s;
+      x    = (seed % 30268) + 1;
+      seed = (seed - (seed % 30268)) / 30268;
+      y    = (seed % 30306) + 1;
+      seed = (seed - (seed % 30306)) / 30306;
+      z    = (seed % 30322) + 1;
+   }
+   init(2);
+   return function(s) {
+      if (s !== undefined)
+         init(s);
+      return ( ((x = (171 * x) % 30269) / 30269) +
+               ((y = (172 * y) % 30307) / 30307) +
+               ((z = (170 * z) % 30323) / 30323) ) % 1;
+   }
+}();
+
 CG.scale = (a,s) => [ s*a[0], s*a[1], s*a[2] ];
 CG.subtract = (a,b) => [ a[0] - b[0], a[1] - b[1], a[2] - b[2] ];
 CG.abs = a => [Math.abs(a[0]), Math.abs(a[1]), Math.abs(a[2])];
@@ -421,9 +441,9 @@ CG.uvToCylinder = (u,v) => {
    for (let n = 0 ; n < 3 ; n++)
       for (let i = 0 ; i < P.length ; i += VERTEX_SIZE) {
          let p0 = [P[i   ], P[i+ 1], P[i+ 2]],
-	     p1 = [P[i+ 3], P[i+ 4], P[i+ 5]],
-	     p2 = [P[i+ 6], P[i+ 7], P[i+ 8]],
-	     uv = [P[i+ 9], P[i+10]];
+             p1 = [P[i+ 3], P[i+ 4], P[i+ 5]],
+             p2 = [P[i+ 6], P[i+ 7], P[i+ 8]],
+             uv = [P[i+ 9], P[i+10]];
          V = V.concat(p0).concat(p1).concat(p2).concat(uv);
          for (let j = 0 ; j < 3 ; j++) {
             P[i   + j] = p0[(j+1) % 3];
@@ -461,12 +481,12 @@ CG.createMeshVertices = (M, N, uvToShape, vars) => {
 CG.uvToVertex = (u,v,A,f) => {
    let e = .001, P = f(u-e, v-e, A), Q = f(u+e, v-e, A),
                  R = f(u-e, v+e, A), S = f(u+e, v+e, A),
-		 T = CG.subtract(CG.add(Q,S), CG.add(P,R)),
-		 U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
+                 T = CG.subtract(CG.add(Q,S), CG.add(P,R)),
+                 U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
                  N = CG.cross(T, U);
    return P.concat(CG.normalize(N))
            .concat(CG.normalize(T))
-	   .concat([u,v]);
+           .concat([u,v]);
 }
 
 CG.glueMeshes = (a,b) => {
@@ -571,6 +591,59 @@ CG.shapeImageToTriangleMesh = si => {
    return mesh;
 }
 
+// CREATE A MESH FOR RENDERING PARTICLES
+
+CG.particlesCreateMesh = N => {
+   const vs = VERTEX_SIZE;
+   let V = new Float32Array(vs*6*N);
+   for (let n = 0 ; n < N ; n++)
+   for (let i = 0 ; i < 6 ; i++) {
+      V[vs * (6*n + i) +  5] = 1;
+      V[vs * (6*n + i) +  6] = 1;
+      V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;
+      V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;
+   }
+   return V;
+}
+
+CG.particlesSetPositions = (V, A, r) => {
+
+   const vs = VERTEX_SIZE, skip = 6 * vs;
+   const nMax = Math.min(A.length, V.length / skip);
+   CG.random(0);
+   for (let n = 0 ; n < nMax ; n++) {
+      let i0 = skip * n;
+      let i1 = i0 + vs;
+      let i2 = i1 + vs;
+      let i3 = i2 + vs;
+      let i4 = i3 + vs;
+      let i5 = i4 + vs;
+
+      for (let i = i0 ; i < i4 ; i += vs)
+         for (let j = 0 ; j < 3 ; j++)
+            V[i+j] = A[n][j] + r * (2 * CG.random() - 1);
+
+      V[i4  ] = V[i3  ];
+      V[i4+1] = V[i3+1];
+      V[i4+2] = V[i3+2];
+
+      if (n > 0) {
+         V[i0-vs  ] = V[i0  ];
+         V[i0-vs+1] = V[i0+1];
+         V[i0-vs+2] = V[i0+2];
+      }
+
+      if (n == A.length - 1) {
+         V[i5  ] = V[i4  ];
+         V[i5+1] = V[i4+1];
+         V[i5+2] = V[i4+2];
+      }
+   }
+
+   for (let n = nMax ; n < V.length / skip ; n++)
+      for (let i = 0 ; i < skip ; i++)
+         V[skip * n + i] = 0;
+}
 
 // CONVENIENCE FUNCTION TO EXTRUDE A PROFILE ALONG A PATH,
 // AND RETURN A TRIANGLE MESH AS THE RESULT.
@@ -652,4 +725,4 @@ CG.tube            = CG.createMeshVertices(32, 16, CG.uvToTube);
 CG.tube3           = CG.createMeshVertices( 4,  3, CG.uvToTube);
 CG.gluedCylinder   = CG.glueMeshes(CG.tube,
                      CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToDisk, 1),
-                                CG.createMeshVertices(32, 16, CG.uvToDisk, 1)));
+                                   CG.createMeshVertices(32, 16, CG.uvToDisk, 1)));

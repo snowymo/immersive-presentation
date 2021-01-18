@@ -251,6 +251,25 @@ export function renderListScene(time) {
     flatten--;
   }
 
+  m.save();
+     m.translate(0,1.2,-.6);
+     m.scale(.3);
+     for (let n = 0 ; n < np ; n++) {
+        R[n][0] += .003 * Math.sin(time * 2.89 + n);
+        R[n][1] += .003 * Math.sin(time * 2.78 + n);
+        R[n][2] += .003 * Math.sin(time * 2.67 + n);
+	let x = R[n][0], y = R[n][1], z = R[n][2];
+	if (x*x + y*y + z*z > .9) {
+	   R[n][0] *= .99;
+	   R[n][1] *= .99;
+	   R[n][2] *= .99;
+	}
+	   
+     }
+     CG.particlesSetPositions(P, R, .005);
+     renderList.mMesh(P).color([10,10,10]);
+  m.restore();
+
   if (cursorPath.length) {
     m.save();
     // m.translate(0, 0.5, 2.5);
@@ -264,3 +283,19 @@ export function renderListScene(time) {
     m.restore();
   }
 }
+
+let np = 10000;
+let P = CG.particlesCreateMesh(np);
+let x = 0, y = 0, z = 0;
+let R = [];
+for (let n = 0 ; n < np ; n++) {
+   let x, y, z;
+   do {
+      x = 2 * Math.random() - 1;
+      y = 2 * Math.random() - 1;
+      z = 2 * Math.random() - 1;
+   }
+   while (x*x + y*y + z*z > 1);
+   R.push([x, y, z]);
+}
+

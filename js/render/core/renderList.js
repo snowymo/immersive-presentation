@@ -231,6 +231,9 @@ let RenderList = function () {
     improvedNoise = new ImprovedNoise();
 };
 
+RenderList.prototype.mMesh = function (V) {
+  return this.add(V);
+};
 RenderList.prototype.mCube = function () {
   return this.add(CG.cube);
 };
