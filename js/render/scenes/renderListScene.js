@@ -3,6 +3,8 @@ import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 
+let viewMatrix = [];
+
 const FEET_TO_METERS = 0.3048;
 
 let handPos = { left: [], right: [] };
@@ -136,6 +138,12 @@ let createTerrainMesh = () => {
 };
 
 let terrainMesh;
+
+export let getViews = (views) => {
+  viewMatrix = []
+  for (let view of views)
+    viewMatrix.push(view.viewMatrix);
+}
 
 export function renderListScene(time) {
   // NOISE GRID
