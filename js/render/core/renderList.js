@@ -86,9 +86,12 @@ let RenderList = function () {
       this.toon = toon;
       return this;
     };
-
     this.isMirror = (mirror) => {
       this.mirror = mirror;
+      return this;
+    };
+    this.isParticles = (particles) => {
+      this.particles = particles;
       return this;
     };
 
@@ -117,6 +120,7 @@ let RenderList = function () {
       cl.vertexMode = this.vertexMode;
       cl.isToon = this.isToon;
       cl.isMirror = this.isMirror;
+      cl.isParticles = this.isParticles;
 
       for (let i = 0; i < this.matrix.length; i += 1) {
         cl.matrix[i] = this.matrix[i];
@@ -140,6 +144,7 @@ let RenderList = function () {
       this.vertexMode = 0;
       this.isToon = false;
       this.isMirror = false;
+      this.isParticles = false;
     };
     this.init();
   };
@@ -184,6 +189,7 @@ let RenderList = function () {
       item.vertexMode,
       item.toon,
       item.mirror,
+      item.particles,
     ];
     //  console.log("there are " + n + " items in the scene");
   };

@@ -4,6 +4,7 @@ import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 
 let viewMatrix = [];
+let improvedNoise = new ImprovedNoise();
 
 const FEET_TO_METERS = 0.3048;
 
@@ -260,18 +261,21 @@ export function renderListScene(time) {
   }
 
   m.save();
-     m.translate(0,1.5,-.6);
+     m.translate(0,1.5,-.4);
+     m.rotateY(time / 10);
      m.scale(.3);
+
      for (let n = 0 ; n < np ; n++) {
         for (let j = 0 ; j < 3 ; j++)
-           R[n][j] += .004 * Math.sin(time * (2.89 + .1 * j + .5 * Math.sin(10*n/np)) + n + j);
+           R[n][j] += .004 * improvedNoise.noise(time + R[n][0], time + n + R[n][1], time + j + R[n][2]);
 	let x = R[n][0], y = R[n][1], z = R[n][2];
 	if (x*x + y*y + z*z > .9)
 	   for (let j = 0 ; j < 3 ; j++)
-	      R[n][j] *= .97;
+	      R[n][j] *= .99;
      }
-     CG.particlesSetPositions(P, R);
-     renderList.mMesh(P).color([10,10,10]);
+
+     CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0],m.value()));
+     renderList.mMesh(P).color([10,10,10]);//.isParticles(true);
   m.restore();
 
   if (cursorPath.length) {
@@ -302,7 +306,7 @@ let R = [];
          z = 2 * Math.random() - 1;
       }
       while (x*x + y*y + z*z > 1);
-      R.push([x, y, z, .001 + .004 * Math.random()]);
+      R.push([x, y, z, .003 + .012 * Math.random()]);
    }
 }
 

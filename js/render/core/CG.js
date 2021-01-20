@@ -606,11 +606,12 @@ CG.particlesCreateMesh = N => {
    return V;
 }
 
-CG.particlesSetPositions = (V, A, r) => {
+CG.particlesSetPositions = (V, A, M) => {
 
    const vs = VERTEX_SIZE, skip = 6 * vs;
    const nMax = Math.min(A.length, V.length / skip);
    CG.random(0);
+   let copy = (i,j) => { V[j] = V[i]; V[j+1] = V[i+1]; V[j+2] = V[i+2]; }
    for (let n = 0 ; n < nMax ; n++) {
       let i0 = skip * n;
       let i1 = i0 + vs;
@@ -618,26 +619,23 @@ CG.particlesSetPositions = (V, A, r) => {
       let i3 = i2 + vs;
       let i4 = i3 + vs;
       let i5 = i4 + vs;
-
+/*
       for (let i = i0 ; i < i4 ; i += vs)
          for (let j = 0 ; j < 3 ; j++)
-            V[i+j] = A[n][j] + r * (2 * CG.random() - 1);
-
-      V[i4  ] = V[i3  ];
-      V[i4+1] = V[i3+1];
-      V[i4+2] = V[i3+2];
-
-      if (n > 0) {
-         V[i0-vs  ] = V[i0  ];
-         V[i0-vs+1] = V[i0+1];
-         V[i0-vs+2] = V[i0+2];
+            V[i+j] = A[n][j] + A[n][3] * (2 * CG.random() - 1);
+*/
+      let r = A[n][3];
+      for (let j = 0 ; j < 3 ; j++) {
+         let x = M[4*j], y = M[4*j+1];
+         V[i0 + j] = A[n][j] - r * x - r * y;
+         V[i1 + j] = A[n][j] + r * x - r * y;
+         V[i2 + j] = A[n][j] - r * x + r * y;
+         V[i3 + j] = A[n][j] + r * x + r * y;
       }
 
-      if (n == A.length - 1) {
-         V[i5  ] = V[i4  ];
-         V[i5+1] = V[i4+1];
-         V[i5+2] = V[i4+2];
-      }
+      copy(i3, i4);
+      if (n > 0            ) copy(i0, i0 - vs);
+      if (n == A.length - 1) copy(i4, i5);
    }
 
    for (let n = nMax ; n < V.length / skip ; n++)

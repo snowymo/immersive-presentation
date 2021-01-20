@@ -101,8 +101,8 @@ uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
 
-uniform float uTime; // time in seconds
-uniform float uToon; // control toon shading
+uniform float uTime;     // time in seconds
+uniform float uToon;     // control toon shading
 
 void main(void) {
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
@@ -147,6 +147,7 @@ vec3 Lrgb[LDIR_MAX_COUNT];
 
 uniform int uBumpIndex;
 uniform float uBumpScale;
+uniform float uParticles;
 uniform float uToon;
 
 uniform int uTexIndex;
@@ -233,6 +234,13 @@ void main() {
   vec3 normal = normalize(vNor);
   vec3 color = ambient;
 
+  float alpha = uColor.a;
+  {
+     float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
+     float t = max(0., 1. - u*u - v*v);
+     alpha *= mix(1., t, uParticles);
+  }
+
   // if (uTexIndex < 0) {
     if (uFxMode == 0) {      //default
       for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
@@ -249,7 +257,7 @@ void main() {
     } else if (uFxMode == 4) {      // 2D
         color += uColor.rgb;
     }
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
+    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
   // } else {
   //   normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
 
@@ -269,7 +277,7 @@ void main() {
   //       color += uColor.rgb;
   //   }
 
-  //   fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), uColor.a) * uBrightness;
+  //   fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
 
   //   fragColor *= texture(uTex0, vUV);
   // }
@@ -924,6 +932,7 @@ export class Renderer {
     renderListScene(time);
     // // TODO: Write a function for creating and moving renderList objects
     if (renderList.num > 0) {
+      console.log('-------------------');
       for(let i = 0; i < renderList.num; i ++)
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
     }
@@ -1045,7 +1054,7 @@ export class Renderer {
     }
   }
 
-  _drawRenderListPrimitive(views, renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror) {
+  _drawRenderListPrimitive(views, renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror, isParticles) {
     let gl = this._gl;
     if(!renderList.program) {
       renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
@@ -1060,6 +1069,8 @@ export class Renderer {
         shape.length / VERTEX_SIZE
       );
     }
+
+    gl.uniform1f(gl.getUniformLocation(pgm.program, "uParticles"), isParticles ? 1 : 0);
 
     if(!renderList.vao) {
       renderList.initVAO(gl);
