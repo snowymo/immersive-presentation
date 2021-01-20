@@ -252,21 +252,17 @@ export function renderListScene(time) {
   }
 
   m.save();
-     m.translate(0,1.2,-.6);
+     m.translate(0,1.5,-.6);
      m.scale(.3);
      for (let n = 0 ; n < np ; n++) {
-        R[n][0] += .003 * Math.sin(time * 2.89 + n);
-        R[n][1] += .003 * Math.sin(time * 2.78 + n);
-        R[n][2] += .003 * Math.sin(time * 2.67 + n);
+        for (let j = 0 ; j < 3 ; j++)
+           R[n][j] += .004 * Math.sin(time * (2.89 + .1 * j + .5 * Math.sin(10*n/np)) + n + j);
 	let x = R[n][0], y = R[n][1], z = R[n][2];
-	if (x*x + y*y + z*z > .9) {
-	   R[n][0] *= .99;
-	   R[n][1] *= .99;
-	   R[n][2] *= .99;
-	}
-	   
+	if (x*x + y*y + z*z > .9)
+	   for (let j = 0 ; j < 3 ; j++)
+	      R[n][j] *= .97;
      }
-     CG.particlesSetPositions(P, R, .005);
+     CG.particlesSetPositions(P, R);
      renderList.mMesh(P).color([10,10,10]);
   m.restore();
 
@@ -286,16 +282,19 @@ export function renderListScene(time) {
 
 let np = 10000;
 let P = CG.particlesCreateMesh(np);
-let x = 0, y = 0, z = 0;
 let R = [];
-for (let n = 0 ; n < np ; n++) {
-   let x, y, z;
-   do {
-      x = 2 * Math.random() - 1;
-      y = 2 * Math.random() - 1;
-      z = 2 * Math.random() - 1;
+{
+   let x = 0, y = 0, z = 0;
+   Math.random(0);
+   for (let n = 0 ; n < np ; n++) {
+      let x, y, z;
+      do {
+         x = 2 * Math.random() - 1;
+         y = 2 * Math.random() - 1;
+         z = 2 * Math.random() - 1;
+      }
+      while (x*x + y*y + z*z > 1);
+      R.push([x, y, z, .001 + .004 * Math.random()]);
    }
-   while (x*x + y*y + z*z > 1);
-   R.push([x, y, z]);
 }
 
