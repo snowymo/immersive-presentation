@@ -24,6 +24,7 @@ import { StatsViewer } from "../nodes/stats-viewer.js";
 import { Node } from "../core/node.js";
 import { vec3, quat } from "../math/gl-matrix.js";
 import { Ray } from "../math/ray.js";
+import { getViews } from "../scenes/renderListScene.js";
 
 export class WebXRView extends RenderView {
   constructor(view, layer) {
@@ -254,6 +255,7 @@ export class Scene extends Node {
       views.push(new WebXRView(view, layer));
     }
 
+    getViews(views);
     this.drawViewArray(views, time);
   }
 
