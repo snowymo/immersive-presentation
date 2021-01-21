@@ -1069,7 +1069,20 @@ export class Renderer {
         shape.length / VERTEX_SIZE
       );
     }
-
+if (false) {
+    console.log('1', views);
+    console.log('2', renderList);
+    console.log('3', shape);
+    console.log('4', matrix);
+    console.log('5', color);
+    console.log('6', opacity);
+    console.log('7', textureInfo);
+    console.log('8', fxMode);
+    console.log('9', triangleMode);
+    console.log('10', isToon);
+    console.log('11', isMirror);
+    console.log('12', isParticles);
+}
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uParticles"), isParticles ? 1 : 0);
 
     if(!renderList.vao) {

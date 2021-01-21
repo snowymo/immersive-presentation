@@ -611,7 +611,7 @@ CG.particlesSetPositions = (V, A, M) => {
    const vs = VERTEX_SIZE, skip = 6 * vs;
    const nMax = Math.min(A.length, V.length / skip);
    CG.random(0);
-   let copy = (i,j) => { V[j] = V[i]; V[j+1] = V[i+1]; V[j+2] = V[i+2]; }
+   let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
    for (let n = 0 ; n < nMax ; n++) {
       let i0 = skip * n;
       let i1 = i0 + vs;

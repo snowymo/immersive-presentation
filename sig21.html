@@ -38,7 +38,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   </head>
 
   <body>
-    <header>
+    <header id=header>
       <details open>
         <summary>SIGGRAPH 2021 Prototype</summary>
         <p>
@@ -58,5 +58,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       <!-- local audio -->
       <audio id="local_webrtc" autoplay></audio>
     </div>
+    <script>
+       window.addDemoButtons = demoNames => {
+          let names = demoNames.split(',');
+          let header = document.getElementById("header");
+          for (let n = 0 ; n < names.length ; n++) {
+             let flag = 'isDemo' + names[n];
+             window[flag] = false;
+             header.innerHTML += '<button onclick=window.' + flag + '=!window.' + flag + '>' + names[n] + '</button>';
+          }
+      }
+    </script>
+}
+
+    </script>
   </body>
 </html>

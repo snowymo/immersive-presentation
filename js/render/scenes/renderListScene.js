@@ -2,6 +2,24 @@
 import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
+import { rokokoData } from "../../data/RokokoData.js";
+
+/*
+for (let i = 0; i < rokokoData.length; i++) {
+   let frame = rokokoData[i].frameIndex;
+   let bones = rokokoData[i].Bones;
+   for (let j = 0 ; j < bones.length ; j++) {
+      let id = bones[j].BoneName;
+      let px = bones[j].px;
+      let py = bones[j].py;
+      let pz = bones[j].pz;
+      let qx = bones[j].qx;
+      let qy = bones[j].qy;
+      let qz = bones[j].qz;
+      console.log(frame, id, px);
+   }
+}
+*/
 
 let viewMatrix = [];
 let improvedNoise = new ImprovedNoise();
@@ -255,28 +273,54 @@ export function renderListScene(time) {
   //   m.restore();
   // }
 
+
   if (flatten >= 0) {
     zScale *= 0.97;
     flatten--;
   }
 
-  m.save();
-     m.translate(0,1.5,-.4);
-     m.rotateY(time / 10);
-     m.scale(.3);
+  if (window.isDemoObjects) {
+     m.save();
+        m.translate(0,1.5,-.4);
+        m.scale(.04);
+	renderList.mCube()           .move(-4.5, 4.5,0).turnY(time).color([1,1,1]);
+	renderList.mQuad()           .move(-1.5, 4.5,0).turnY(time).color([1,1,1]);
+	renderList.mSquare()         .move( 1.5, 4.5,0).turnY(time).color([1,1,1]);
+	renderList.mSphere()         .move( 4.5, 4.5,0).turnY(time).color([1,1,1]);
+	renderList.mCylinder()       .move(-4.5, 1.5,0).turnY(time).color([1,1,1]);
+	renderList.mRoundedCylinder().move(-1.5, 1.5,0).turnY(time).color([1,1,1]);
+	renderList.mTorus()          .move( 1.5, 1.5,0).turnY(time).color([1,1,1]);
+	renderList.mDisk()           .move( 4.5, 1.5,0).turnY(time).color([1,1,1]);
+	renderList.mCone()           .move(-4.5,-1.5,0).turnY(time).color([1,1,1]);
+	renderList.mTube()           .move(-1.5,-1.5,0).turnY(time).color([1,1,1]);
+	renderList.mTube3()          .move( 1.5,-1.5,0).turnY(time).color([1,1,1]);
+	renderList.mGluedCylinder()  .move( 4.5,-1.5,0).turnY(time).color([1,1,1]);
+     m.restore();
+  }
 
-     for (let n = 0 ; n < np ; n++) {
-        for (let j = 0 ; j < 3 ; j++)
-           R[n][j] += .004 * improvedNoise.noise(time + R[n][0], time + n + R[n][1], time + j + R[n][2]);
-	let x = R[n][0], y = R[n][1], z = R[n][2];
-	if (x*x + y*y + z*z > .9)
-	   for (let j = 0 ; j < 3 ; j++)
-	      R[n][j] *= .99;
-     }
+  if (window.isDemoParticles) {
+     m.save();
+        m.translate(0,1.5,-.4);
+        m.rotateY(time / 10);
+        m.scale(.3);
 
-     CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0],m.value()));
-     renderList.mMesh(P).color([10,10,10]);//.isParticles(true);
-  m.restore();
+        // ANIMATE THE PARTICLES
+
+        for (let n = 0 ; n < np ; n++) {
+           for (let j = 0 ; j < 3 ; j++)
+              R[n][j] += .004 * improvedNoise.noise(time + R[n][0], time + n + R[n][1], time + j + R[n][2]);
+	   let x = R[n][0], y = R[n][1], z = R[n][2];
+	   if (x*x + y*y + z*z > .9)
+	      for (let j = 0 ; j < 3 ; j++)
+	         R[n][j] *= .99;
+        }
+
+        // RENDER THE PARTICLES AS A SINGLE MESH
+
+        CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0],m.value()));
+        renderList.mMesh(P).color([10,10,10]);//.isParticles(true);
+     m.restore();
+  }
 
   if (cursorPath.length) {
     m.save();
@@ -292,21 +336,21 @@ export function renderListScene(time) {
   }
 }
 
+// GENERATE RANDOM PARTICLES WITHIN A UNIT SPHERE
+
 let np = 10000;
 let P = CG.particlesCreateMesh(np);
 let R = [];
-{
-   let x = 0, y = 0, z = 0;
-   Math.random(0);
-   for (let n = 0 ; n < np ; n++) {
-      let x, y, z;
-      do {
-         x = 2 * Math.random() - 1;
-         y = 2 * Math.random() - 1;
-         z = 2 * Math.random() - 1;
-      }
-      while (x*x + y*y + z*z > 1);
-      R.push([x, y, z, .003 + .012 * Math.random()]);
-   }
+CG.random(0);
+for (let n = 0, p = [100,0,0] ; n < np ; n++, p[0] = 100) {
+   while (CG.dot(p, p) > 1)
+      for (let i = 0 ; i < 3 ; i++)
+         p[i] = 2 * CG.random() - 1;
+   R.push([p[0], p[1], p[2], .003 + .012 * CG.random()]);
 }
+
+// ADD DEMO TOGGLE BUTTONS TO WEB PAGE
+
+addDemoButtons('Particles,Objects');
+
 
