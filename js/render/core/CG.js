@@ -601,9 +601,9 @@ CG.particlesCreateMesh = N => {
    let V = new Float32Array(vs*6*N);
    CG.random(0);
    for (let n = 0 ; n < N ; n++) {
-      let r = CG.sCurve(.5 + .5 * CG.random());
-      let g = CG.sCurve(.5 + .5 * CG.random());
-      let b = CG.sCurve(.5 + .5 * CG.random());
+      let r = CG.random() < .4 ? 0 : 1;
+      let g = CG.random() < .4 ? 0 : 1;
+      let b = CG.random() < .4 ? 0 : 1;
       for (let i = 0 ; i < 6 ; i++) {
       V[vs * (6*n + i) +  5] = 1;
       V[vs * (6*n + i) +  6] = 1;
