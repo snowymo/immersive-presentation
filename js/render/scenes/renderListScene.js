@@ -318,7 +318,7 @@ export function renderListScene(time) {
         // RENDER THE PARTICLES AS A SINGLE MESH
 
         CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0],m.value()));
-        renderList.mMesh(P).color([1,1,1]);//.isParticles(true);
+        renderList.mMesh(P).color([2,2,2]);//.isParticles(true);
      m.restore();
   }
 
