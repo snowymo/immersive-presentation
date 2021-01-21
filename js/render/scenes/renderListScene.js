@@ -4,23 +4,6 @@ import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
 
-/*
-for (let i = 0; i < rokokoData.length; i++) {
-   let frame = rokokoData[i].frameIndex;
-   let bones = rokokoData[i].Bones;
-   for (let j = 0 ; j < bones.length ; j++) {
-      let id = bones[j].BoneName;
-      let px = bones[j].px;
-      let py = bones[j].py;
-      let pz = bones[j].pz;
-      let qx = bones[j].qx;
-      let qy = bones[j].qy;
-      let qz = bones[j].qz;
-      console.log(frame, id, px);
-   }
-}
-*/
-
 let viewMatrix = [];
 let improvedNoise = new ImprovedNoise();
 
@@ -277,6 +260,30 @@ export function renderListScene(time) {
     flatten--;
   }
 
+  if (window.isDemoParticles) {
+    m.save();
+    m.translate(0, 1.5, -.4);
+    m.rotateY(time / 10);
+    m.scale(.3);
+
+    // ANIMATE THE PARTICLES
+
+    for (let n = 0; n < np; n++) {
+      for (let j = 0; j < 3; j++)
+        R[n][j] += .004 * improvedNoise.noise(time + R[n][0], time + n + R[n][1], time + j + R[n][2]);
+      let x = R[n][0], y = R[n][1], z = R[n][2];
+      if (x * x + y * y + z * z > .9)
+        for (let j = 0; j < 3; j++)
+          R[n][j] *= .99;
+    }
+
+    // RENDER THE PARTICLES AS A SINGLE MESH
+
+    CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
+    renderList.mMesh(P).color([2, 2, 2]);//.isParticles(true);
+    m.restore();
+  }
+
   if (window.isDemoObjects) {
     m.save();
     m.translate(0, 1.5, -0.4);
@@ -300,35 +307,43 @@ export function renderListScene(time) {
     m.restore();
   }
 
-  if (window.isDemoParticles) {
+  if (window.isDemoMocap) {
     m.save();
-    m.translate(0, 1.5, -0.4);
-    m.rotateY(time / 10);
-    m.scale(0.3);
+    m.translate(.5, 0, -1.5);
+    let bones = rokokoData[mocapFrame].Bones;
+    for (let j = 0; j < bones.length; j++) {
+      let name = bones[j].BoneName;
 
-    // ANIMATE THE PARTICLES
+      let size = .025;
+      for (let n = 0; n < fingerNames.length; n++)
+        if (name.indexOf(fingerNames[n]) >= 0)
+          size = .005;
 
-    for (let n = 0; n < np; n++) {
-      for (let j = 0; j < 3; j++)
-        R[n][j] +=
-          0.004 *
-          improvedNoise.noise(
-            time + R[n][0],
-            time + n + R[n][1],
-            time + j + R[n][2]
-          );
-      let x = R[n][0],
-        y = R[n][1],
-        z = R[n][2];
-      if (x * x + y * y + z * z > 0.9)
-        for (let j = 0; j < 3; j++) R[n][j] *= 0.99;
+      m.save();
+      m.translate(bones[j].px, bones[j].py, bones[j].pz);
+      m.rotateX(bones[j].qx);
+      m.rotateY(bones[j].qy);
+      m.rotateZ(bones[j].qz);
+      renderList.mCube().size(size).color([0, 2, 2]);
+      m.restore();
     }
 
-    // RENDER THE PARTICLES AS A SINGLE MESH
+    for (let n = 0; n < limbs.length; n++) {
+      let i = limbs[n][0], j = limbs[n][1];
+      let A = [bones[i].px, bones[i].py, bones[i].pz];
+      let B = [bones[j].px, bones[j].py, bones[j].pz];
+      m.save();
+      m.translate(CG.mix(A, B, .5));
+      let AB = CG.subtract(B, A);
+      m.aimZ(AB);
+      let r = n < 19 ? .015 : .005;
+      m.scale(r, r, CG.norm(AB) / 2);
+      renderList.mCylinder().color([2, 1, 1]);;
+      m.restore();
+    }
 
-    CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
-    renderList.mMesh(P).color([10, 10, 10]); //.isParticles(true);
     m.restore();
+    mocapFrame = (mocapFrame + 1) % rokokoData.length;
   }
 
   if (cursorPath.length) {
@@ -357,6 +372,25 @@ for (let n = 0, p = [100, 0, 0]; n < np; n++, p[0] = 100) {
   R.push([p[0], p[1], p[2], 0.003 + 0.012 * CG.random()]);
 }
 
+let mocapFrame = 0;
+let fingerNames = 'Hand,Thumb,Index,Middle,Ring,Little'.split(',');
+let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
+[10, 12], [11, 13], [12, 14], [13, 15], [14, 16], [15, 17],
+[8, 50], [50, 7], [7, 0], [0, 1], [0, 2],
+
+[16, 20], [20, 21], [21, 22],
+[16, 23], [23, 24], [24, 25],
+[16, 26], [26, 27], [27, 28],
+[16, 29], [29, 30], [30, 31],
+[16, 32], [32, 33], [33, 34],
+
+[17, 35], [35, 36], [36, 37],
+[17, 38], [38, 39], [39, 40],
+[17, 41], [41, 42], [42, 43],
+[17, 44], [44, 45], [45, 46],
+[17, 47], [47, 48], [48, 49],
+];
+
 // ADD DEMO TOGGLE BUTTONS TO WEB PAGE
 
-addDemoButtons("Particles, Objects, Speak");
+addDemoButtons('Particles,Objects,Mocap Speak');
