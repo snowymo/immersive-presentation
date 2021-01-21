@@ -40,6 +40,7 @@ CG.random = function() {
    }
 }();
 
+CG.sCurve = (t) => t * t * (3 - 2 * t);
 CG.scale = (a,s) => [ s*a[0], s*a[1], s*a[2] ];
 CG.subtract = (a,b) => [ a[0] - b[0], a[1] - b[1], a[2] - b[2] ];
 CG.abs = a => [Math.abs(a[0]), Math.abs(a[1]), Math.abs(a[2])];
@@ -379,7 +380,7 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-export const VERTEX_SIZE = 11;
+export const VERTEX_SIZE = 14;
 
 CG.createPoly4Vertices = V => {
    let A = [V[0],V[1],V[2]],
@@ -387,68 +388,70 @@ CG.createPoly4Vertices = V => {
        C = [V[6],V[7],V[8]];
    let N = CG.normalize(CG.cross(CG.subtract(B,A), CG.subtract(C,B)));
    return [
-      V[ 0],V[ 1],V[ 2], N[0],N[1],N[2], 0,0,0, 0,0,
-      V[ 3],V[ 4],V[ 5], N[0],N[1],N[2], 0,0,0, 1,0,
-      V[ 9],V[10],V[11], N[0],N[1],N[2], 0,0,0, 1,1,
-      V[ 6],V[ 7],V[ 8], N[0],N[1],N[2], 0,0,0, 0,1,
+      V[ 0],V[ 1],V[ 2], N[0],N[1],N[2], 0,0,0, 0,0, 1,1,1,
+      V[ 3],V[ 4],V[ 5], N[0],N[1],N[2], 0,0,0, 1,0, 1,1,1,
+      V[ 9],V[10],V[11], N[0],N[1],N[2], 0,0,0, 1,1, 1,1,1,
+      V[ 6],V[ 7],V[ 8], N[0],N[1],N[2], 0,0,0, 0,1, 1,1,1,
    ];
 }
 
 CG.createQuadVertices = () => [
-    1, 1,0, 0,0,1, 1,0,0, 1,1,
-   -1, 1,0, 0,0,1, 1,0,0, 0,1,
-    1,-1,0, 0,0,1, 1,0,0, 1,0,
-   -1,-1,0, 0,0,1, 1,0,0, 0,0,
+    1, 1,0, 0,0,1, 1,0,0, 1,1, 1,1,1,
+   -1, 1,0, 0,0,1, 1,0,0, 0,1, 1,1,1,
+    1,-1,0, 0,0,1, 1,0,0, 1,0, 1,1,1,
+   -1,-1,0, 0,0,1, 1,0,0, 0,0, 1,1,1,
 ];
 
 CG.createCubeVertices = () => [
-   +1,+1,-1,  0, 0,+1,  1,0,0, 0,1,
-   +1,-1,-1,  0, 0,+1,  1,0,0, 0,0,
-   -1,+1,-1,  0, 0,+1,  1,0,0, 1,1,
-   -1,-1,-1,  0, 0,+1,  1,0,0, 1,0,
+   +1,+1,-1,  0, 0,-1,  1,0,0, 0,1, 1,1,1,
+   +1,-1,-1,  0, 0,-1,  1,0,0, 0,0, 1,1,1,
+   -1,+1,-1,  0, 0,-1,  1,0,0, 1,1, 1,1,1,
+   -1,-1,-1,  0, 0,-1,  1,0,0, 1,0, 1,1,1,
 
-   -1,-1,-1,  0,-1, 0,  0,0,1, 0,1,
-   +1,-1,-1,  0,-1, 0,  0,0,1, 0,0,
-   -1,-1,+1,  0,-1, 0,  0,0,1, 1,1,
-   +1,-1,+1,  0,-1, 0,  0,0,1, 1,0,
+   -1,-1,-1,  0,-1, 0,  0,0,1, 0,1, 1,1,1,
+   +1,-1,-1,  0,-1, 0,  0,0,1, 0,0, 1,1,1,
+   -1,-1,+1,  0,-1, 0,  0,0,1, 1,1, 1,1,1,
+   +1,-1,+1,  0,-1, 0,  0,0,1, 1,0, 1,1,1,
 
-   +1,-1,+1, +1, 0, 0,  0,1,0, 0,1,
-   +1,-1,-1, +1, 0, 0,  0,1,0, 0,0,
-   +1,+1,+1, +1, 0, 0,  0,0,0, 1,1,
-   +1,+1,-1, +1, 0, 0,  0,1,0, 1,0,
+   +1,-1,+1, +1, 0, 0,  0,1,0, 0,1, 1,1,1,
+   +1,-1,-1, +1, 0, 0,  0,1,0, 0,0, 1,1,1,
+   +1,+1,+1, +1, 0, 0,  0,0,0, 1,1, 1,1,1,
+   +1,+1,-1, +1, 0, 0,  0,1,0, 1,0, 1,1,1,
 
-   +1,+1,-1,  0,+1, 0,  0,0,1, 0,1,
-   -1,+1,-1,  0,+1, 0,  0,0,1, 0,0,
-   +1,+1,+1,  0,+1, 0,  0,0,1, 1,1,
-   -1,+1,+1,  0,+1, 0,  0,0,1, 1,0,
+   +1,+1,-1,  0,+1, 0,  0,0,1, 0,1, 1,1,1,
+   -1,+1,-1,  0,+1, 0,  0,0,1, 0,0, 1,1,1,
+   +1,+1,+1,  0,+1, 0,  0,0,1, 1,1, 1,1,1,
+   -1,+1,+1,  0,+1, 0,  0,0,1, 1,0, 1,1,1,
 
-   -1,+1,+1, -1, 0, 0,  0,1,0, 0,1,
-   -1,+1,-1, -1, 0, 0,  0,1,0, 0,0,
-   -1,-1,+1, -1, 0, 0,  0,1,0, 1,1,
-   -1,-1,-1, -1, 0, 0,  0,1,0, 1,0,
+   -1,+1,+1, -1, 0, 0,  0,1,0, 0,1, 1,1,1,
+   -1,+1,-1, -1, 0, 0,  0,1,0, 0,0, 1,1,1,
+   -1,-1,+1, -1, 0, 0,  0,1,0, 1,1, 1,1,1,
+   -1,-1,-1, -1, 0, 0,  0,1,0, 1,0, 1,1,1,
 
-   -1,-1,-1, -1, 0, 0,  0,1,0, 0,0,
-   -1,-1,+1, -1, 0, 0,  0,1,0, 1,0,
+   -1,-1,-1, -1, 0, 0,  0,1,0, 0,0, 1,1,1,
+   -1,-1,+1, -1, 0, 0,  0,1,0, 1,0, 1,1,1,
 
-   -1,-1,+1,  0, 0,+1,  1,0,0, 0,1,
-   +1,-1,+1,  0, 0,+1,  1,0,0, 0,0,
-   -1,+1,+1,  0, 0,+1,  1,0,0, 1,1,
-   +1,+1,+1,  0, 0,+1,  1,0,0, 1,0,
+   -1,-1,+1,  0, 0,+1,  1,0,0, 0,1, 1,1,1,
+   +1,-1,+1,  0, 0,+1,  1,0,0, 0,0, 1,1,1,
+   -1,+1,+1,  0, 0,+1,  1,0,0, 1,1, 1,1,1,
+   +1,+1,+1,  0, 0,+1,  1,0,0, 1,0, 1,1,1,
 ];
 
 CG.uvToCylinder = (u,v) => {
    let c = Math.cos(2 * Math.PI * u);
    for (let n = 0 ; n < 3 ; n++)
       for (let i = 0 ; i < P.length ; i += VERTEX_SIZE) {
-         let p0 = [P[i   ], P[i+ 1], P[i+ 2]],
-             p1 = [P[i+ 3], P[i+ 4], P[i+ 5]],
-             p2 = [P[i+ 6], P[i+ 7], P[i+ 8]],
-             uv = [P[i+ 9], P[i+10]];
+         let p0  = [P[i   ], P[i+ 1], P[i+ 2]],
+             p1  = [P[i+ 3], P[i+ 4], P[i+ 5]],
+             p2  = [P[i+ 6], P[i+ 7], P[i+ 8]],
+             uv  = [P[i+ 9], P[i+10]],
+	     rgb = [P[i+11], P[i+12], P[i+13]];
          V = V.concat(p0).concat(p1).concat(p2).concat(uv);
          for (let j = 0 ; j < 3 ; j++) {
-            P[i   + j] = p0[(j+1) % 3];
-            P[i+3 + j] = p1[(j+1) % 3];
-            P[i+6 + j] = p2[(j+1) % 3];
+            P[i    + j] = p0 [(j+1) % 3];
+            P[i+ 3 + j] = p1 [(j+1) % 3];
+            P[i+ 6 + j] = p2 [(j+1) % 3];
+            P[i+11 + j] = rgb[(j+1) % 3];
          }
       }
    return V;
@@ -460,9 +463,9 @@ CG.uvToCylinder = (u,v) => {
    let z = Math.max(-1, Math.min(1, 10*v - 5));
 
    switch (Math.floor(5.001 * v)) {
-   case 0: case 5: return [ 0,0,z, 0,0,z, -s,c,0, u,v]; // center of back/front end cap
-   case 1: case 4: return [ c,s,z, 0,0,z, -s,c,0, u,v]; // perimeter of back/front end cap
-   case 2: case 3: return [ c,s,z, c,s,0, -s,c,0, u,v]; // back/front of cylindrical tube
+   case 0: case 5: return [ 0,0,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // center of back/front end cap
+   case 1: case 4: return [ c,s,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // perimeter of back/front end cap
+   case 2: case 3: return [ c,s,z, c,s,0, -s,c,0, u,v, 1,1,1]; // back/front of cylindrical tube
    }
 }
 
@@ -486,7 +489,7 @@ CG.uvToVertex = (u,v,A,f) => {
                  N = CG.cross(T, U);
    return P.concat(CG.normalize(N))
            .concat(CG.normalize(T))
-           .concat([u,v]);
+           .concat([u,v, 1,1,1]);
 }
 
 CG.glueMeshes = (a,b) => {
@@ -574,7 +577,7 @@ CG.shapeImageToTriangleMesh = si => {
                                     V3.subtract(si[j1][i], si[j0][i])));
       let T = V3.normalize(V3.cross([P[0],P[1],P[2]], N));
 
-      mesh.push(P[0],P[1],P[2], N[0],N[1],N[2], T[0],T[1],T[2], i/(m-1),j/(n-1));
+      mesh.push(P[0],P[1],P[2], N[0],N[1],N[2], T[0],T[1],T[2], i/(m-1),j/(n-1), 1,1,1);
    }
 
    // BUILD AND RETURN A SINGLE TRIANGLE STRIP.
@@ -596,12 +599,20 @@ CG.shapeImageToTriangleMesh = si => {
 CG.particlesCreateMesh = N => {
    const vs = VERTEX_SIZE;
    let V = new Float32Array(vs*6*N);
-   for (let n = 0 ; n < N ; n++)
-   for (let i = 0 ; i < 6 ; i++) {
+   CG.random(0);
+   for (let n = 0 ; n < N ; n++) {
+      let r = CG.sCurve(.5 + .5 * CG.random());
+      let g = CG.sCurve(.5 + .5 * CG.random());
+      let b = CG.sCurve(.5 + .5 * CG.random());
+      for (let i = 0 ; i < 6 ; i++) {
       V[vs * (6*n + i) +  5] = 1;
       V[vs * (6*n + i) +  6] = 1;
       V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;
       V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;
+      V[vs * (6*n + i) + 11] = r;
+      V[vs * (6*n + i) + 12] = g;
+      V[vs * (6*n + i) + 13] = b;
+      }
    }
    return V;
 }
@@ -610,7 +621,6 @@ CG.particlesSetPositions = (V, A, M) => {
 
    const vs = VERTEX_SIZE, skip = 6 * vs;
    const nMax = Math.min(A.length, V.length / skip);
-   CG.random(0);
    let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
    for (let n = 0 ; n < nMax ; n++) {
       let i0 = skip * n;
@@ -619,11 +629,7 @@ CG.particlesSetPositions = (V, A, M) => {
       let i3 = i2 + vs;
       let i4 = i3 + vs;
       let i5 = i4 + vs;
-/*
-      for (let i = i0 ; i < i4 ; i += vs)
-         for (let j = 0 ; j < 3 ; j++)
-            V[i+j] = A[n][j] + A[n][3] * (2 * CG.random() - 1);
-*/
+
       let r = A[n][3];
       for (let j = 0 ; j < 3 ; j++) {
          let x = M[4*j], y = M[4*j+1];

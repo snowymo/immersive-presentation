@@ -82,6 +82,7 @@ in  vec3 aNor;
 in  vec3 aTan;
 in  vec2 aUV;
 in  vec4 aUVOff;
+in  vec3 aRGB;
 
 // interpolated vertex
 out vec3 vP;
@@ -90,6 +91,7 @@ out vec3 vNor;
 out vec3 vTan;
 out vec3 vBin;
 out vec2 vUV;
+out vec3 vRGB;
 
 // interpolated cursor
 out vec3 vCursor;
@@ -109,6 +111,7 @@ void main(void) {
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
     vPos = aPos;
+    vRGB = aRGB;
     mat4 invModel = inverse(uModel);
     vNor = (vec4(aNor, 0.) * invModel).xyz;
     vTan = (vec4(aTan, 0.) * invModel).xyz;
@@ -137,7 +140,8 @@ in vec3 vPos; // POSITION
 in vec3 vNor; // NORMAL
 in vec3 vTan; // TANGENT
 in vec3 vBin; // BINORMAL
-in vec2 vUV; // U,V
+in vec2 vUV ; // U,V
+in vec3 vRGB; // R,G,B
 
 
 #define LDIR_MAX_COUNT (1)
@@ -193,6 +197,7 @@ vec3 phongPlaster(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular
   float d = dot(Ldir, normal);
   if (d > 0.)
     color += diffuse * d * uColor.rgb + .01 * diffuse * d * Lrgb;
+
   vec3 R = 2. * normal * dot(Ldir, normal) - Ldir;
   float s = dot(R, normal);
   if (s > 0.)
@@ -205,6 +210,7 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
   float d = dot(Ldir, normal);
   if (d > 0.)
     color += diffuse * d * Lrgb;
+
   vec3 R = 2. * normal * dot(Ldir, normal) - Ldir;
   float s = dot(R, normal);
   if (s > 0.95)
@@ -257,6 +263,7 @@ void main() {
     } else if (uFxMode == 4) {      // 2D
         color += uColor.rgb;
     }
+    color.rgb *= vRGB;
     fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
   // } else {
   //   normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
@@ -1112,6 +1119,10 @@ if (false) {
       let aUV = gl.getAttribLocation(pgm.program, 'aUV');
       gl.enableVertexAttribArray(aUV);
       gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 9);
+
+      let aRGB = gl.getAttribLocation(pgm.program, 'aRGB');
+      gl.enableVertexAttribArray(aRGB);
+      gl.vertexAttribPointer(aRGB, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 11);
 
       renderList.bufferAux = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
