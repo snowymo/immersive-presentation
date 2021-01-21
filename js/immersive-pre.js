@@ -1,14 +1,22 @@
-import { WebXRButton } from './util/webxr-button.js';
-import { Scene } from './render/scenes/scene.js';
-import { Renderer, createWebGLContext } from './render/core/renderer.js';
-import { Gltf2Node } from './render/nodes/gltf2.js';
-import { mat4, vec3 } from './render/math/gl-matrix.js';
-import { Ray } from './render/math/ray.js';
-import { InlineViewerHelper } from './util/inline-viewer-helper.js';
-import { QueryArgs } from './util/query-args.js';
+import { WebXRButton } from "./util/webxr-button.js";
+import { Scene } from "./render/scenes/scene.js";
+import { Renderer, createWebGLContext } from "./render/core/renderer.js";
+import { Gltf2Node } from "./render/nodes/gltf2.js";
+import { mat4, vec3 } from "./render/math/gl-matrix.js";
+import { Ray } from "./render/math/ray.js";
+import { InlineViewerHelper } from "./util/inline-viewer-helper.js";
+import { QueryArgs } from "./util/query-args.js";
 import { EventBus } from "./primitive/eventbus.js";
 import * as DefaultSystemEvents from "./primitive/event.js";
-import { loadAudioSources, updateAudioSources, updateAudioNodes, stereo, resonance, audioSources, pauseAudio } from './util/positional-audio.js'
+import {
+    loadAudioSources,
+    updateAudioSources,
+    updateAudioNodes,
+    stereo,
+    resonance,
+    audioSources,
+    pauseAudio,
+} from "./util/positional-audio.js";
 import { Client as WSClient } from "./util/websocket-client.js";
 import { updateController } from "./render/scenes/renderListScene.js";
 
@@ -16,9 +24,9 @@ window.wsport = 8447;
 
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
-import WebXRPolyfill from './third-party/webxr-polyfill/build/webxr-polyfill.module.js';
-import { updateObject } from './util/object-sync.js';
-if (QueryArgs.getBool('usePolyfill', true)) {
+import WebXRPolyfill from "./third-party/webxr-polyfill/build/webxr-polyfill.module.js";
+import { updateObject } from "./util/object-sync.js";
+if (QueryArgs.getBool("usePolyfill", true)) {
     let polyfill = new WebXRPolyfill();
 }
 
@@ -35,34 +43,35 @@ window.scene = new Scene();
 
 function initModels() {
     window.models = {};
-    window.models['stereo'] = new Gltf2Node({ url: '../media/gltf/stereo/stereo.gltf' });
-    window.models['stereo'].visible = true;
+    window.models["stereo"] = new Gltf2Node({
+        url: "../media/gltf/stereo/stereo.gltf",
+    });
+    window.models["stereo"].visible = true;
     // window.scene.addNode(window.models['stereo']);
 }
 
-
-window.scene.addNode(new Gltf2Node({ url: '../media/gltf/garage/garage.gltf' }));
+window.scene.addNode(
+    new Gltf2Node({ url: "../media/gltf/garage/garage.gltf" })
+);
 window.scene.standingStats(true);
 // window.scene.addNode(window.models['stereo']);
-
-
 
 function initXR() {
     xrButton = new WebXRButton({
         onRequestSession: onRequestSession,
-        onEndSession: onEndSession
+        onEndSession: onEndSession,
     });
-    document.querySelector('header').appendChild(xrButton.domElement);
+    document.querySelector("header").appendChild(xrButton.domElement);
 
     if (navigator.xr) {
-        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+        navigator.xr.isSessionSupported("immersive-vr").then((supported) => {
             xrButton.enabled = supported;
         });
 
         // Load multiple audio sources.
         loadAudioSources(window.scene);
 
-        navigator.xr.requestSession('inline').then(onSessionStarted);
+        navigator.xr.requestSession("inline").then(onSessionStarted);
     }
 
     // custom init
@@ -81,11 +90,10 @@ function initXR() {
 
 window.testws = function () {
     window.wsclient.send("test");
-}
+};
 
 function initGL() {
-    if (gl)
-        return;
+    if (gl) return;
 
     gl = createWebGLContext({
         xrCompatible: true,
@@ -97,36 +105,44 @@ function initGL() {
         gl.canvas.width = gl.canvas.clientWidth * window.devicePixelRatio;
         gl.canvas.height = gl.canvas.clientHeight * window.devicePixelRatio;
     }
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
     onResize();
 
     renderer = new Renderer(gl);
     window.scene.setRenderer(renderer);
 
     // Loads a generic controller meshes.
-    window.scene.inputRenderer.setControllerMesh(new Gltf2Node({ url: 'media/gltf/controller/controller.gltf' }), 'right');
-    window.scene.inputRenderer.setControllerMesh(new Gltf2Node({ url: 'media/gltf/controller/controller-left.gltf' }), 'left');
+    window.scene.inputRenderer.setControllerMesh(
+        new Gltf2Node({ url: "media/gltf/controller/controller.gltf" }),
+        "right"
+    );
+    window.scene.inputRenderer.setControllerMesh(
+        new Gltf2Node({ url: "media/gltf/controller/controller-left.gltf" }),
+        "left"
+    );
 }
 
 function onRequestSession() {
-    return navigator.xr.requestSession('immersive-vr', {
-        requiredFeatures: ['local-floor']
-    }).then((session) => {
-        xrButton.setSession(session);
-        session.isImmersive = true;
-        onSessionStarted(session);
-    });
+    return navigator.xr
+        .requestSession("immersive-vr", {
+            requiredFeatures: ["local-floor"],
+        })
+        .then((session) => {
+            xrButton.setSession(session);
+            session.isImmersive = true;
+            onSessionStarted(session);
+        });
 }
 
 function onSessionStarted(session) {
-    session.addEventListener('end', onSessionEnded);
+    session.addEventListener("end", onSessionEnded);
 
-    session.addEventListener('selectstart', onSelectStart);
-    session.addEventListener('selectend', onSelectEnd);
-    session.addEventListener('select', (ev) => {
-        let refSpace = ev.frame.session.isImmersive ?
-            xrImmersiveRefSpace :
-            inlineViewerHelper.referenceSpace;
+    session.addEventListener("selectstart", onSelectStart);
+    session.addEventListener("selectend", onSelectEnd);
+    session.addEventListener("select", (ev) => {
+        let refSpace = ev.frame.session.isImmersive
+            ? xrImmersiveRefSpace
+            : inlineViewerHelper.referenceSpace;
         window.scene.handleSelect(ev.inputSource, ev.frame, refSpace);
     });
 
@@ -136,7 +152,7 @@ function onSessionStarted(session) {
     let glLayer = new XRWebGLLayer(session, gl);
     session.updateRenderState({ baseLayer: glLayer });
 
-    let refSpaceType = session.isImmersive ? 'local-floor' : 'viewer';
+    let refSpaceType = session.isImmersive ? "local-floor" : "viewer";
     session.requestReferenceSpace(refSpaceType).then((refSpace) => {
         if (session.isImmersive) {
             xrImmersiveRefSpace = refSpace;
@@ -199,28 +215,38 @@ function updateInputSources(session, frame, refSpace) {
             if (gripPose) {
                 // If we have a grip pose use it to render a mesh showing the
                 // position of the controller.
-                window.scene.inputRenderer.addController(gripPose.transform.matrix, inputSource.handedness); // let controller = this._controllers[handedness]; // so it is updating actually
+                window.scene.inputRenderer.addController(
+                    gripPose.transform.matrix,
+                    inputSource.handedness
+                ); // let controller = this._controllers[handedness]; // so it is updating actually
                 // ZH: update location
                 if (window.playerid) {
                     if (inputSource.handedness == "left") {
-                        window.avatars[window.playerid].leftController.position = gripPose.transform.position;
-                        window.avatars[window.playerid].leftController.orientation = gripPose.transform.orientation;
-                        window.avatars[window.playerid].leftController.matrix = gripPose.transform.matrix;
+                        window.avatars[window.playerid].leftController.position =
+                            gripPose.transform.position;
+                        window.avatars[window.playerid].leftController.orientation =
+                            gripPose.transform.orientation;
+                        window.avatars[window.playerid].leftController.matrix =
+                            gripPose.transform.matrix;
+                    } else if (inputSource.handedness == "right") {
+                        window.avatars[window.playerid].rightController.position =
+                            gripPose.transform.position;
+                        window.avatars[window.playerid].rightController.orientation =
+                            gripPose.transform.orientation;
+                        window.avatars[window.playerid].rightController.matrix =
+                            gripPose.transform.matrix;
                     }
-                    else if (inputSource.handedness == "right") {
-                        window.avatars[window.playerid].rightController.position = gripPose.transform.position;
-                        window.avatars[window.playerid].rightController.orientation = gripPose.transform.orientation;
-                        window.avatars[window.playerid].rightController.matrix = gripPose.transform.matrix;
-                    }
-
                 }
             }
         }
         let headPose = frame.getViewerPose(refSpace);
         if (window.playerid) {
-            window.avatars[window.playerid].headset.position = headPose.transform.position;
-            window.avatars[window.playerid].headset.orientation = headPose.transform.orientation;
-            window.avatars[window.playerid].headset.matrix = headPose.transform.matrix;
+            window.avatars[window.playerid].headset.position =
+                headPose.transform.position;
+            window.avatars[window.playerid].headset.orientation =
+                headPose.transform.orientation;
+            window.avatars[window.playerid].headset.matrix =
+                headPose.transform.matrix;
         }
     }
 }
@@ -250,8 +276,15 @@ function hitTest(inputSource, frame, refSpace) {
                 // onSelectEnd event is raised with the same input source.
                 window.objects[id].draggingInput = inputSource;
                 window.objects[id].draggingTransform = mat4.create();
-                mat4.invert(window.objects[id].draggingTransform, targetRayPose.transform.matrix);
-                mat4.multiply(window.objects[id].draggingTransform, window.objects[id].draggingTransform, window.objects[id].node.matrix);
+                mat4.invert(
+                    window.objects[id].draggingTransform,
+                    targetRayPose.transform.matrix
+                );
+                mat4.multiply(
+                    window.objects[id].draggingTransform,
+                    window.objects[id].draggingTransform,
+                    window.objects[id].node.matrix
+                );
                 updateObject(id, window.objects[id].node.matrix);
                 return true;
             }
@@ -261,15 +294,19 @@ function hitTest(inputSource, frame, refSpace) {
     return false;
 }
 
-window.testObjSync = function(id){
-    mat4.translate(window.objects[id].node.matrix, window.objects[id].node.matrix, [0.2,0.1,0]);
+window.testObjSync = function (id) {
+    mat4.translate(
+        window.objects[id].node.matrix,
+        window.objects[id].node.matrix,
+        [0.2, 0.1, 0]
+    );
     updateObject(id, window.objects[id].node.matrix);
-}
+};
 
 function onSelectStart(ev) {
-    let refSpace = ev.frame.session.isImmersive ?
-        xrImmersiveRefSpace :
-        inlineViewerHelper.referenceSpace;
+    let refSpace = ev.frame.session.isImmersive
+        ? xrImmersiveRefSpace
+        : inlineViewerHelper.referenceSpace;
     hitTest(ev.inputSource, ev.frame, refSpace);
 }
 
@@ -296,9 +333,9 @@ function onSelectEnd(ev) {
 function onXRFrame(t, frame) {
     time = t / 1000;
     let session = frame.session;
-    let refSpace = session.isImmersive ?
-        xrImmersiveRefSpace :
-        inlineViewerHelper.referenceSpace;
+    let refSpace = session.isImmersive
+        ? xrImmersiveRefSpace
+        : inlineViewerHelper.referenceSpace;
     let pose = frame.getViewerPose(refSpace);
 
     window.scene.startFrame();
@@ -308,12 +345,11 @@ function onXRFrame(t, frame) {
     updateInputSources(session, frame, refSpace);
 
     // ZH: send to websocket server for self avatar sync
-    if (window.playerid != null)
-        window.wsclient.send("avatar", window.playerid);
+    if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
 
     // Update the position of all currently selected audio sources. It's
     // possible to select multiple audio sources and drag them at the same
-    // time (one per controller that has the trigger held down).    
+    // time (one per controller that has the trigger held down).
     updateAudioSources(frame, refSpace);
 
     updateAudioNodes(window.scene);
@@ -323,15 +359,15 @@ function onXRFrame(t, frame) {
     updateObjects();
 
     if (window.playerid) {
-      const thisAvatar = window.avatars[window.playerid];
-      for (let source of session.inputSources) {
-        if (source.handedness && source.gamepad) {
-          updateController(thisAvatar, {
-            handedness: source.handedness,
-            buttons: source.gamepad.buttons,
-          });
+        const thisAvatar = window.avatars[window.playerid];
+        for (let source of session.inputSources) {
+            if (source.handedness && source.gamepad) {
+                updateController(thisAvatar, {
+                    handedness: source.handedness,
+                    buttons: source.gamepad.buttons,
+                });
+            }
         }
-      }
     }
 
     window.scene.drawXRFrame(frame, pose, time);
@@ -351,11 +387,14 @@ function updateAvatars() {
 
     // update avatar's model's matrix
     for (let id in window.avatars) {
-        if (id == window.playerid)
-            continue;
+        if (id == window.playerid) continue;
         let avatar = window.avatars[id];
-        if (avatar.headset.position.x || avatar.headset.position.y || avatar.headset.position.z) {
-            // not in the default pos            
+        if (
+            avatar.headset.position.x ||
+            avatar.headset.position.y ||
+            avatar.headset.position.z
+        ) {
+            // not in the default pos
             avatar.headset.model.matrix = avatar.headset.matrix;
             avatar.leftController.model.matrix = avatar.leftController.matrix;
             avatar.rightController.model.matrix = avatar.rightController.matrix;
@@ -366,13 +405,15 @@ function updateAvatars() {
 function updateObjects() {
     // update objects' attributes
     for (let id in window.objects) {
-        let type = window.objects[id]['type'];
-        let matrix = window.objects[id]['matrix'];
+        let type = window.objects[id]["type"];
+        let matrix = window.objects[id]["matrix"];
         // create the model if model is null
         if (!window.objects[id].node) {
             // create the model, this is the sample by gltf model
             // we may need other model style like CG.js later
-            window.objects[id].node = new Gltf2Node({ url: window.models[type]._url });
+            window.objects[id].node = new Gltf2Node({
+                url: window.models[type]._url,
+            });
             window.objects[id].node.visible = true;
             window.objects[id].node.selectable = true;
             window.scene.addNode(window.objects[id].node);

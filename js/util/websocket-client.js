@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 // TODO: add ping pong heartbeart to keep connections alive
 // TODO: finish automatic reconnection
@@ -45,9 +45,9 @@ export class Client {
                                 mtx: window.avatars[data].rightController.matrix,
                                 pos: window.avatars[data].rightController.position,
                                 rot: window.avatars[data].rightController.orientation,
-                            }
-                        }
-                    }
+                            },
+                        },
+                    },
                 };
                 break;
 
@@ -62,33 +62,44 @@ export class Client {
                 }
                 // console.log("send webrtc", message);
                 break;
-            case "object": {
-                // ZH: object update
-                message = {
-                    type: "object",
-                    ts: Date.now(),
-                    uid: window.playerid,
-                    id: data['id'],
-                    state: data['state']
+            case "object":
+                {
+                    // ZH: object update
+                    message = {
+                        type: "object",
+                        ts: Date.now(),
+                        uid: window.playerid,
+                        id: data["id"],
+                        state: data["state"],
+                    };
                 }
-            }
                 break;
-            case "objectInit": {
-                // ZH: object init
-                message = {
-                    type: "objectInit",
-                    ts: Date.now(),
-                    uid: window.playerid,
-                    state: data
+            case "objectInit":
+                {
+                    // ZH: object init
+                    message = {
+                        type: "objectInit",
+                        ts: Date.now(),
+                        uid: window.playerid,
+                        state: data,
+                    };
                 }
-            }
                 break;
             case "test":
                 {
                     message = {
                         type: "test",
-                        state: Date.now()
-                    }
+                        state: Date.now(),
+                    };
+                }
+                break;
+            case "mute":
+                {
+                    message = {
+                        type: "mute",
+                        uid: window.playerid,
+                        state: data,
+                    };
                 }
                 break;
             default:
@@ -99,12 +110,12 @@ export class Client {
 
     connect(ip, port) {
         try {
-            this.ws = new WebSocket('wss://' + ip + ':' + port);
-            console.log('wss://' + ip + ':' + port);
+            this.ws = new WebSocket("wss://" + ip + ":" + port);
+            console.log("wss://" + ip + ":" + port);
 
             // function reconnect
             this.ws.onopen = () => {
-                console.log('websocket is connected ...');
+                console.log("websocket is connected ...");
             };
 
             this.ws.onmessage = (ev) => {
@@ -115,7 +126,6 @@ export class Client {
                     // console.log("bad json:", json);
                     console.error(err);
                 }
-
             };
             this.ws.onclose = (event) => {
                 switch (event.code) {
@@ -125,7 +135,7 @@ export class Client {
                         break;
                     // Abnormal closure
                     default:
-                        console.log('reconnecting...');
+                        console.log("reconnecting...");
                         break;
                 }
                 console.log("disconnected");
@@ -134,7 +144,7 @@ export class Client {
 
             this.ws.onerror = (e) => {
                 switch (e.code) {
-                    case 'ECONNREFUSED':
+                    case "ECONNREFUSED":
                         console.error(e);
                         // reconnect(e);
                         this.ws.close();
@@ -144,9 +154,8 @@ export class Client {
                         break;
                 }
             };
-
         } catch (err) {
             console.error("Couldn't load websocket", err);
         }
     }
-};
+}
