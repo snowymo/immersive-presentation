@@ -393,4 +393,4 @@ let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
 
 // ADD DEMO TOGGLE BUTTONS TO WEB PAGE
 
-addDemoButtons('Particles,Objects,Mocap Speak');
+addDemoButtons('Particles,Objects,Mocap, Speak');
