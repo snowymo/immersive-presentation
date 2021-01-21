@@ -60,12 +60,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     </div>
     <script>
        window.addDemoButtons = demoNames => {
-          let names = demoNames.split(',');
+          let names = demoNames.split(',').map(item=>item.trim());
           let header = document.getElementById("header");
           for (let n = 0 ; n < names.length ; n++) {
              let flag = 'isDemo' + names[n];
              window[flag] = false;
-             header.innerHTML += '<button onclick=window.' + flag + '=!window.' + flag + '>' + names[n] + '</button>';
+             if(names[n] != "Speak"){
+              header.innerHTML += '<button onclick=window.' + flag + '=!window.' + flag + '>' + names[n] + '</button>';
+             }              
+              else{
+                header.innerHTML += '<button id=\"Speak\" onclick=\"window.' + flag + '=!window.' + flag 
+                + ';window.muteSelf()\">' + names[n] + '</button>';
+              }
           }
       }
     </script>

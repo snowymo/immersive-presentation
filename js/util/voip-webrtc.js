@@ -123,7 +123,7 @@ window.setUpPeer = setUpPeer;
 window.mute = function (peerUuid = window.localUuid) {
   // or unmute
   if (peerUuid == window.localUuid) {
-    console.log("local", window.localUuid);
+    console.log("DONT mute self", window.localUuid);
     for (let id in window.avatars) {
       console.log(window.avatars[id].localUuid);
     }
@@ -134,16 +134,16 @@ window.mute = function (peerUuid = window.localUuid) {
       window.peerConnections,
       window.peerConnections[peerUuid]
     );
-    window.peerConnections[peerUuid].pc.streams.forEach((stream) => {
-      stream.getTracks().forEach((t) => {
+    // udpated
+    window.peerConnections[peerUuid].audioInputStream.mediaStream
+      .getAudioTracks()
+      .forEach((t) => {
         if (t.kind === "audio") {
           t.enabled = !t.enabled;
           hasAudio = t.enabled;
           return hasAudio;
         }
       });
-    });
-
     return hasAudio;
   }
 };
@@ -304,8 +304,12 @@ function playAvatarAudio(stream, peerUuid) {
         mediaStream: stream,
       }
     );
+    // mute at the beginning
+    realAudioInput.mediaStream.getAudioTracks()[0].enabled = false;
+
     window.peerConnections[peerUuid].audioInputStream = realAudioInput;
 
+    console.log("playAvatarAudio", stream, peerUuid);
     realAudioInput.connect(window.peerConnections[peerUuid].panner);
     window.peerConnections[peerUuid].panner.connect(
       window.peerConnections[peerUuid].audioContext.destination
@@ -431,3 +435,15 @@ function errorHandler(error) {
   console.log(error);
 }
 window.errorHandler = errorHandler;
+
+window.muteSelf = function () {
+  window.wsclient.send("mute", {
+    uuid: window.localUuid,
+  });
+  if (window["isDemoSpeak"]) {
+    //false by default
+    document.querySelector("#Speak").innerText = "Mute";
+  } else {
+    document.querySelector("#Speak").innerText = "Speak";
+  }
+};
