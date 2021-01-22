@@ -935,9 +935,7 @@ export class Renderer {
 
     renderList.initBuffer(this._gl);
     renderList.beginFrame();
-    // RenderList.mCube().color(1,0,0).size(0.3).move(0,2,-2);
     renderListScene(time);
-    // // TODO: Write a function for creating and moving renderList objects
     if (renderList.num > 0) {
       console.log('-------------------');
       for(let i = 0; i < renderList.num; i ++)
