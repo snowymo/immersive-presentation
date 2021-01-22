@@ -3,10 +3,13 @@ import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList, mList, mBeginBuild, mEndBuild } from "../core/renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
-import { kenDemo } from "./ken.js";
 
-let viewMatrix = [];
-let improvedNoise = new ImprovedNoise();
+import { demoKen } from "./demoKen.js";
+import { demoMocap } from "./demoMocap.js";
+import { demoObjects } from "./demoObjects.js";
+import { demoParticles } from "./demoParticles.js";
+
+export let viewMatrix = [];
 
 const FEET_TO_METERS = 0.3048;
 // set to true to enable some testing animations and functionality
@@ -273,100 +276,18 @@ export function renderListScene(time) {
     flatten--;
   }
 
-  if (window.demoKen % 2) {
-    kenDemo(time);
-  }
+  if (KenDemo % 2)
+    demoKen(time);
 
-  if (window.demoParticles % 2) {
+  if (MocapDemo % 2)
+    demoMocap(time);
 
-    // ANIMATE THE PARTICLES
+  if (ObjectsDemo % 2)
+    demoObjects(time);
 
-    for (let n = 0; n < np; n++) {
-      for (let j = 0; j < 3; j++)
-        R[n][j] += .004 * improvedNoise.noise(time + R[n][0], time + n + R[n][1], time + j + R[n][2]);
-      let x = R[n][0], y = R[n][1], z = R[n][2];
-      if (x * x + y * y + z * z > .9)
-        for (let j = 0; j < 3; j++)
-          R[n][j] *= .99;
-    }
+  if (ParticlesDemo % 2)
+    demoParticles(time);
 
-    // RENDER THE PARTICLES AS A SINGLE MESH
-
-    m.save();
-       m.translate(0, 1.5, -.4);
-       m.rotateY(time / 10);
-       m.scale(.3);
-       CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
-       renderList.mMesh(P).color([2, 2, 2]);//.isParticles(true);
-    m.restore();
-  }
-
-  if (window.demoObjects % 2) {
-    m.save();
-    m.translate(0, 1.5, -0.4);
-    m.scale(0.04);
-    renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mSquare().move(1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mSphere().move(4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mCylinder().move(-4.5, 1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList
-      .mRoundedCylinder()
-      .move(-1.5, 1.5, 0)
-      .turnY(time)
-      .color([1, 1, 1]);
-    renderList.mTorus().move(1.5, 1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mDisk().move(4.5, 1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mCone().move(-4.5, -1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mTube().move(-1.5, -1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mTube3().move(1.5, -1.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mGluedCylinder().move(4.5, -1.5, 0).turnY(time).color([1, 1, 1]);
-    m.restore();
-  }
-
-  if (window.demoMocap % 2) {
-    m.save();
-    m.translate(.5, 0, -1.5);
-    let bones = rokokoData[mocapFrame].Bones;
-    for (let j = 0; j < bones.length; j++) {
-      let name = bones[j].BoneName;
-
-      let size = .025;
-      for (let n = 0; n < fingerNames.length; n++)
-        if (name.indexOf(fingerNames[n]) >= 0)
-          size = .005;
-
-      m.save();
-      m.translate(bones[j].px, bones[j].py, bones[j].pz);
-      m.rotateZ(bones[j].qz);
-      m.rotateY(bones[j].qy);
-      m.rotateX(bones[j].qx);
-      if (j == 9) {
-         m.rotateZ(-1);
-         renderList.mSphere().move(0,.15,0).size(.1,.15,.1).color([0, 2, 2]);
-      }
-      else
-         renderList.mCube().size(size).color([0, 2, 2]);
-      m.restore();
-    }
-
-    for (let n = 0; n < limbs.length; n++) {
-      let i = limbs[n][0], j = limbs[n][1];
-      let A = [bones[i].px, bones[i].py, bones[i].pz];
-      let B = [bones[j].px, bones[j].py, bones[j].pz];
-      m.save();
-         m.translate(CG.mix(A, B, .5));
-         let AB = CG.subtract(B, A);
-         m.aimZ(AB);
-         let r = n < 19 ? .015 : .005;
-         m.scale(r, r, CG.norm(AB) / 2);
-         renderList.mCylinder().color([2, 1, 1]);;
-      m.restore();
-    }
-
-    m.restore();
-    mocapFrame = (mocapFrame + 1) % rokokoData.length;
-  }
 
   if (cursorPath.length) {
     m.save();
@@ -387,6 +308,7 @@ export function renderListScene(time) {
 
 }
 
+/*
 // GENERATE RANDOM PARTICLES WITHIN A UNIT SPHERE
 
 let np = 10000;
@@ -398,6 +320,7 @@ for (let n = 0, p = [100, 0, 0]; n < np; n++, p[0] = 100) {
     for (let i = 0; i < 3; i++) p[i] = 2 * CG.random() - 1;
   R.push([p[0], p[1], p[2], 0.003 + 0.012 * CG.random()]);
 }
+*/
 
 let mocapFrame = 0;
 let fingerNames = 'Hand,Thumb,Index,Middle,Ring,Little'.split(',');
