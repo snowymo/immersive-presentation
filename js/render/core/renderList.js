@@ -133,7 +133,10 @@ let RenderList = function () {
 
     this.init = () => {
       this.shape = null;
+      this.list  = null;
+      this.type = 0; // default shape, 1 == list
       this.matrix = CG.matrixIdentity();
+      this.auxMatrix = CG.matrixIdentity();
       this.mx = this.my = this.mz = 0;
       this.rx = this.ry = this.rz = 0;
       this.sx = this.sy = this.sz = 1;
@@ -145,6 +148,7 @@ let RenderList = function () {
       this.isToon = false;
       this.isMirror = false;
       this.isParticles = false;
+      this.mesh = null;
     };
     this.init();
   };
@@ -155,67 +159,213 @@ let RenderList = function () {
   // };
 
   this.beginFrame = () => ((n = 0), (this.num = 0));
+  this.beginBuild = () => ((n = 0), (this.num = 0));
+  this.endBuild = () => {
+    /* do something */
+  };
   this.add = (shape) => {
     if (items[n]) items[n].init();
     else items[n] = new Item();
     items[n].shape = shape;
     items[n].matrix = m.value().slice();
-    // items[n].matrix = [
-    //   1,0,0,0,
-    //   0,1,0,0,
-    //   0,0,1,0,
-    //   0,0,0,1,
-    // ];
     this.num++;
     return items[n++];
   };
+  this.addMesh = (mesh) => {
+    if (items[n]) items[n].init();
+    else items[n] = new Item();
+    items[n].matrix = m.value().slice();
+    items[n].auxMatrix = CG.matrixIdentity();
+    items[n].type = 0;
+    items[n].mesh = mesh;
+    return items[n++];
+  };
+  this.addList = (list) => {
+    if (items[n]) items[n].init();
+    else items[n] = new Item();
+    items[n].list = list;
+    items[n].matrix = m.value().slice();
+    items[n].auxMatrix = CG.matrixIdentity();
+    items[n].type = 1;
+    return items[n++];
+  };
+
+  const buf0 = [];
+  for (let val = 0; val < 16; val += 1) {
+    buf0.push(0);
+  }
+
+  const buf1 = [];
+  for (let val = 0; val < 16; val += 1) {
+    buf1.push(0);
+  }
+
   this.endFrame = (i) => {
     let item = items[i];
     let mat = item.matrix;
-    mat = CG.matrixMultiply(mat, CG.matrixTranslate(item.mx, item.my, item.mz));
-    mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
-    mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
-    mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
-    mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
-
-    return [
-      this,
-      item.shape,
+    CG.matrixMultiplyWithBuffer(
+      buf0,
       mat,
-      item.rgb,
-      item.opac,
-      item.textureInfo,
-      item.fxMode,
-      item.vertexMode,
-      item.toon,
-      item.mirror,
-      item.particles,
-    ];
+      CG.matrixTranslateComponentsWithBuffer(
+        CG.translationBuffer,
+        item.mx,
+        item.my,
+        item.mz
+      )
+    );
+    CG.matrixMultiplyWithBuffer(
+      buf1,
+      buf0,
+      CG.matrixRotateXWithBuffer(CG.rotateXBuffer, item.rx)
+    );
+    CG.matrixMultiplyWithBuffer(
+      buf0,
+      buf1,
+      CG.matrixRotateYWithBuffer(CG.rotateYBuffer, item.ry)
+    );
+    CG.matrixMultiplyWithBuffer(
+      buf1,
+      buf0,
+      CG.matrixRotateZWithBuffer(CG.rotateZBuffer, item.rz)
+    );
+ 
+    mat = CG.matrixMultiplyWithBuffer(
+      item.auxMatrix,
+      buf1,
+      CG.matrixScaleNonUniformWithBuffer(
+        CG.scaleBuffer,
+        item.sx,
+        item.sy,
+        item.sz
+      )
+    );
+    switch (item.type) {
+      // render list
+      case 1: {
+        const list = item.list;
+        list.drawWithGlobalMatrix(mat);
+        break;
+      }
+      default: {
+        return [
+          this,
+          item.shape,
+          mat,
+          item.rgb,
+          item.opac,
+          item.textureInfo,
+          item.fxMode,
+          item.vertexMode,
+          item.toon,
+          item.mirror,
+          item.particles,
+        ];
+      }
+    }
     //  console.log("there are " + n + " items in the scene");
   };
-  this.endFrameWithRange = (drawFunction, i, j) => {
-    for (; i < j; i += 1) {
-      let item = items[i];
-      let mat = item.matrix;
-      mat = CG.matrixMultiply(
-        mat,
-        CG.matrixTranslate(item.mx, item.my, item.mz)
-      );
-      mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
-      mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
-      mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
-      mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
 
-      drawFunction(
-        item.shape,
-        mat,
-        item.rgb,
-        item.opac,
-        item.textureInfo,
-        item.fxMode
+  this.drawWithGlobalMatrix = (globalMat) => {
+    for (let i = 0; i < n; i++) {
+      let item = items[i];
+
+      const buf0 = [];
+      for (let val = 0; val < 16; val += 1) {
+        buf0.push(0);
+      }
+
+      const buf1 = [];
+      for (let val = 0; val < 16; val += 1) {
+        buf1.push(0);
+      }
+
+      CG.matrixMultiplyWithBuffer(buf1, globalMat, item.matrix);
+      CG.matrixMultiplyWithBuffer(
+        buf0,
+        buf1,
+        CG.matrixTranslateComponentsWithBuffer(
+          CG.translationBuffer,
+          item.mx,
+          item.my,
+          item.mz
+        )
       );
+      CG.matrixMultiplyWithBuffer(
+        buf1,
+        buf0,
+        CG.matrixRotateXWithBuffer(CG.rotateXBuffer, item.rx)
+      );
+      CG.matrixMultiplyWithBuffer(
+        buf0,
+        buf1,
+        CG.matrixRotateYWithBuffer(CG.rotateYBuffer, item.ry)
+      );
+      CG.matrixMultiplyWithBuffer(
+        buf1,
+        buf0,
+        CG.matrixRotateZWithBuffer(CG.rotateZBuffer, item.rz)
+      );
+      let mat = CG.matrixMultiplyWithBuffer(
+        item.auxMatrix,
+        buf1,
+        CG.matrixScaleNonUniformWithBuffer(
+          CG.scaleBuffer,
+          item.sx,
+          item.sy,
+          item.sz
+        )
+      );
+
+      switch (item.type) {
+        // render list
+        case 1: {
+          const list = item.list;
+          list.drawWithGlobalMatrix(mat);
+          break;
+        }
+        default: {
+          return [
+            this,
+            item.shape,
+            mat,
+            item.rgb,
+            item.opac,
+            item.textureInfo,
+            item.fxMode,
+            item.vertexMode,
+            item.toon,
+            item.mirror,
+            item.particles,
+          ];
+        }
+      }
     }
+    //      console.log("there are " + n + " items in the scene");
   };
+
+  // this.endFrameWithRange = (drawFunction, i, j) => {
+  //   for (; i < j; i += 1) {
+  //     let item = items[i];
+  //     let mat = item.matrix;
+  //     mat = CG.matrixMultiply(
+  //       mat,
+  //       CG.matrixTranslate(item.mx, item.my, item.mz)
+  //     );
+  //     mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
+  //     mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
+  //     mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
+  //     mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
+
+  //     drawFunction(
+  //       item.shape,
+  //       mat,
+  //       item.rgb,
+  //       item.opac,
+  //       item.textureInfo,
+  //       item.fxMode
+  //     );
+  //   }
+  // };
 
   this.setTextureCatalogue = (textureCatalogue) => {
     this.textureCatalogue = textureCatalogue;
@@ -282,8 +432,26 @@ RenderList.prototype.mTube3 = function () {
 RenderList.prototype.mGluedCylinder = function () {
   return this.add(CG.gluedCylinder);
 };
+RenderList.prototype.mFoo = function () {
+  return this.add(CG.foo);
+};
 
 export let renderList = new RenderList();
+let activeList = renderList;
+
+export function mList(list) {
+  activeList.addList(list);
+};
+
+export function mBeginBuild() {
+  activeList = new RenderList();
+}
+export function mEndBuild() {
+  const out  = activeList;
+  activeList = renderList;
+  return out;
+}
+
 
 // TO DO:
 
