@@ -3,6 +3,7 @@ import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList, mList, mBeginBuild, mEndBuild } from "../core/renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
+import { kenDemo } from "./ken.js";
 
 let viewMatrix = [];
 let improvedNoise = new ImprovedNoise();
@@ -272,11 +273,11 @@ export function renderListScene(time) {
     flatten--;
   }
 
-  if (window.isDemoParticles) {
-    m.save();
-    m.translate(0, 1.5, -.4);
-    m.rotateY(time / 10);
-    m.scale(.3);
+  if (window.demoKen % 2) {
+    kenDemo(time);
+  }
+
+  if (window.demoParticles % 2) {
 
     // ANIMATE THE PARTICLES
 
@@ -291,12 +292,16 @@ export function renderListScene(time) {
 
     // RENDER THE PARTICLES AS A SINGLE MESH
 
-    CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
-    renderList.mMesh(P).color([2, 2, 2]);//.isParticles(true);
+    m.save();
+       m.translate(0, 1.5, -.4);
+       m.rotateY(time / 10);
+       m.scale(.3);
+       CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
+       renderList.mMesh(P).color([2, 2, 2]);//.isParticles(true);
     m.restore();
   }
 
-  if (window.isDemoObjects) {
+  if (window.demoObjects % 2) {
     m.save();
     m.translate(0, 1.5, -0.4);
     m.scale(0.04);
@@ -319,7 +324,7 @@ export function renderListScene(time) {
     m.restore();
   }
 
-  if (window.isDemoMocap) {
+  if (window.demoMocap % 2) {
     m.save();
     m.translate(.5, 0, -1.5);
     let bones = rokokoData[mocapFrame].Bones;
@@ -333,10 +338,15 @@ export function renderListScene(time) {
 
       m.save();
       m.translate(bones[j].px, bones[j].py, bones[j].pz);
-      m.rotateX(bones[j].qx);
-      m.rotateY(bones[j].qy);
       m.rotateZ(bones[j].qz);
-      renderList.mCube().size(size).color([0, 2, 2]);
+      m.rotateY(bones[j].qy);
+      m.rotateX(bones[j].qx);
+      if (j == 9) {
+         m.rotateZ(-1);
+         renderList.mSphere().move(0,.15,0).size(.1,.15,.1).color([0, 2, 2]);
+      }
+      else
+         renderList.mCube().size(size).color([0, 2, 2]);
       m.restore();
     }
 
@@ -345,12 +355,12 @@ export function renderListScene(time) {
       let A = [bones[i].px, bones[i].py, bones[i].pz];
       let B = [bones[j].px, bones[j].py, bones[j].pz];
       m.save();
-      m.translate(CG.mix(A, B, .5));
-      let AB = CG.subtract(B, A);
-      m.aimZ(AB);
-      let r = n < 19 ? .015 : .005;
-      m.scale(r, r, CG.norm(AB) / 2);
-      renderList.mCylinder().color([2, 1, 1]);;
+         m.translate(CG.mix(A, B, .5));
+         let AB = CG.subtract(B, A);
+         m.aimZ(AB);
+         let r = n < 19 ? .015 : .005;
+         m.scale(r, r, CG.norm(AB) / 2);
+         renderList.mCylinder().color([2, 1, 1]);;
       m.restore();
     }
 
@@ -410,4 +420,4 @@ let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
 
 // ADD DEMO TOGGLE BUTTONS TO WEB PAGE
 
-addDemoButtons('Particles,Objects,Mocap, Speak');
+addDemoButtons('Particles,Objects,Mocap,Ken,Speak');

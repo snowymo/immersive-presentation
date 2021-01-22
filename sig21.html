@@ -63,10 +63,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           let names = demoNames.split(',').map(item=>item.trim());
           let header = document.getElementById("header");
           for (let n = 0 ; n < names.length ; n++) {
-             let flag = 'isDemo' + names[n];
-             window[flag] = false;
+             let flag = 'demo' + names[n];
+             window[flag] = 0;
              if(names[n] != "Speak"){
-              header.innerHTML += '<button onclick=window.' + flag + '=!window.' + flag + '>' + names[n] + '</button>';
+              header.innerHTML += '<button onclick=window.' + flag + '++>' + names[n] + '</button>';
              }              
               else{
                 header.innerHTML += '<button id=\"Speak\" onclick=\"window.' + flag + '=!window.' + flag 
