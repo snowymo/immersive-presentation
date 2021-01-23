@@ -118,9 +118,9 @@ let RenderList = function () {
       cl.textureInfo = this.textureInfo;
       cl.fxMode = this.fxMode;
       cl.vertexMode = this.vertexMode;
-      cl.isToon = this.isToon;
-      cl.isMirror = this.isMirror;
-      cl.isParticles = this.isParticles;
+      cl.toon = this.toon;
+      cl.mirror = this.mirror;
+      cl.particles = this.particles;
 
       for (let i = 0; i < this.matrix.length; i += 1) {
         cl.matrix[i] = this.matrix[i];
@@ -145,9 +145,9 @@ let RenderList = function () {
       this.textureInfo = new TextureInfo();
       this.fxMode = 0;
       this.vertexMode = 0;
-      this.isToon = false;
-      this.isMirror = false;
-      this.isParticles = false;
+      this.toon = false;
+      this.mirror = false;
+      this.particles = false;
       this.mesh = null;
     };
     this.init();

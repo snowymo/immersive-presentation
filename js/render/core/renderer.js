@@ -940,8 +940,10 @@ export class Renderer {
     renderListScene(time);
     if (renderList.num > 0) {
       console.log('-------------------');
-      for(let i = 0; i < renderList.num; i ++)
+      for(let i = 0; i < renderList.num; i ++) {
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
+        // console.log(...renderList.endFrame(i));
+      }  
     }
   }
 
