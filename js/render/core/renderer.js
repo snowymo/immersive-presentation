@@ -24,7 +24,7 @@ import { Program } from "./program.js";
 import { DataTexture, VideoTexture } from "./texture.js";
 import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
-import { renderList } from "./renderList.js";
+import { m, renderList } from "./renderList.js";
 import { renderListScene } from "../scenes/renderListScene.js"
 
 export const ATTRIB = {
@@ -1008,7 +1008,7 @@ export class Renderer {
           this._bindPrimitive(primitive);
         }
       } else {
-        this._bindPrimitive(primitive, attribMask);
+       this._bindPrimitive(primitive, attribMask);
         attribMask = primitive._attributeMask;
       }
 
@@ -1198,16 +1198,10 @@ if (false) {
           view.projectionMatrix
         );
       }
-      if (isToon == false) {
-        let m = [
-          1,0,0,0,
-          0,1,0,0,
-          0,0,1,0,
-          0,0,0,1,
-        ];
+      if (isToon) {
         gl.uniform1f(
           gl.getUniformLocation(pgm.program, "uToon"),
-          0.3 * CG.norm(m.slice(0, 3))
+          0.01 * CG.norm(m.value().slice(0, 3))
         );
         gl.cullFace(gl.FRONT);
         drawArrays();
