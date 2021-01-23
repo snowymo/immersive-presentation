@@ -599,19 +599,23 @@ CG.shapeImageToTriangleMesh = si => {
 CG.particlesCreateMesh = N => {
    const vs = VERTEX_SIZE;
    let V = new Float32Array(vs*6*N);
+/*
    CG.random(0);
+*/
    for (let n = 0 ; n < N ; n++) {
+/*
       let r = CG.random() < .4 ? 0 : 1;
       let g = CG.random() < .4 ? 0 : 1;
       let b = CG.random() < .4 ? 0 : 1;
+*/
       for (let i = 0 ; i < 6 ; i++) {
       V[vs * (6*n + i) +  5] = 1;
       V[vs * (6*n + i) +  6] = 1;
       V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;
       V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;
-      V[vs * (6*n + i) + 11] = r;
-      V[vs * (6*n + i) + 12] = g;
-      V[vs * (6*n + i) + 13] = b;
+      V[vs * (6*n + i) + 11] = 1;
+      V[vs * (6*n + i) + 12] = 1;
+      V[vs * (6*n + i) + 13] = 1;
       }
    }
    return V;
@@ -638,6 +642,14 @@ CG.particlesSetPositions = (V, A, M) => {
          V[i2 + j] = A[n][j] - r * x + r * y;
          V[i3 + j] = A[n][j] + r * x + r * y;
       }
+
+      if (A[n].length > 4)
+         for (let j = 0 ; j < 3 ; j++) {
+            V[i0 + 11 + j] = A[n][4 + j];
+            V[i1 + 11 + j] = A[n][4 + j];
+            V[i2 + 11 + j] = A[n][4 + j];
+            V[i3 + 11 + j] = A[n][4 + j];
+	 }
 
       copy(i3, i4);
       if (n > 0            ) copy(i0, i0 - vs);

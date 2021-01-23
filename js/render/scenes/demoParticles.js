@@ -39,6 +39,9 @@ CG.random(0);
 for (let n = 0, p = [100, 0, 0]; n < np; n++, p[0] = 100) {
   while (CG.dot(p, p) > 1)
     for (let i = 0; i < 3; i++) p[i] = 2 * CG.random() - 1;
-  R.push([p[0], p[1], p[2], 0.003 + 0.012 * CG.random()]);
+  let r = CG.random() < .4 ? 0 : 1;
+  let g = CG.random() < .4 ? 0 : 1;
+  let b = CG.random() < .4 ? 0 : 1;
+  R.push([p[0], p[1], p[2], 0.003 + 0.012 * CG.random(), r, g, b]);
 }
 

@@ -241,11 +241,13 @@ void main() {
   vec3 color = ambient;
 
   float alpha = uColor.a;
+/*
   {
      float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
      float t = max(0., 1. - u*u - v*v);
      alpha *= mix(1., t, uParticles);
   }
+*/
 
   // if (uTexIndex < 0) {
     if (uFxMode == 0) {      //default
