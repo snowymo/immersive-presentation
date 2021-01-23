@@ -341,6 +341,7 @@ let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
 [17, 47], [47, 48], [48, 49],
 ];
 
-// ADD DEMO TOGGLE BUTTONS TO WEB PAGE
+// DEMO TOGGLE BUTTONS. PLEASE KEEP THESE IN ALPHABETICAL ORDER.
 
-addDemoButtons('Particles,Objects,Mocap,Ken,Speak');
+addDemoButtons('Ken,Mocap,Objects,Particles,Speak');
+
