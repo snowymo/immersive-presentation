@@ -38,6 +38,8 @@ export let demoKen = state => {
           for (let n = 0 ; n < ns ; n++) {
              let xy = airfont.eval(n / ns, ch);
 	     let rx = CG.random(), ry = CG.random(), rz = CG.random();
+	     rx += .3 * Math.cos(1000 * n/ns + time/2 * (n%2 ? 1 : -1));
+	     ry += .3 * Math.sin(1000 * n/ns + time/2 * (n%2 ? 1 : -1));
              R.push([mix(0.5 * x + xy[0], 1 + 6 * rx, t),
 	             mix(1.5 * y + xy[1], 2.4 + 1.5 * ry, t),
 		     mix(0, 3 * rz - 1.5, t), .03,
