@@ -2,7 +2,7 @@
 import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
-import { viewMatrix } from "./renderListScene.js";
+import { time, viewMatrix } from "./renderListScene.js";
 import { airfont } from "../core/airfont.js";
 
 let msg = 'Pixels turn into\nideas in the air', np, P;
@@ -14,7 +14,7 @@ let msg = 'Pixels turn into\nideas in the air', np, P;
    P = CG.particlesCreateMesh(np);
 }
 
-export let demoKen = time => {
+export let demoKen = () => {
     let mix = (a,b,t) => a + t * (b - a);
     let R = [], x = 0, y = 3;
     let t = .5 + .5 * Math.sin(time / 3);

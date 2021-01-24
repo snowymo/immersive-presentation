@@ -2,8 +2,9 @@
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
+import { time } from "./renderListScene.js";
 
-export let demoMocap = time => {
+export let demoMocap = () => {
     m.save();
     m.translate(.5, 0, -1.5);
     let bones = rokokoData[mocapFrame].Bones;

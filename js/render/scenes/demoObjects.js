@@ -1,7 +1,8 @@
 
 import { m, renderList } from "../core/renderList.js";
+import { time } from "./renderListScene.js";
 
-export let demoObjects = time => {
+export let demoObjects = () => {
     m.save();
     m.translate(0, 1.5, -0.4);
     m.scale(0.04);

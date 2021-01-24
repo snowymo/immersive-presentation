@@ -9,7 +9,7 @@ import { demoMocap } from "./demoMocap.js";
 import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 
-export let viewMatrix = [];
+export let viewMatrix = [], time = 0;
 
 const FEET_TO_METERS = 0.3048;
 // set to true to enable some testing animations and functionality
@@ -259,7 +259,9 @@ function buildNoiseVariant(nMode) {
    return mEndBuild();
 }
 
-export function renderListScene(time) {
+export function renderListScene(_time) {
+  time = _time;
+
   // NOISE GRID
   if (tMode == 2) {
     m.save();
