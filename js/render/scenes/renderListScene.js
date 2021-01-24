@@ -278,17 +278,17 @@ export function renderListScene(_time) {
     flatten--;
   }
 
-  if (KenDemo % 2)
-    demoKen(time);
+  if (demoKenState % 3)
+    demoKen(demoKenState % 3);
 
-  if (MocapDemo % 2)
-    demoMocap(time);
+  if (demoMocapState % 2)
+    demoMocap();
 
-  if (ObjectsDemo % 2)
-    demoObjects(time);
+  if (demoObjectsState % 2)
+    demoObjects();
 
-  if (ParticlesDemo % 2)
-    demoParticles(time);
+  if (demoParticlesState % 2)
+    demoParticles();
 
 
   if (cursorPath.length) {

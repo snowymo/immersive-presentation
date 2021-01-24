@@ -440,7 +440,7 @@ window.muteSelf = function () {
   window.wsclient.send("mute", {
     uuid: window.localUuid,
   });
-  if (SpeakDemo % 2) {
+  if (demoSpeakState % 2) {
     //false by default
     document.querySelector("#Speak").innerText = "Mute";
   } else {
