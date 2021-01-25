@@ -18,13 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { RenderView } from "../core/renderer.js";
+import { RenderView } from "./renderer.js";
 import { InputRenderer } from "../nodes/input-renderer.js";
 import { StatsViewer } from "../nodes/stats-viewer.js";
-import { Node } from "../core/node.js";
+import { Node } from "./node.js";
 import { vec3, quat } from "../math/gl-matrix.js";
 import { Ray } from "../math/ray.js";
-import { getViews } from "../scenes/renderListScene.js";
+import { getViews } from "./renderListScene.js";
 
 export class WebXRView extends RenderView {
   constructor(view, layer) {

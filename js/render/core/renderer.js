@@ -25,7 +25,7 @@ import { DataTexture, VideoTexture } from "./texture.js";
 import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
 import { m, renderList } from "./renderList.js";
-import { renderListScene } from "../scenes/renderListScene.js"
+import { renderListScene } from "./renderListScene.js"
 
 export const ATTRIB = {
   POSITION: 1,
@@ -1055,7 +1055,6 @@ export class Renderer {
               primitive._indexByteOffset
             );
           } else {
-            // gl.drawArrays(primitive._mode, 0, primitive._elementCount);
             gl.drawArrays(primitive._mode, 0, primitive._elementCount);
           } 
         }

@@ -1,5 +1,5 @@
 import { WebXRButton } from "./util/webxr-button.js";
-import { Scene } from "./render/scenes/scene.js";
+import { Scene } from "./render/core/scene.js";
 import { Renderer, createWebGLContext } from "./render/core/renderer.js";
 import { Gltf2Node } from "./render/nodes/gltf2.js";
 import { mat4, vec3 } from "./render/math/gl-matrix.js";
@@ -18,7 +18,7 @@ import {
     pauseAudio,
 } from "./util/positional-audio.js";
 import { Client as WSClient } from "./util/websocket-client.js";
-import { updateController } from "./render/scenes/renderListScene.js";
+import { updateController } from "./render/core/renderListScene.js";
 
 window.wsport = 8447;
 
@@ -50,9 +50,6 @@ function initModels() {
     // window.scene.addNode(window.models['stereo']);
 }
 
-window.scene.addNode(
-    new Gltf2Node({ url: "../media/gltf/garage/garage.gltf" })
-);
 window.scene.standingStats(true);
 // window.scene.addNode(window.models['stereo']);
 

@@ -2,8 +2,7 @@
 import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
-import { viewMatrix } from "./renderListScene.js";
-import { time } from "./renderListScene.js";
+import { time, viewMatrix } from "../core/renderListScene.js";
 
 export let demoParticles = () => {
 

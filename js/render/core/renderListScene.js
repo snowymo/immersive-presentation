@@ -1,13 +1,14 @@
 "use strict";
 import { ImprovedNoise } from "../math/improvedNoise.js";
-import { CG } from "../core/CG.js";
-import { m, renderList, mList, mBeginBuild, mEndBuild } from "../core/renderList.js";
+import { CG } from "./CG.js";
+import { m, renderList, mList, mBeginBuild, mEndBuild } from "./renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
 
-import { demoKen } from "./demoKen.js";
-import { demoMocap } from "./demoMocap.js";
-import { demoObjects } from "./demoObjects.js";
-import { demoParticles } from "./demoParticles.js";
+import { demoKen } from "../scenes/demoKen.js";
+import { demoMocap } from "../scenes/demoMocap.js";
+import { demoObjects } from "../scenes/demoObjects.js";
+import { demoParticles } from "../scenes/demoParticles.js";
+import { backgroundScene } from "../scenes/backgroundScene.js";
 
 export let viewMatrix = [], time = 0;
 
@@ -261,7 +262,7 @@ function buildNoiseVariant(nMode) {
 
 export function renderListScene(_time) {
   time = _time;
-
+  backgroundScene(time);
   // NOISE GRID
   if (tMode == 2) {
     m.save();

@@ -2,7 +2,7 @@
 import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
-import { time, viewMatrix } from "./renderListScene.js";
+import { time, viewMatrix } from "../core/renderListScene.js";
 import { airfont } from "../core/airfont.js";
 
 let msg = 'Pixels turn into\nideas in the air', np, P;

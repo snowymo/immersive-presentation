@@ -2,7 +2,7 @@
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 import { rokokoData } from "../../data/RokokoData.js";
-import { time } from "./renderListScene.js";
+import { time } from "../core/renderListScene.js";
 
 export let demoMocap = () => {
     m.save();

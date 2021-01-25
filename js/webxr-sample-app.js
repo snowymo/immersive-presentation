@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 import { WebXRButton } from "./util/webxr-button.js";
-import { Scene } from "./render/scenes/scene.js";
+import { Scene } from "./render/core/scene.js";
 import { Renderer, createWebGLContext } from "./render/core/renderer.js";
 import { InlineViewerHelper } from "./util/inline-viewer-helper.js";
 

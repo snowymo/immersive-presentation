@@ -148,7 +148,7 @@ export class Node {
 
   addNode(value) {
     if (!value || value.parent == this) {
-      return;
+      return this.children[this.children.length - 1];
     }
 
     if (value.parent) {
@@ -161,6 +161,7 @@ export class Node {
     if (this._renderer) {
       value._setRenderer(this._renderer);
     }
+    return this.children[this.children.length - 1];
   }
 
   removeNode(value) {

@@ -1,6 +1,6 @@
 
 import { m, renderList } from "../core/renderList.js";
-import { time } from "./renderListScene.js";
+import { time } from "../core/renderListScene.js";
 
 export let demoObjects = () => {
     m.save();
