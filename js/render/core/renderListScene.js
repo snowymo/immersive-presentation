@@ -37,12 +37,12 @@ export let updateController = (avatar, buttonInfo) => {
     const b = buttonInfo.buttons;
 
     for (let i = 0; i < 7; i++) {
-      if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
-      else if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
-      else if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
+       if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
+       else if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
+       else if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
 
-      // Update
-      buttonState[h][i] = b[i].pressed;
+       // Update
+       buttonState[h][i] = b[i].pressed;
     }
   }
 };
@@ -51,33 +51,33 @@ let onPress = (hand, button) => {
   console.log("pressed", hand, "button", button);
 
   if (hand == "left" && button == 0) {
-    zScale = 1;
-    cursorPath.push([]);
+     zScale = 1;
+     cursorPath.push([]);
   }
 };
 
 let onDrag = (hand, button) => {
   if (hand == "left" && button == 0)
-    if (controllerMatrix[hand]) {
-      let P = controllerMatrix[hand].slice(12, 15);
-      cursorPath[cursorPath.length - 1].push(P);
-    }
+     if (controllerMatrix[hand]) {
+        let P = controllerMatrix[hand].slice(12, 15);
+        cursorPath[cursorPath.length - 1].push(P);
+     }
 };
 
 let onRelease = (hand, button) => {
   console.log("released", hand, "button", button);
 
   if (hand == "left" && button == 1) {
-    tMode = (tMode + 1) % 3;
-    switch (tMode) {
-      case 1:
+     tMode = (tMode + 1) % 3;
+     switch (tMode) {
+     case 1:
         flatten = 50;
         break;
-      case 2:
+     case 2:
         cursorPath = [];
         terrainMesh = createTerrainMesh();
         break;
-    }
+     }
   }
 
   if (hand == "right" && button == 0) nMode = (nMode + 1) % 5;
@@ -89,16 +89,15 @@ function convertToStaticMesh(renderList) {
   const count    = itemInfo.count;
 
   for (let i = 0; i < count; i += 1) {
-    if (items[i].mesh) {
-      continue;
-    }
+     if (items[i].mesh)
+       continue;
 
-    const mesh = new Mesh(gl, defaultVertexAttributeDescriptor, false);
+     const mesh = new Mesh(gl, defaultVertexAttributeDescriptor, false);
 
-    mesh.bind();
-    mesh.upload(gl.ARRAY_BUFFER, new Float32Array(items[i].shape), gl.STATIC_DRAW);
+     mesh.bind();
+     mesh.upload(gl.ARRAY_BUFFER, new Float32Array(items[i].shape), gl.STATIC_DRAW);
     
-    items[i].mesh = mesh;
+     items[i].mesh = mesh;
   }
 }
 let staticObjRenderable = null;
@@ -109,15 +108,13 @@ function initModels() {
   convertToStaticMesh(staticObjRenderable);
 
   noiseRenderableLookup = buildNoise(nModeMax + 1);
-  for (let i = 0; i < noiseRenderableLookup.length; i += 1) {
-    convertToStaticMesh(w.noiseRenderableLookup[i]);
-  }
+  for (let i = 0; i < noiseRenderableLookup.length; i += 1)
+     convertToStaticMesh(w.noiseRenderableLookup[i]);
 }
 
 let multiline = (path, rgb, width) => {
-  for (let n = 0; n < path.length - 1; n++) {
-    if (path[n] && path[n + 1]) line(path[n], path[n + 1], rgb, width);
-  }
+  for (let n = 0; n < path.length - 1; n++)
+     if (path[n] && path[n + 1]) line(path[n], path[n + 1], rgb, width);
 };
 
 let line = (a, b, rgb, width) => {
@@ -156,21 +153,20 @@ let nZ = (x, y, d00, d10, d01, d11) => {
 
 let createTerrainMesh = () => {
   let e = 1 / 5,
-    si = [];
+     si = [];
   for (let y = -N; y <= N; y += 1) {
-    for (let v = 0; v <= 1.001; v += e) {
-      si.push([]);
-      for (let x = -N; x <= N; x += 1) {
-        let n = (2 * N + 1) * (y + N) + (x + N);
-        for (let u = 0; u <= 1.001; u += e)
-          si[si.length - 1].push([
-            x + u,
-            y + v,
-            //nZ(u,v,vecs[n],vecs[n+1],vecs[n+2*N+1],vecs[n+2*N+2])
-            nZ(u, v, vecs[0], vecs[1], vecs[2], vecs[3]),
-          ]);
-      }
-    }
+     for (let v = 0; v <= 1.001; v += e) {
+       si.push([]);
+       for (let x = -N; x <= N; x += 1) {
+         let n = (2 * N + 1) * (y + N) + (x + N);
+         for (let u = 0; u <= 1.001; u += e)
+           si[si.length - 1].push([
+             x + u,
+             y + v,
+             nZ(u, v, vecs[0], vecs[1], vecs[2], vecs[3]),
+           ]);
+       }
+     }
   }
   return CG.shapeImageToTriangleMesh(si);
 };
@@ -191,9 +187,8 @@ function buildStaticObj() {
 function buildNoise(N) {
   let arr = new Array(N);
   
-  for (let i = 0; i < N; i += 1) {
-    arr[i] = buildNoiseVariant(i);
-  }
+  for (let i = 0; i < N; i += 1)
+     arr[i] = buildNoiseVariant(i);
   
   return arr;
 }
@@ -215,45 +210,26 @@ function buildNoiseVariant(nMode) {
 
          if (nMode > 1 && nMode < 4) line(tmp.vec3(x,y-.25,-vecs[n][1]/2), tmp.vec3(x,y+.25,vecs[n][1]/2), tmp.vec3(0,3,6));
 
-  /*
-         let e = 1/5;
-         if (nMode >= 3 && x < N && y < N)
-            for (let v = 0 ; v <= 1.001 ; v += e)
-            for (let u = 0 ; u <= 1.001 ; u += e) {
-         let z00 = nZ(u  , v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-         let z10 = nZ(u+e, v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-         let z01 = nZ(u  , v+e, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-         if (u < .99) line([x+u,y+v,z00],[x+u+e,y+v,z10],[4,2,4],.003);
-         if (v < .99) line([x+u,y+v,z00],[x+u,y+v+e,z01],[4,2,4],.003);
-      }
-
-  */
          if (nMode >= 3 && x < N && y < N) {
             let e = 1/8, f = 1/4;
 
             for (let u = 0 ; u <= .999 ; u += e)
             for (let v = 0 ; v <= 1.01 ; v += f) {
-             let z0 = nZ(u  , v, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-             let z1 = nZ(u+e, v, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-             line(tmp.vec3(x+u,y+v,z0),tmp.vec3(x+u+e,y+v,z1),tmp.vec3(4,2,4),.003);
+               let z0 = nZ(u  , v, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+               let z1 = nZ(u+e, v, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+               line(tmp.vec3(x+u,y+v,z0),tmp.vec3(x+u+e,y+v,z1),tmp.vec3(4,2,4),.003);
             }
 
             for (let v = 0 ; v <= .999 ; v += e)
             for (let u = 0 ; u <= 1.01 ; u += f) {
-             let z0 = nZ(u, v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-             let z1 = nZ(u, v+e, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
-             line(tmp.vec3(x+u,y+v,z0),tmp.vec3(x+u,y+v+e,z1),tmp.vec3(4,2,4),.004);
+               let z0 = nZ(u, v  , vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+               let z1 = nZ(u, v+e, vecs[n], vecs[n+1], vecs[n+2*N+1], vecs[n+2*N+2]);
+               line(tmp.vec3(x+u,y+v,z0),tmp.vec3(x+u,y+v+e,z1),tmp.vec3(4,2,4),.004);
             }
          }
 
          n++;
       }
-  /*
-      if (terrainMesh) {
-         let r = renderList().add(terrainMesh);
-         r.color(white);
-      }
-  */
 
    m.restore();
 
@@ -263,86 +239,42 @@ function buildNoiseVariant(nMode) {
 export function renderListScene(_time) {
   time = _time;
   backgroundScene(time);
+
   // NOISE GRID
   if (tMode == 2) {
-    m.save();
-       //m.translate(0, 2.0,0);
-       //m.scale(1,.5 + .5 * Math.sin(time),1);
-       //m.translate(0,-2.0,0);
-       //mList(w.noiseRenderableLookup[nMode], drawShape);
-       renderList.mFoo().move(0,1,0).turnX(-Math.PI/2).size(1,1,.5+.5*Math.sin(time)).color([10,0,10]);
-    m.restore();
- }
+     m.save();
+        renderList.mFoo().move(0,1,0).turnX(-Math.PI/2).size(1,1,.5+.5*Math.sin(time)).color([10,0,10]);
+     m.restore();
+  }
 
   if (flatten >= 0) {
-    zScale *= 0.97;
-    flatten--;
+     zScale *= 0.97;
+     flatten--;
   }
 
   if (demoKenState % 3)
-    demoKen(demoKenState % 3);
+     demoKen(demoKenState % 3);
 
   if (demoMocapState % 2)
-    demoMocap();
-
+     demoMocap();
+ 
   if (demoObjectsState % 2)
-    demoObjects();
+     demoObjects();
 
   if (demoParticlesState % 2)
-    demoParticles();
-
+     demoParticles();
 
   if (cursorPath.length) {
-    m.save();
-    // m.translate(0, 0.5, 2.5);
-    // m.scale(1 / FEET_TO_METERS);
-    m.translate(0, 0, -0.5 * sCurve(1 - zScale));
-    m.scale(1, 1, zScale);
-    for (let n = 0; n < cursorPath.length; n++) {
-      multiline(cursorPath[n], [10, 0, 10], 0.0013);
-    }
-
-    m.restore();
+     m.save();
+        m.translate(0, 0, -0.5 * sCurve(1 - zScale));
+        m.scale(1, 1, zScale);
+        for (let n = 0; n < cursorPath.length; n++)
+           multiline(cursorPath[n], [10, 0, 10], 0.0013);
+     m.restore();
   }
 
-  {
-    mList(staticObjRenderable);
-  }
-
+  mList(staticObjRenderable);
 }
-
-/*
-// GENERATE RANDOM PARTICLES WITHIN A UNIT SPHERE
-
-let np = 10000;
-let P = CG.particlesCreateMesh(np);
-let R = [];
-CG.random(0);
-for (let n = 0, p = [100, 0, 0]; n < np; n++, p[0] = 100) {
-  while (CG.dot(p, p) > 1)
-    for (let i = 0; i < 3; i++) p[i] = 2 * CG.random() - 1;
-  R.push([p[0], p[1], p[2], 0.003 + 0.012 * CG.random()]);
-}
-*/
-
-let mocapFrame = 0;
-let fingerNames = 'Hand,Thumb,Index,Middle,Ring,Little'.split(',');
-let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
-[10, 12], [11, 13], [12, 14], [13, 15], [14, 16], [15, 17],
-[8, 50], [50, 7], [7, 0], [0, 1], [0, 2],
-
-[16, 20], [20, 21], [21, 22],
-[16, 23], [23, 24], [24, 25],
-[16, 26], [26, 27], [27, 28],
-[16, 29], [29, 30], [30, 31],
-[16, 32], [32, 33], [33, 34],
-
-[17, 35], [35, 36], [36, 37],
-[17, 38], [38, 39], [39, 40],
-[17, 41], [41, 42], [42, 43],
-[17, 44], [44, 45], [45, 46],
-[17, 47], [47, 48], [48, 49],
-];
 
 // DEMO TOGGLE BUTTONS. PLEASE KEEP THESE IN ALPHABETICAL ORDER.
 
