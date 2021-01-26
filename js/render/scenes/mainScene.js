@@ -57,4 +57,4 @@ export let mainScene = () => {
 
 };
 
-addDemoButtons('Ken,Mocap,Objects,Particles,Speak,NoiseGrid');
+addDemoButtons('Ken,Mocap,NoiseGrid,Objects,Particles,Speak');
