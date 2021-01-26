@@ -23,6 +23,7 @@ import { demoMocap } from "./demoMocap.js";
 import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoNoiseGrid } from "./demoNoiseGrid.js";
+import { demoIan } from "./demoIan.js";
 
 let loadGLTF = false;
 
@@ -55,6 +56,8 @@ export let mainScene = () => {
 
   if (demoNoiseGridState % 2) demoNoiseGrid();
 
+  if (demoIanState % 2) demoIan();
+
 };
 
-addDemoButtons('Ken,Mocap,NoiseGrid,Objects,Particles,Speak');
+addDemoButtons('Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Ian');

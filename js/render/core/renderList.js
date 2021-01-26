@@ -435,6 +435,12 @@ RenderList.prototype.mGluedCylinder = function () {
 RenderList.prototype.mFoo = function () {
   return this.add(CG.foo);
 };
+RenderList.prototype.mTriangle = function () {
+  return this.add([
+    1, 1,0, 0,0,1, 1,0,0, 1,1, 1,1,1,
+   -1, 1,0, 0,0,1, 1,0,0, 0,1, 1,1,1,
+    1,-1,0, 0,0,1, 1,0,0, 1,0, 1,1,1])
+}
 
 export let renderList = new RenderList();
 let activeList = renderList;
