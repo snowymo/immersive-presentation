@@ -34,7 +34,7 @@ export let demoKen = state => {
           prevTime = time;
        let mix = (a,b,t) => a + t * (b - a);
        let R = [], x = 0, y = 3;
-       let t = .5 + .5 * Math.cos((time - prevTime) / 3);
+       let t = 0;//.5 + .5 * Math.cos((time - prevTime) / 3);
        CG.random(0);
        for (let i = 0 ; i < msg.length ; i++) {
           let ch = msg.substring(i, i+1);
