@@ -18,9 +18,10 @@ import {
 
 import { rokokoData } from "../../data/RokokoData.js";
 
-import { demoKen } from "./demoKen.js";
-import { demoMocap } from "./demoMocap.js";
-import { demoObjects } from "./demoObjects.js";
+import { demoAirText   } from "./demoAirText.js";
+import { demoKen       } from "./demoKen.js";
+import { demoMocap     } from "./demoMocap.js";
+import { demoObjects   } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoNoiseGrid } from "./demoNoiseGrid.js";
 
@@ -45,16 +46,12 @@ export let mainScene = () => {
   // add the procedural objects you wish to have all the time here
   m.restore();
 
-  if (demoKenState % 3) demoKen(demoKenState % 3);
-
-  if (demoMocapState % 2) demoMocap();
-
-  if (demoObjectsState % 2) demoObjects();
-
+  if (demoAirTextState   % 2) demoAirText();
+  if (demoKenState       % 2) demoKen();
+  if (demoMocapState     % 2) demoMocap();
+  if (demoObjectsState   % 2) demoObjects();
   if (demoParticlesState % 2) demoParticles();
-
   if (demoNoiseGridState % 2) demoNoiseGrid();
-
 };
 
-addDemoButtons('Ken,Mocap,NoiseGrid,Objects,Particles,Speak');
+addDemoButtons('AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak');
