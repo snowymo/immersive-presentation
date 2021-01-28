@@ -442,26 +442,6 @@ CG.foo = noiseGridVertices;
 
 CG.uvToCylinder = (u,v) => {
    let c = Math.cos(2 * Math.PI * u);
-   for (let n = 0 ; n < 3 ; n++)
-      for (let i = 0 ; i < P.length ; i += VERTEX_SIZE) {
-         let p0  = [P[i   ], P[i+ 1], P[i+ 2]],
-             p1  = [P[i+ 3], P[i+ 4], P[i+ 5]],
-             p2  = [P[i+ 6], P[i+ 7], P[i+ 8]],
-             uv  = [P[i+ 9], P[i+10]],
-	     rgb = [P[i+11], P[i+12], P[i+13]];
-         V = V.concat(p0).concat(p1).concat(p2).concat(uv);
-         for (let j = 0 ; j < 3 ; j++) {
-            P[i    + j] = p0 [(j+1) % 3];
-            P[i+ 3 + j] = p1 [(j+1) % 3];
-            P[i+ 6 + j] = p2 [(j+1) % 3];
-            P[i+11 + j] = rgb[(j+1) % 3];
-         }
-      }
-   return V;
-}
-
-CG.uvToCylinder = (u,v) => {
-   let c = Math.cos(2 * Math.PI * u);
    let s = Math.sin(2 * Math.PI * u);
    let z = Math.max(-1, Math.min(1, 10*v - 5));
 
