@@ -35,9 +35,11 @@ export let mainScene = () => {
   //         window.scene.removeNode(i);
   //     }
   // }
+  // ../../media/gltf/classroom/classroom0126.gltf
+  // 
   if (!loadGLTF) {
     window.scene.addNode(
-      new Gltf2Node({ url: "../../media/gltf/garage/garage.gltf" })
+      new Gltf2Node({ url: "../../media/gltf/Futuristic_Lab_Mockup_03/Futuristic_Lab_Mockup.gltf" })
     ).name = "backGround";
     loadGLTF = true;
   }

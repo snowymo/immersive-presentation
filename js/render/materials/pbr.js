@@ -26,9 +26,11 @@ attribute vec3 POSITION, NORMAL;
 attribute vec2 TEXCOORD_0, TEXCOORD_1;
 
 uniform vec3 CAMERA_POSITION;
-uniform vec3 LIGHT_DIRECTION;
+uniform vec3 LIGHT_DIRECTION1;
+uniform vec3 LIGHT_DIRECTION2;
 
-varying vec3 vLight; // Vector from vertex to light.
+varying vec3 vLight1; // Vector from vertex to light.
+varying vec3 vLight2; // Vector from vertex to light.
 varying vec3 vView; // Vector from vertex to camera.
 varying vec2 vTex;
 
@@ -60,7 +62,8 @@ vec4 vertex_main(mat4 proj, mat4 view, mat4 model) {
 
   vTex = TEXCOORD_0;
   vec4 mPos = model * vec4(POSITION, 1.0);
-  vLight = -LIGHT_DIRECTION;
+  vLight1 = -LIGHT_DIRECTION1;
+  vLight2 = -LIGHT_DIRECTION2;
   vView = CAMERA_POSITION - mPos.xyz;
   return proj * view * mPos;
 }`;
@@ -100,7 +103,8 @@ uniform vec4 baseColorFactor;
 uniform sampler2D baseColorTex;
 #endif
 
-varying vec3 vLight;
+varying vec3 vLight1;
+varying vec3 vLight2;
 varying vec3 vView;
 varying vec2 vTex;
 
@@ -161,7 +165,7 @@ vec4 fragment_main() {
   float metallic = metallicRoughnessFactor.x;
 #endif
 
-  float roughness = metallicRoughnessFactor.y;
+  float roughness = 1. + metallicRoughnessFactor.y;
 
 #ifdef USE_METAL_ROUGH_MAP
   vec4 metallicRoughness = texture2D(metallicRoughnessTex, vTex);
@@ -169,14 +173,19 @@ vec4 fragment_main() {
   roughness *= metallicRoughness.g;
 #endif
   
-  vec3 l = normalize(vLight);
+  vec3 l1 = normalize(vLight1);
+  vec3 l2 = normalize(vLight2);
   vec3 v = normalize(vView);
-  vec3 h = normalize(l+v);
+  vec3 h1 = normalize(l1+v);
+  vec3 h2 = normalize(l2+v);
 
-  float nDotL = clamp(dot(n, l), 0.001, 1.0);
+  float nDotL1 = clamp(dot(n, l1), 0.001, 1.0);
+  float nDotL2 = clamp(dot(n, l2), 0.001, 1.0);
   float nDotV = abs(dot(n, v)) + 0.001;
-  float nDotH = max(dot(n, h), 0.0);
-  float vDotH = max(dot(v, h), 0.0);
+  float nDotH1 = max(dot(n, h1), 0.0);
+  float vDotH1 = max(dot(v, h1), 0.0);
+  float nDotH2 = max(dot(n, h2), 0.0);
+  float vDotH2 = max(dot(v, h2), 0.0);
 
   // From GLTF Spec
   vec3 cDiff = mix(baseColor.rgb * (1.0 - dielectricSpec.r), black, metallic); // Diffuse color
@@ -186,31 +195,40 @@ vec4 fragment_main() {
 #ifdef FULLY_ROUGH
   vec3 specular = F0 * 0.45;
 #else
-  vec3 F = specF(vDotH, F0);
-  float D = specD(a, nDotH);
-  float G = specG(roughness, nDotL, nDotV);
-  vec3 specular = (D * F * G) / (4.0 * nDotL * nDotV);
+  vec3 F1 = specF(vDotH1, F0);
+  float D1 = specD(a, nDotH1);
+  float G1 = specG(roughness, 1.5 * nDotL1, nDotV);
+  vec3 specular1 = (D1 * F1 * G1) / (4.0 * nDotL1 * nDotV);
+  vec3 F2 = specF(vDotH2, F0);
+  float D2 = specD(a, nDotH2);
+  float G2 = specG(roughness, 1.5 * nDotL2, nDotV);
+  vec3 specular = (D2 * F2 * G2) / (4.0 * nDotL2 * nDotV);
 #endif
-  float halfLambert = dot(n, l) * 0.5 + 0.5;
-  halfLambert *= halfLambert;
+  float halfLambert1 = dot(n, l1) * 0.5 + 0.5;
+  halfLambert1 *= halfLambert1;
+  float halfLambert2 = dot(n, l2) * 0.5 + 0.5;
+  halfLambert2 *= halfLambert2;
 
-  vec3 color = (halfLambert * LIGHT_COLOR * lambertDiffuse(cDiff)) + specular;
+  vec3 color1 = (halfLambert1 * LIGHT_COLOR * lambertDiffuse(cDiff)) + specular;
+  vec3 color2 = (halfLambert1 * LIGHT_COLOR * lambertDiffuse(cDiff)) + specular;
 
 #ifdef USE_OCCLUSION
   float occlusion = texture2D(occlusionTex, vTex).r;
-  color = mix(color, color * occlusion, occlusionStrength);
+  color1 = mix(color1, color1 * occlusion, occlusionStrength);
+  color2 = mix(color2, color2 * occlusion, occlusionStrength);
 #endif
   
   vec3 emissive = emissiveFactor;
 #ifdef USE_EMISSIVE_TEXTURE
   emissive *= texture2D(emissiveTex, vTex).rgb;
 #endif
-  color += emissive;
+  color1 += emissive;
+  color2 += emissive;
 
   // gamma correction
   //color = pow(color, vec3(1.0/2.2));
 
-  return vec4(color, baseColor.a);
+  return vec4(.5 * (color1 + color2), baseColor.a);
 }`;
 
 export class PbrMaterial extends Material {
