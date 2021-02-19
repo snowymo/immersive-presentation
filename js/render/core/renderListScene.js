@@ -32,11 +32,13 @@ let onPress = (hand, button) => {
   console.log("pressed", hand, "button", button);
   isPressed = true;
   isReleased = false;
+  isDragged = false;
 };
 
 let onDrag = (hand, button) => {
   isDragged = true;
   isReleased = false;
+  isPressed = false;
 };
 
 let onRelease = (hand, button) => {

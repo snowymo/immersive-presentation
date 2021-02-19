@@ -6,7 +6,7 @@ import { time } from "../core/renderListScene.js";
 
 export let demoMocap = () => {
     m.save();
-    m.translate(.5, 0, -1.5);
+    m.translate(.5, -0.8, -1.5);
     let bones = rokokoData[mocapFrame].Bones;
     for (let j = 0; j < bones.length; j++) {
       let name = bones[j].BoneName;

@@ -4,7 +4,7 @@ import { time } from "../core/renderListScene.js";
 
 export let demoObjects = () => {
     m.save();
-    m.translate(0, 1.5, -0.4);
+    m.translate(0, 1., -0.4);
     m.scale(0.04);
     renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]);

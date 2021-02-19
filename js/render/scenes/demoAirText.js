@@ -5,7 +5,7 @@ import { m, renderList } from "../core/renderList.js";
 import { time, viewMatrix } from "../core/renderListScene.js";
 import { airfont } from "../core/airfont.js";
 
-let msg = 'Pixels turn into\nideas in the air', P;
+let msg = 'Future Reality Lab\n    Metaroom', P;
 {
    let total = 0;
    for (let i = 0 ; i < msg.length ; i++)
@@ -47,7 +47,7 @@ export let demoAirText = () => {
     }
     CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
     m.save();
-       m.translate(-.35,1.5,-.5);
+       m.translate(-.35,1.,-.5);
        renderList.mMesh(P).size(.1).color([10,10,10]);
     m.restore();
 }

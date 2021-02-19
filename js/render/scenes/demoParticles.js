@@ -20,7 +20,7 @@ export let demoParticles = () => {
     // RENDER THE PARTICLES AS A SINGLE MESH
 
     m.save();
-       m.translate(0, 1.5, -.4);
+       m.translate(0, 1.0, -.4);
        m.rotateY(time / 10);
        m.scale(.3);
        CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));

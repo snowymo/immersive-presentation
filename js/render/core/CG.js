@@ -723,5 +723,5 @@ CG.cone            = CG.createMeshVertices(32, 16, CG.uvToCone);
 CG.tube            = CG.createMeshVertices(32, 16, CG.uvToTube);
 CG.tube3           = CG.createMeshVertices( 4,  3, CG.uvToTube);
 CG.gluedCylinder   = CG.glueMeshes(CG.tube,
-                     CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToDisk, 1),
+                     CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToDisk, -1),
                                    CG.createMeshVertices(32, 16, CG.uvToDisk, 1)));

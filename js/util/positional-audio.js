@@ -248,7 +248,7 @@ export function loadAudioSources(scene) {
                 playAudio();
             }
         });
-        playButton.translation = [0, 1.2, -0.65];
+        playButton.translation = [0, 1., 0.25];
         scene.addNode(playButton);
     });
 }

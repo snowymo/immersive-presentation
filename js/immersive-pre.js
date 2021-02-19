@@ -334,7 +334,6 @@ function onXRFrame(t, frame) {
         ? xrImmersiveRefSpace
         : inlineViewerHelper.referenceSpace;
     let pose = frame.getViewerPose(refSpace);
-
     window.scene.startFrame();
 
     session.requestAnimationFrame(onXRFrame);

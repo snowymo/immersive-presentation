@@ -25,6 +25,7 @@ let flatten = 0,
 let cursorPath = [];
 let tMode = DEBUG_MODE ? 2 : 0;
 let tModeMax = 2;
+let justReleased = true;
 
 function convertToStaticMesh(renderList) {
     const itemInfo = renderList.getItems();
@@ -178,18 +179,21 @@ function convertToStaticMesh(renderList) {
 export let demoNoiseGrid = () => {
   // Process Controller Info
   if (isPressed) {
-    if (buttonState.left[0]) {
+    justReleased = true;
+    if (buttonState.left[0] && tMode == 0) {
       zScale = 1;
       cursorPath.push([]);
     }
-  } else if (isDragged) {
+  } else if (isDragged && tMode == 0) {
     if (buttonState.left[0])
       if (controllerMatrix.left) {
         let P = controllerMatrix.left.slice(12, 15);
         cursorPath[cursorPath.length - 1].push(P);
       }
   } else if (isReleased) {
-    if (buttonState.left[1]) {
+    // if (buttonState.left[1]) {
+    if (justReleased) {
+      justReleased = false;
       tMode = (tMode + 1) % 3;
       switch (tMode) {
         case 1:
@@ -202,18 +206,19 @@ export let demoNoiseGrid = () => {
       }
     }
 
-    if (buttonState.right[0]) nMode = (nMode + 1) % 5;
+   // if (buttonState.right[0]) nMode = (nMode + 1) % 5;
   }
 
+
   // NOISE GRID
-  tMode = 2;
+
   if (tMode == 2) {
     m.save();
     renderList
       .mFoo()
-      .move(0, 1, 0)
+      .move(0, 0.3, -0.4)
       .turnX(-Math.PI / 2)
-      .size(1, 1, 0.5 + 0.5 * Math.sin(time))
+      .size(0.25, 0.25, 0.125 + 0.125 * Math.sin(time))
       .color([10, 0, 10]);
     m.restore();
   }
@@ -233,4 +238,5 @@ export let demoNoiseGrid = () => {
   }
 
   mList(staticObjRenderable);
+
 };
