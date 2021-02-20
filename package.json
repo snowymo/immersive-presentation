@@ -11,8 +11,8 @@
     "ws": "^7.4.1"
   },
   "scripts": {
-    "test": "node server.js",
-    "start": "node server.js",
+    "test": "node server.js -env local",
+    "start": "node server.js -env local",
     "format": "prettier --write \"**/*.{js,json,md,html,css}\"",
     "convert": "gltf-import-export"
   },

@@ -9,8 +9,25 @@ const util = require("util");
 // based on examples at https://www.npmjs.com/package/ws
 const WebSocketServer = WebSocket.Server;
 
-var env = "local";
+var env = "remote";
 var port = 8447;
+
+// process console parameters
+var myArgs = process.argv.slice(2);
+console.log('myArgs: ', myArgs);
+myArgs.forEach((arg, index) => {
+    if (arg.includes("-")) {
+        var command = arg.substr(1);
+        switch (command) {
+            case 'env':
+                env = myArgs[index + 1];
+                console.log("update env with " + env)
+                break;
+            default:
+                break;
+        }
+    }
+});
 
 // Yes, TLS is required
 const serverConfig =
