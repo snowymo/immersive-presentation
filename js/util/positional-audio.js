@@ -126,7 +126,7 @@ export function updateAudioNodes(scene) {
             // initObject first, if websocket is not ready, return directly
             if (window.wsclient.ws.readyState != WebSocket.OPEN) {
                 console.log("websocket not ready");
-                breturn;
+                return;
             }
             source.node = stereo.clone();
             source.node.visible = true;
