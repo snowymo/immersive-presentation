@@ -359,11 +359,11 @@ window.testSpatialAudio = testSpatialAudio;
 
 function initAudio(peerUuid) {
   if (window.peerConnections[peerUuid].audioContext != null) {
-    console.log(
-      "avatar[" +
-        window.peerConnections[peerUuid].displayName +
-        "] already setup"
-    );
+    // console.log(
+    //   "avatar[" +
+    //     window.peerConnections[peerUuid].displayName +
+    //     "] already setup"
+    // );
     return true;
   }
 
@@ -379,8 +379,8 @@ function initAudio(peerUuid) {
   if (!(window.peerConnections[peerUuid].displayName in window.avatars)) {
     console.log(
       "avatar[" +
-        window.peerConnections[peerUuid].displayName +
-        "] is not ready yet",
+      window.peerConnections[peerUuid].displayName +
+      "] is not ready yet",
       window.avatars
     );
     initAvatar(window.peerConnections[peerUuid].displayName);
@@ -391,8 +391,8 @@ function initAudio(peerUuid) {
 
   console.log(
     "avatar[" +
-      window.peerConnections[peerUuid].displayName +
-      "] now setting up"
+    window.peerConnections[peerUuid].displayName +
+    "] now setting up"
   );
 
   window.peerConnections[peerUuid].audioContext = new AudioContext();
