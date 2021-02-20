@@ -123,6 +123,11 @@ export function updateAudioNodes(scene) {
 
     for (let source of audioSources) {
         if (!source.node) {
+            // initObject first, if websocket is not ready, return directly
+            if (window.wsclient.ws.readyState != WebSocket.OPEN) {
+                console.log("websocket not ready");
+                breturn;
+            }
             source.node = stereo.clone();
             source.node.visible = true;
             source.node.selectable = true;
@@ -139,6 +144,7 @@ export function updateAudioNodes(scene) {
             let scale = getLoudnessScale(source.analyser);
             mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);
             initObject("stereo", mymatrix, window.envObjID++); // 0 means for environment
+            console.log("init object", window.envObjID);
         }
 
         let node = source.node;
