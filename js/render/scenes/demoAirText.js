@@ -16,6 +16,7 @@ let msg = 'Future Reality Lab\n    Metaroom', P;
 let DemoAirText = function () {
    this.background = "../../media/gltf/cave/cave.gltf";
    this.loadGLTF = false;
+   this.envInd = null;
 
    this.display = () => {
       let mix = (a,b,t) => a + t * (b - a);

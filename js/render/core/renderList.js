@@ -344,30 +344,6 @@ let RenderList = function () {
     //      console.log("there are " + n + " items in the scene");
   };
 
-  // this.endFrameWithRange = (drawFunction, i, j) => {
-  //   for (; i < j; i += 1) {
-  //     let item = items[i];
-  //     let mat = item.matrix;
-  //     mat = CG.matrixMultiply(
-  //       mat,
-  //       CG.matrixTranslate(item.mx, item.my, item.mz)
-  //     );
-  //     mat = CG.matrixMultiply(mat, CG.matrixRotateX(item.rx));
-  //     mat = CG.matrixMultiply(mat, CG.matrixRotateY(item.ry));
-  //     mat = CG.matrixMultiply(mat, CG.matrixRotateZ(item.rz));
-  //     mat = CG.matrixMultiply(mat, CG.matrixScale(item.sx, item.sy, item.sz));
-
-  //     drawFunction(
-  //       item.shape,
-  //       mat,
-  //       item.rgb,
-  //       item.opac,
-  //       item.textureInfo,
-  //       item.fxMode
-  //     );
-  //   }
-  // };
-
   this.setTextureCatalogue = (textureCatalogue) => {
     this.textureCatalogue = textureCatalogue;
   };

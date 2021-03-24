@@ -26,8 +26,7 @@ import { demoParticles } from "./demoParticles.js";
 import { demoNoiseGrid } from "./demoNoiseGrid.js";
 
 let loadGLTF = false;
-let curDemoEnv = null;
-let envList = [];
+let curDemoEnv = [];
 let defaultBackground =
   "../../media/gltf/Futuristic_Lab_Mockup_03/Futuristic_Lab_Mockup.gltf";
 
@@ -44,20 +43,47 @@ export let mainScene = () => {
   // add the procedural objects you wish to have all the time here
   m.restore();
   if (demoAirTextState % 2) loadScene(demoAirText);
+  else stopScene(demoAirText);
   if (demoKenState % 2) loadScene(demoKen);
+  else stopScene(demoKen);
   if (demoMocapState % 2) loadScene(demoMocap);
+  else stopScene(demoMocap);
   if (demoObjectsState % 2) loadScene(demoObjects);
+  else stopScene(demoObjects);
   if (demoParticlesState % 2) loadScene(demoParticles);
+  else stopScene(demoParticles);
   if (demoNoiseGridState % 2) loadScene(demoNoiseGrid);
+  else stopScene(demoNoiseGrid);
 };
 
 function loadScene(demo) {
-  if (demo.background && !demo.loadGLTF){
+  if (demo.background && demo.envInd == null) {
     switchBackground(demo.background);
     demo.loadGLTF = true;
-    curDemoEnv = demo;
-  } 
+    curDemoEnv.push(demo);
+    demo.envInd = curDemoEnv.length - 1;
+  }
   demo.display();
+}
+
+function stopScene(demo) {
+  // it is the curretly displayed scene
+  if (demo.loadGLTF) {
+    // if there is a back-up
+    if (curDemoEnv.length > 1 && curDemoEnv[curDemoEnv.length - 2].background) {
+      switchBackground(curDemoEnv[curDemoEnv.length - 2].background);
+      curDemoEnv[curDemoEnv.length - 2].loadGLTF = true;
+    }
+    else switchBackground(defaultBackground);
+    for(let i = demo.envInd + 1; i < curDemoEnv.length; i ++) {
+      curDemoEnv[i].envInd --;
+    }
+    curDemoEnv.splice(demo.envInd, 1);
+    demo.envInd = null;
+  } else if (demo.envInd != null) { // it has been added to the gltf env list but not active
+    curDemoEnv.splice(demo.envInd, 1);
+    demo.envInd = null;
+  }
 }
 
 // function switchScene(cur_demo) {
@@ -82,11 +108,9 @@ function switchBackground(background) {
       break;
     }
   }
-  if(curDemoEnv) curDemoEnv.loadGLTF = false;
-  window.scene.addNode(new Gltf2Node({ url: background })).name =
-    "backGround";
+  // it overwrites the latest gltf env in the demo list
+  if (curDemoEnv.length > 0) curDemoEnv[curDemoEnv.length - 1].loadGLTF = false;
+  window.scene.addNode(new Gltf2Node({ url: background })).name = "backGround";
 }
 
-addDemoButtons(
-  "AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak"
-);
+addDemoButtons("AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak");

@@ -232,6 +232,7 @@ let DemoNoiseGrid = function () {
   // Process Controller Info
   this.background = "../../media/gltf/home-theater";
   this.loadGLTF = false;
+  this.envInd = null;
 
   this.display = () => {
     if (isPressed) {

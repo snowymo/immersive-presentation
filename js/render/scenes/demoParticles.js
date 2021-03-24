@@ -6,6 +6,7 @@ import { time, viewMatrix } from "../core/renderListScene.js";
 let DemoParticles = function () {
   this.background = null;
   this.loadGLTF = false;
+  this.envInd = null;
 
   this.display = () => {
     // ANIMATE THE PARTICLES

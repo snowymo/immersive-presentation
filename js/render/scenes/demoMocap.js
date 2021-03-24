@@ -7,6 +7,7 @@ import { time } from "../core/renderListScene.js";
 let DemoMocap = function () {
     this.background = "../../media/gltf/garage/garage.gltf";
     this.loadGLTF = false;
+    this.envInd = null;
 
     this.display = () => {
       m.save();
