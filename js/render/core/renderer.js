@@ -1026,7 +1026,7 @@ export class Renderer {
     renderList.beginFrame();
     renderListScene(time);
     if (renderList.num > 0) {
-      console.log('-------------------');
+      // console.log('-------------------');
       for(let i = 0; i < renderList.num; i ++) {
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
         // console.log(...renderList.endFrame(i));
