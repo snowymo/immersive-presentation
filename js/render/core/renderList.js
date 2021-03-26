@@ -72,6 +72,7 @@ let RenderList = function () {
     };
     this.opacity = (opac) => {
       this.opac = opac;
+      console.log("opac set to: " + this.opac);
       return this;
     };
     this.fx = (type) => {
@@ -141,7 +142,7 @@ let RenderList = function () {
       this.rx = this.ry = this.rz = 0;
       this.sx = this.sy = this.sz = 1;
       this.rgb = [0, 0, 0];
-      this.opac = 1;
+      this.opac = 0.5;
       this.textureInfo = new TextureInfo();
       this.fxMode = 0;
       this.vertexMode = 0;

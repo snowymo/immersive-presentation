@@ -25,7 +25,10 @@ import { DataTexture, VideoTexture } from "./texture.js";
 import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
 import { m, renderList } from "./renderList.js";
-import { renderListScene } from "./renderListScene.js"
+import { renderListScene } from "./renderListScene.js";
+// import * as Image from "../../util/image.js";
+// import * as Tex from "../../util/webgl_texture_util.js";
+// import { loadImage } from "../../immersive-pre.js"
 
 export const ATTRIB = {
   POSITION: 1,
@@ -47,8 +50,9 @@ export const ATTRIB_MASK = {
 
 const GL = WebGLRenderingContext; // For enums
 
-const DEF_LIGHT_DIR = new Float32Array([-0.1,-1.0, 1]);
-const DEF_LIGHT_COLOR = new Float32Array([3.0, 3.0, 3.0]);
+const DEF_LIGHT_DIR1 = new Float32Array([-0.1,-1., 1]);
+const DEF_LIGHT_DIR2 = new Float32Array([ 0,-2.5, 0]);
+const DEF_LIGHT_COLOR = new Float32Array([10.0, 10.0, 10.0]);
 
 const PRECISION_REGEX = new RegExp("precision (lowp|mediump|highp) float;");
 
@@ -219,11 +223,9 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
 }
 
 void main() {
-  /*
-      vec4 texture0 = texture(uTex0, vUV * uTexScale);
-      vec4 texture1 = texture(uTex1, vUV * uTexScale);
-      vec4 texture2 = texture(uTex2, vUV * uTexScale);
-  */
+  vec4 texture0 = texture(uTex0, vUV * uTexScale);
+  vec4 texture1 = texture(uTex1, vUV * uTexScale);
+  vec4 texture2 = texture(uTex2, vUV * uTexScale);
   vec3 ambient = .1 * uColor.rgb;
   vec3 diffuse = .5 * uColor.rgb;
   vec3 specular = vec3(.4, .4, .4);
@@ -249,7 +251,7 @@ void main() {
   }
 */
 
-  // if (uTexIndex < 0) {
+  if (uTexIndex < 0) {
     if (uFxMode == 0) {      //default
       for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
         color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
@@ -267,35 +269,110 @@ void main() {
     }
     color.rgb *= vRGB;
     fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
-  // } else {
-  //   normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
+  } else {
+    normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
 
-  //   if (uFxMode == 0) {      //default
-  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-  //       color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-  //   } else if (uFxMode == 1) {      // plaster
-  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-  //       color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-  //   } else if (uFxMode == 2) {      // metallic
-  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-  //       color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-  //   } else if (uFxMode == 3) {      // glossy rubber
-  //     for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-  //       color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-  //   } else if (uFxMode == 4) {      // 2D
-  //       color += uColor.rgb;
-  //   }
+    if (uFxMode == 0) {      //default
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 1) {      // plaster
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+    } else if (uFxMode == 2) {      // metallic
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+    } else if (uFxMode == 3) {      // glossy rubber
+      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+    } else if (uFxMode == 4) {      // 2D
+        color += uColor.rgb;
+    }
 
-  //   fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
 
-  //   fragColor *= texture(uTex0, vUV);
-  // }
+    fragColor *= texture(uTex0, vUV);
+  }
 }
 `
 
 function isPowerOfTwo(n) {
   return (n & (n - 1)) === 0;
 }
+
+// export async function initRenderListGl(gl) {
+//   if(!renderList.program) {
+//     renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+//     gl.enable(gl.DEPTH_TEST);
+//     gl.enable(gl.CULL_FACE);
+//     gl.enable(gl.BLEND);
+//     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+//     await loadImages(gl);
+//   }
+// }
+
+// async function loadImages(gl) {
+
+//   let images = null;
+//   try {
+//     images = await Image.loadImagesAsync([
+//       "webxr/assets/textures/brick.png",
+//     ]);
+//     // stores textures
+//     window.textureCatalogue = new Tex.TextureCatalogue(gl);
+
+//     // texture configuration object
+//     const textureDesc = Tex.makeTexture2DDescriptor(gl);
+//     textureDesc.generateMipmap = true;
+//     textureDesc.name = 'tex';
+
+//     textureDesc.paramList.push([gl.TEXTURE_WRAP_S, gl.REPEAT]);
+//     textureDesc.paramList.push([gl.TEXTURE_WRAP_T, gl.REPEAT]);
+//     textureDesc.paramList.push([gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST]);
+//     textureDesc.paramList.push([gl.TEXTURE_MAG_FILTER, gl.LINEAR]);
+
+//     window.textures = Tex.makeIndividualTexture2DsWithImages(
+//       window.textureCatalogue,
+//       textureDesc,
+//       // array 0...length-1 for texture slots to use
+//       Array.from({
+//         length: images.length
+//       }, (_, i) => i),
+//       images, [
+//       "brick", 
+//     ],
+//       0
+//     );
+
+//     // INSTRUCTIONS
+//     //
+//     // Just to show that this works, I attach a temporary canvas to the document,
+//     // and this canvas has the texture images drawn to it (not WebGL).
+//     // zoom out with command - since the images are large
+//     //
+//     // lookup texture atlas (one-to-many individual images):
+//     //
+//     // w.textureCatalogue.lookupByName("atlas1");
+
+//     //
+//     // it's faster if you know the direct ID
+//     // w.textureCatalogue.lookupByID(1)
+
+//     //
+//     // lookup image stored in a texture atlas
+//     // const texAtlas = ... some atlas
+//     // const image = atlas.lookupImageByName('wood');
+
+//     //
+//     // direct access by ID is faster
+//     //
+//     // index of first image in this atlas
+//     // const image = texAtlas.lookupImageByID(1)
+
+//   } catch (e) {
+//     console.error(e);
+//   }
+
+// }
 
 // Creates a WebGL context and initializes it with some common default state.
 export function createWebGLContext(glAttribs) {
@@ -797,7 +874,8 @@ export class Renderer {
     this._colorMaskNeedsReset = false;
 
     this._globalLightColor = vec3.clone(DEF_LIGHT_COLOR);
-    this._globalLightDir = vec3.clone(DEF_LIGHT_DIR);
+    this._globalLightDir1 = vec3.clone(DEF_LIGHT_DIR1);
+    this._globalLightDir2 = vec3.clone(DEF_LIGHT_DIR2);
   }
 
   get gl() {
@@ -812,12 +890,20 @@ export class Renderer {
     return vec3.clone(this._globalLightColor);
   }
 
-  set globalLightDir(value) {
-    vec3.copy(this._globalLightDir, value);
+  set globalLightDir1(value1) {
+    vec3.copy(this._globalLightDir1, value1);
   }
 
-  get globalLightDir() {
-    return vec3.clone(this._globalLightDir);
+  set globalLightDir2(value2) {
+    vec3.copy(this._globalLightDir2, value2);
+  }
+
+  get globalLightDir1() {
+    return vec3.clone(this._globalLightDir1);
+  }
+
+  get globalLightDir2() {
+    return vec3.clone(this._globalLightDir2);
   }
 
   createRenderBuffer(target, data, usage) {
@@ -936,6 +1022,7 @@ export class Renderer {
     }
 
     renderList.initBuffer(this._gl);
+    // renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
     if (renderList.num > 0) {
@@ -966,8 +1053,12 @@ export class Renderer {
         program = primitive._material._program;
         program.use();
 
-        if (program.uniform.LIGHT_DIRECTION) {
-          gl.uniform3fv(program.uniform.LIGHT_DIRECTION, this._globalLightDir);
+        if (program.uniform.LIGHT_DIRECTION1) {
+          gl.uniform3fv(program.uniform.LIGHT_DIRECTION1, this._globalLightDir1);
+        }
+
+        if (program.uniform.LIGHT_DIRECTION2) {
+          gl.uniform3fv(program.uniform.LIGHT_DIRECTION2, this._globalLightDir2);
         }
 
         if (program.uniform.LIGHT_COLOR) {
@@ -1066,7 +1157,12 @@ export class Renderer {
     let gl = this._gl;
     if(!renderList.program) {
       renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+      // await loadImages(gl);
     }
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     renderList.program.use();
     let pgm = renderList.program;
 
@@ -1144,29 +1240,34 @@ if (false) {
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uFxMode"), fxMode);
     gl.uniform3fv(
       gl.getUniformLocation(pgm.program, "uWindowDir"),
-      this._globalLightDir
+      this._globalLightDir1
     );
-    // if (textureInfo.isValid) {
 
-    //   gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 0);
+    let uTex = [];
+    for (let n = 0; n < gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS); n++) {
+      uTex[n] = gl.getUniformLocation(pgm.program, 'uTex' + n);
+      gl.uniform1i(uTex[n], n);
+    }
 
-    //   // base texture : 0
-    //   // bump texture : 1
-    //   // ...
-    //   for (let i = 0; i < textureInfo.textures.length; i += 1) {
-    //     gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
+    if (textureInfo.isValid) {
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 0);
 
-    //     if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
-    //       renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
-    //     }
-    //   }
+      // base texture : 0
+      // bump texture : 1
+      // ...
+      for (let i = 0; i < textureInfo.textures.length; i += 1) {
+        gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
 
-    //   gl.uniform1i(renderList.uBumpIndex, (textureInfo.textures.length > 1) ? 0 : -1);
+        // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
+          renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
+        // }
+      }
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), (textureInfo.textures.length > 1) ? 0 : -1);
 
-    // } else {
+    } else {
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
     gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
-    // }
+    }
 
     if (views.length == 1) {
       gl.uniformMatrix4fv(
@@ -1200,7 +1301,7 @@ if (false) {
       if (isToon) {
         gl.uniform1f(
           gl.getUniformLocation(pgm.program, "uToon"),
-          0.01 * CG.norm(m.value().slice(0, 3))
+          0.005 * CG.norm(m.value().slice(0, 3))
         );
         gl.cullFace(gl.FRONT);
         drawArrays();

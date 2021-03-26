@@ -1,13 +1,13 @@
 // Convert GLB file to GLTF file.
 //
-// Instruction: npm convert <name_of_your_glb_or_gltf_file>
+// Instruction: npm run convert <path_of_your_glb_or_gltf_file>
 // No need to run this file.
 
 import pkg from 'gltf-import-export';
 const { ConvertGLBtoGltf, ConvertGltfToGLB, ConvertToGLB } = pkg;
 
-const inputGlb = './examples/PollyCastle/castle_polly_nomad.glb';
-const extractedGltfFilename = './examples/PollyCastle/castle_polly_nomad.gltf';
+const inputGlb = './examples/classroom0126/classroom0126.glb';
+const extractedGltfFilename = './examples/classroom0126/classroom0126.gltf';
 
 // Perform the conversion; output paths are overwritten
 ConvertGLBtoGltf(inputGlb, extractedGltfFilename);
