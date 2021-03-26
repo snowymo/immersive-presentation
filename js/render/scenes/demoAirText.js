@@ -34,9 +34,9 @@ export let demoAirText = () => {
           let rx = CG.random(), ry = CG.random(), rz = CG.random();
           rx += .3 * Math.cos(1000 * n/ns + time/2 * (n%2 ? 1 : -1));
           rz += .3 * Math.sin(1000 * n/ns + time/2 * (n%2 ? 1 : -1));
-          R.push([mix(0.5 * x + xy[0], 1 + 6 * rx, t),
-                  mix(1.5 * y + xy[1], 2.4 + 1.5 * ry, t),
-                  mix(0, 6 * rz - 1.5, t), .03,
+          R.push([mix(0.5 * x + xy[0], 6.0 * rx + 1.0, t),
+                  mix(1.5 * y + xy[1], 2.0 * ry + 1.9, t),
+                  mix(0              , 6.0 * rz - 1.5, t), .03,
                   i/msg.length, CG.random(), 1 - i/msg.length]);
        }
        x++;
@@ -47,7 +47,7 @@ export let demoAirText = () => {
     }
     CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
     m.save();
-       m.translate(-.35,1.5,-.5);
+       m.translate(-.35,1.4,-.5);
        renderList.mMesh(P).size(.1).color([10,10,10]);
     m.restore();
 }

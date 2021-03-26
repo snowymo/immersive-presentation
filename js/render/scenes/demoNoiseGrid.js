@@ -1,4 +1,5 @@
 import { ImprovedNoise } from "../math/improvedNoise.js";
+//import { noiseGridVertices } from "../../data/NoiseGrid.js";
 import { CG } from "../core/CG.js";
 import {
   m,
