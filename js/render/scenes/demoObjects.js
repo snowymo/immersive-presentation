@@ -2,7 +2,7 @@ import { m, renderList } from "../core/renderList.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoObjects = function () {
-  this.background = "../../media/gltf/home-theater";
+  this.background = "../../media/gltf/home-theater/home-theater.gltf";
   this.loadGLTF = false;
   this.envInd = null;
 

@@ -231,7 +231,7 @@ function buildNoiseVariant(nMode) {
 
 let DemoNoiseGrid = function () {
   // Process Controller Info
-  this.background = "../../media/gltf/home-theater";
+  this.background = "../../media/gltf/home-theater/home-theater.gltf";
   this.loadGLTF = false;
   this.envInd = null;
 
