@@ -25,14 +25,18 @@ view rotation for inline sessions if desired.
 */
 
 import { quat } from "../render/math/gl-matrix.js";
+import * as keyboardInput from "./input_keyboard.js";
 
 const LOOK_SPEED = 0.0025;
+const WALK_SPEED = 0.05;
 
 export class InlineViewerHelper {
   constructor(canvas, referenceSpace) {
     this.lookYaw = 0;
     this.lookPitch = 0;
     this.viewerHeight = 0;
+
+    this.walkPosition = [0, 0, 0];
 
     this.canvas = canvas;
     this.baseRefSpace = referenceSpace;
@@ -54,6 +58,11 @@ export class InlineViewerHelper {
     let primaryTouch = undefined;
     let prevTouchX = undefined;
     let prevTouchY = undefined;
+
+    document.addEventListener("keydown", (event) => {
+      keyboardInput.updateKeyState();
+      this.walk(event);
+    });
 
     canvas.addEventListener("touchstart", (event) => {
       if (primaryTouch == undefined) {
@@ -111,6 +120,30 @@ export class InlineViewerHelper {
     this.dirty = true;
   }
 
+  walk(e) {
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
+      // console.log("left");
+      this.walkPosition[0] += WALK_SPEED;
+    } else if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
+      // console.log("right");
+      this.walkPosition[0] -= WALK_SPEED;
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
+      // console.log("forward");
+      this.walkPosition[2] += WALK_SPEED;
+    } else if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
+      // console.log("back");
+      this.walkPosition[2] -= WALK_SPEED;
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
+      this.walkPosition[1] += WALK_SPEED;
+    } else if (keyboardInput.keyIsDown(keyboardInput.KEY_DOWN)) {
+      // console.log("back");
+      this.walkPosition[1] -= WALK_SPEED;
+    }
+    this.dirty = true;
+  }
+
   reset() {
     this.lookYaw = 0;
     this.lookPitch = 0;
@@ -128,7 +161,7 @@ export class InlineViewerHelper {
       quat.rotateX(invOrient, invOrient, -this.lookPitch);
       quat.rotateY(invOrient, invOrient, -this.lookYaw);
       let xform = new XRRigidTransform(
-        {},
+        { x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 },
         { x: invOrient[0], y: invOrient[1], z: invOrient[2], w: invOrient[3] }
       );
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);

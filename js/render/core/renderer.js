@@ -310,69 +310,69 @@ function isPowerOfTwo(n) {
 //   }
 // }
 
-// async function loadImages(gl) {
+async function loadImages(gl) {
 
-//   let images = null;
-//   try {
-//     images = await Image.loadImagesAsync([
-//       "webxr/assets/textures/brick.png",
-//     ]);
-//     // stores textures
-//     window.textureCatalogue = new Tex.TextureCatalogue(gl);
+  let images = null;
+  try {
+    images = await Image.loadImagesAsync([
+      "webxr/assets/textures/brick.png",
+    ]);
+    // stores textures
+    window.textureCatalogue = new Tex.TextureCatalogue(gl);
 
-//     // texture configuration object
-//     const textureDesc = Tex.makeTexture2DDescriptor(gl);
-//     textureDesc.generateMipmap = true;
-//     textureDesc.name = 'tex';
+    // texture configuration object
+    const textureDesc = Tex.makeTexture2DDescriptor(gl);
+    textureDesc.generateMipmap = true;
+    textureDesc.name = 'tex';
 
-//     textureDesc.paramList.push([gl.TEXTURE_WRAP_S, gl.REPEAT]);
-//     textureDesc.paramList.push([gl.TEXTURE_WRAP_T, gl.REPEAT]);
-//     textureDesc.paramList.push([gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST]);
-//     textureDesc.paramList.push([gl.TEXTURE_MAG_FILTER, gl.LINEAR]);
+    textureDesc.paramList.push([gl.TEXTURE_WRAP_S, gl.REPEAT]);
+    textureDesc.paramList.push([gl.TEXTURE_WRAP_T, gl.REPEAT]);
+    textureDesc.paramList.push([gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST]);
+    textureDesc.paramList.push([gl.TEXTURE_MAG_FILTER, gl.LINEAR]);
 
-//     window.textures = Tex.makeIndividualTexture2DsWithImages(
-//       window.textureCatalogue,
-//       textureDesc,
-//       // array 0...length-1 for texture slots to use
-//       Array.from({
-//         length: images.length
-//       }, (_, i) => i),
-//       images, [
-//       "brick", 
-//     ],
-//       0
-//     );
+    window.textures = Tex.makeIndividualTexture2DsWithImages(
+      window.textureCatalogue,
+      textureDesc,
+      // array 0...length-1 for texture slots to use
+      Array.from({
+        length: images.length
+      }, (_, i) => i),
+      images, [
+      "brick", 
+    ],
+      0
+    );
 
-//     // INSTRUCTIONS
-//     //
-//     // Just to show that this works, I attach a temporary canvas to the document,
-//     // and this canvas has the texture images drawn to it (not WebGL).
-//     // zoom out with command - since the images are large
-//     //
-//     // lookup texture atlas (one-to-many individual images):
-//     //
-//     // w.textureCatalogue.lookupByName("atlas1");
+    // INSTRUCTIONS
+    //
+    // Just to show that this works, I attach a temporary canvas to the document,
+    // and this canvas has the texture images drawn to it (not WebGL).
+    // zoom out with command - since the images are large
+    //
+    // lookup texture atlas (one-to-many individual images):
+    //
+    // w.textureCatalogue.lookupByName("atlas1");
 
-//     //
-//     // it's faster if you know the direct ID
-//     // w.textureCatalogue.lookupByID(1)
+    //
+    // it's faster if you know the direct ID
+    // w.textureCatalogue.lookupByID(1)
 
-//     //
-//     // lookup image stored in a texture atlas
-//     // const texAtlas = ... some atlas
-//     // const image = atlas.lookupImageByName('wood');
+    //
+    // lookup image stored in a texture atlas
+    // const texAtlas = ... some atlas
+    // const image = atlas.lookupImageByName('wood');
 
-//     //
-//     // direct access by ID is faster
-//     //
-//     // index of first image in this atlas
-//     // const image = texAtlas.lookupImageByID(1)
+    //
+    // direct access by ID is faster
+    //
+    // index of first image in this atlas
+    // const image = texAtlas.lookupImageByID(1)
 
-//   } catch (e) {
-//     console.error(e);
-//   }
+  } catch (e) {
+    console.error(e);
+  }
 
-// }
+}
 
 // Creates a WebGL context and initializes it with some common default state.
 export function createWebGLContext(glAttribs) {
@@ -1026,7 +1026,7 @@ export class Renderer {
     renderList.beginFrame();
     renderListScene(time);
     if (renderList.num > 0) {
-      console.log('-------------------');
+      // console.log('-------------------');
       for(let i = 0; i < renderList.num; i ++) {
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
         // console.log(...renderList.endFrame(i));

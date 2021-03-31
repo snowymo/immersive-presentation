@@ -19,6 +19,7 @@ import {
 } from "./util/positional-audio.js";
 import { Client as WSClient } from "./util/websocket-client.js";
 import { updateController } from "./render/core/renderListScene.js";
+import * as keyboardInput from "./util/input_keyboard.js";
 
 window.wsport = 8447;
 
@@ -83,6 +84,7 @@ function initXR() {
         window.wsclient.connect("eye.3dvar.com", window.wsport);
     }
     initModels();
+    keyboardInput.initKeyEvents();
 }
 
 window.testws = function () {
@@ -334,7 +336,6 @@ function onXRFrame(t, frame) {
         ? xrImmersiveRefSpace
         : inlineViewerHelper.referenceSpace;
     let pose = frame.getViewerPose(refSpace);
-
     window.scene.startFrame();
 
     session.requestAnimationFrame(onXRFrame);

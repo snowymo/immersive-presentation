@@ -1,10 +1,14 @@
-
 import { m, renderList } from "../core/renderList.js";
 import { time } from "../core/renderListScene.js";
 
-export let demoObjects = () => {
+let DemoObjects = function () {
+  this.background = "../../media/gltf/home-theater";
+  this.loadGLTF = false;
+  this.envInd = null;
+
+  this.display = () => {
     m.save();
-    m.translate(0, 1.5, -0.4);
+    m.translate(0, 1, -0.4);
     m.scale(0.04);
     renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
@@ -23,5 +27,7 @@ export let demoObjects = () => {
     renderList.mTube3().move(1.5, -1.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mGluedCylinder().move(4.5, -1.5, 0).turnY(time).color([1, 1, 1]);
     m.restore();
-}
+  };
+};
 
+export let demoObjects = new DemoObjects();
