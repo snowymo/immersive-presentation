@@ -1,6 +1,6 @@
 import { WebXRButton } from "./util/webxr-button.js";
 import { Scene } from "./render/core/scene.js";
-import { Renderer, createWebGLContext } from "./render/core/renderer.js";
+import { Renderer, createWebGLContext, initRenderListGl } from "./render/core/renderer.js";
 import { Gltf2Node } from "./render/nodes/gltf2.js";
 import { mat4, vec3 } from "./render/math/gl-matrix.js";
 import { Ray } from "./render/math/ray.js";
@@ -133,7 +133,7 @@ function onRequestSession() {
         });
 }
 
-function onSessionStarted(session) {
+async function onSessionStarted(session) {
     session.addEventListener("end", onSessionEnded);
 
     session.addEventListener("selectstart", onSelectStart);
@@ -146,6 +146,7 @@ function onSessionStarted(session) {
     });
 
     initGL();
+    await initRenderListGl(gl);
     // scene.inputRenderer.useProfileControllerMeshes(session);
 
     let glLayer = new XRWebGLLayer(session, gl);

@@ -10,8 +10,8 @@ let DemoObjects = function () {
     m.save();
     m.translate(0, 1, -0.4);
     m.scale(0.04);
-    renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
+    renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]).textureView(window.textures[0].lookupImageByID(1)).textureAtlas(window.textures[0]);
+    renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]).textureView(window.textures[1].lookupImageByID(1)).textureAtlas(window.textures[1]);;
     renderList.mSquare().move(1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mSphere().move(4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mCylinder().move(-4.5, 1.5, 0).turnY(time).color([1, 1, 1]);
