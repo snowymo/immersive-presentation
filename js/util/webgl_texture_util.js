@@ -177,9 +177,9 @@ export class TextureCatalogue {
     }
 
     setSlotByTextureInfo(tex, slot) {
-        if (tex.slot == slot && tex.activeCount == this.slotToGeneration[slot]) {
-            return;
-        }
+        // if (tex.slot == slot && tex.activeCount == this.slotToGeneration[slot]) {
+        //     return;
+        // }
 
         tex.slot = slot;
         this.gl.activeTexture(this.gl.TEXTURE0 + slot);

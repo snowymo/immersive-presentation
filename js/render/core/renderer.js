@@ -1251,21 +1251,20 @@ if (false) {
     }
 
     if (textureInfo.isValid) {
-      // const texture = loadTexture(gl, "media/textures/brick.png");
       gl.activeTexture(gl.TEXTURE0 + 2);
-      // gl.bindTexture(gl.TEXTURE_2D, texture);
-      // gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
 
       // base texture : 0
       // bump texture : 1
       // ...
+      // console.log(textureInfo.textures.length)
+      console.log(textureInfo.textures[0])
       for (let i = 0; i < textureInfo.textures.length; i += 1) {
         gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
 
         // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
         renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i + 2);
         gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
-        // }
+        //  }
       }
       gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), (textureInfo.textures.length > 1) ? 0 : -1);
 
@@ -1285,6 +1284,7 @@ if (false) {
         false,
         views[0].viewMatrix
       );
+      drawArrays();
     }
 
     for (let i = 0; i < views.length; ++i) {
