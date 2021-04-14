@@ -26,8 +26,8 @@ import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
 import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
-// import * as Image from "../../util/image.js";
-// import * as Tex from "../../util/webgl_texture_util.js";
+import * as Img from "../../util/image.js";
+import * as Tex from "../../util/webgl_texture_util.js";
 // import { loadImage } from "../../immersive-pre.js"
 
 export const ATTRIB = {
@@ -299,23 +299,28 @@ function isPowerOfTwo(n) {
   return (n & (n - 1)) === 0;
 }
 
-// export async function initRenderListGl(gl) {
-//   if(!renderList.program) {
-//     renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
-//     gl.enable(gl.DEPTH_TEST);
-//     gl.enable(gl.CULL_FACE);
-//     gl.enable(gl.BLEND);
-//     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-//     await loadImages(gl);
-//   }
-// }
+export async function initRenderListGl(gl) {
+  if(!renderList.program) {
+    renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    await loadImages(gl);
+  }
+}
 
 async function loadImages(gl) {
-
+  
   let images = null;
   try {
-    images = await Image.loadImagesAsync([
-      "webxr/assets/textures/brick.png",
+    images = await Img.loadImagesAsync([
+      "media/textures/brick.png",
+      "media/textures/stones.jpg",
+      "media/textures/stones_bump.jpg",
+      "media/textures/tiles.jpg",
+      "media/textures/wood.png",
+      "media/textures/brick_bump.jpg"
     ]);
     // stores textures
     window.textureCatalogue = new Tex.TextureCatalogue(gl);
@@ -338,7 +343,7 @@ async function loadImages(gl) {
         length: images.length
       }, (_, i) => i),
       images, [
-      "brick", 
+      "brick", "stones","stones_bump","tiles","wood","brick_bump"
     ],
       0
     );
@@ -1022,7 +1027,7 @@ export class Renderer {
     }
 
     renderList.initBuffer(this._gl);
-    // renderList.setTextureCatalogue(window.textureCatalogue);
+    renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
     if (renderList.num > 0) {
@@ -1246,21 +1251,24 @@ if (false) {
     let uTex = [];
     for (let n = 0; n < gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS); n++) {
       uTex[n] = gl.getUniformLocation(pgm.program, 'uTex' + n);
-      gl.uniform1i(uTex[n], n);
+      gl.uniform1i(uTex[n], n + 2);
     }
 
     if (textureInfo.isValid) {
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 0);
+      gl.activeTexture(gl.TEXTURE0 + 2);
 
       // base texture : 0
       // bump texture : 1
       // ...
+      // console.log(textureInfo.textures.length)
+      console.log(textureInfo.textures[0])
       for (let i = 0; i < textureInfo.textures.length; i += 1) {
         gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
 
         // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
-          renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i);
-        // }
+        renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i + 2);
+        gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+        //  }
       }
       gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), (textureInfo.textures.length > 1) ? 0 : -1);
 
@@ -1280,6 +1288,7 @@ if (false) {
         false,
         views[0].viewMatrix
       );
+      drawArrays();
     }
 
     for (let i = 0; i < views.length; ++i) {
