@@ -18,7 +18,10 @@ let DemoObjects = function () {
     renderList.mQuad().move(-1.5, 4.5, 0)
                       .turnY(time).color([1, 1, 1]);
     renderList.mSquare().move(1.5, 4.5, 0)
-                        .turnY(time).color([1, 1, 1]);
+                        .turnY(time).color([1, 1, 1])
+			.color(10,0,0)
+			.textureView(window.textures[6].lookupImageByID(1))
+			.textureAtlas(window.textures[6]);
     renderList.mSphere().move(4.5, 4.5, 0)
                         .turnY(time).color([1, 1, 1]);
     renderList.mCylinder().move(-4.5, 1.5, 0)
