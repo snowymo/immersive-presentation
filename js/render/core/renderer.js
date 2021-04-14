@@ -311,12 +311,16 @@ export async function initRenderListGl(gl) {
 }
 
 async function loadImages(gl) {
-
+  
   let images = null;
   try {
     images = await Img.loadImagesAsync([
       "media/textures/brick.png",
       "media/textures/stones.jpg",
+      "media/textures/stones_bump.jpg",
+      "media/textures/tiles.jpg",
+      "media/textures/wood.png",
+      "media/textures/brick_bump.jpg"
     ]);
     // stores textures
     window.textureCatalogue = new Tex.TextureCatalogue(gl);
@@ -339,7 +343,7 @@ async function loadImages(gl) {
         length: images.length
       }, (_, i) => i),
       images, [
-      "brick", "stones"
+      "brick", "stones","stones_bump","tiles","wood","brick_bump"
     ],
       0
     );
