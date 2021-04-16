@@ -582,15 +582,7 @@ CG.shapeImageToTriangleMesh = si => {
 CG.particlesCreateMesh = N => {
    const vs = VERTEX_SIZE;
    let V = new Float32Array(vs*6*N);
-/*
-   CG.random(0);
-*/
    for (let n = 0 ; n < N ; n++) {
-/*
-      let r = CG.random() < .4 ? 0 : 1;
-      let g = CG.random() < .4 ? 0 : 1;
-      let b = CG.random() < .4 ? 0 : 1;
-*/
       for (let i = 0 ; i < 6 ; i++) {
       V[vs * (6*n + i) +  5] = 1;
       V[vs * (6*n + i) +  6] = 1;
@@ -602,6 +594,71 @@ CG.particlesCreateMesh = N => {
       }
    }
    return V;
+}
+
+CG.particlesTextMessage = (V, message) => {
+   let chToU0 = ch => (ch % 16) / 16 + .001;
+   let chToV1 = ch => 1 - Math.floor((ch - 32) / 16) / 6;
+   let chToU1 = ch => chToU0(ch) + 1 / 16 - .005;
+   let chToV0 = ch => chToV1(ch) - 1 / 6;
+
+   const vs = VERTEX_SIZE, skip = 6 * vs;
+   const nMax = Math.min(message.length, V.length / skip);
+   let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
+   let row = 0, col = 0;
+   for (let n = 0 ; n < nMax ; n++) {
+      let i0 = skip * n;
+      let i1 = i0 + vs;
+      let i2 = i1 + vs;
+      let i3 = i2 + vs;
+      let i4 = i3 + vs;
+      let i5 = i4 + vs;
+
+      let ch = message.charCodeAt(n);
+
+      if (ch == 10) {
+         row++;                     // NEWLINE CHARACTER:
+	 col = 0;                   // JUST START A NEW LINE
+	 continue;
+      }
+
+      for (let i = 0 ; i < 4 ; i++) {
+         V[i0 + i * vs    ] =  col; // SET TILE ORIGIN
+         V[i0 + i * vs + 1] = -row;
+         V[i0 + i * vs + 2] =    0;
+
+         V[i0 + i * vs + 3] = 0;    // SET NORMALS TO [0,0,1]
+         V[i0 + i * vs + 4] = 0;
+         V[i0 + i * vs + 5] = 1;
+      }
+
+      V[i0 +  9] = chToU0(ch);      // SET U,V RANGE
+      V[i0 + 10] = chToV0(ch);      // FOR LOOK-UP INTO
+                                    // FONT TEXTURE IMAGE
+      V[i1 +  9] = chToU1(ch);
+      V[i1 + 10] = chToV0(ch);
+
+      V[i2 +  9] = chToU0(ch);
+      V[i2 + 10] = chToV1(ch);
+
+      V[i3 +  9] = chToU1(ch);
+      V[i3 + 10] = chToV1(ch);
+
+      for (let j = 0 ; j < 3 ; j++) {
+         let x = j==0 ? .5 : 0,
+	     y = j==1 ? .5 : 0;
+         V[i0 + j] += -x - y;       // SET POSITION
+         V[i1 + j] +=  x - y;       // WITHIN TILE
+         V[i2 + j] += -x + y;
+         V[i3 + j] +=  x + y;
+      }
+
+      copy(i3, i4);
+      if (n > 0                  ) copy(i0, i0 - vs);
+      if (n == message.length - 1) copy(i4, i5);
+
+      col++;
+   }
 }
 
 CG.particlesSetPositions = (V, A, M) => {
