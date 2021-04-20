@@ -50,8 +50,8 @@ export const ATTRIB_MASK = {
 
 const GL = WebGLRenderingContext; // For enums
 
-const DEF_LIGHT_DIR1 = new Float32Array([-0.1,-1., 1]);
-const DEF_LIGHT_DIR2 = new Float32Array([ 0,-2.5, 0]);
+const DEF_LIGHT_DIR1 = new Float32Array([-0.1, -1, 1]);
+const DEF_LIGHT_DIR2 = new Float32Array([0, -2.5, 0]);
 const DEF_LIGHT_COLOR = new Float32Array([10.0, 10.0, 10.0]);
 
 const PRECISION_REGEX = new RegExp("precision (lowp|mediump|highp) float;");
@@ -293,15 +293,67 @@ void main() {
     fragColor *= texture(uTex0, vUV);
   }
 }
-`
+`; 
+
+window.textureList = {};
+const basePath = "media/textures/";
+
+function loadTexture(gl, url) {
+  if(window.textureList[url]) return window.textureList[url];
+
+  gl.activeTexture(gl.TEXTURE0 + 2);
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+
+  const image = new Image();
+  image.src = basePath.concat(url);
+  image.addEventListener("load", function () {
+    console.log("loaded")
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  srcFormat, srcType, image);
+
+    // WebGL1 has different requirements for power of 2 images
+    // vs non power of 2 images so check if the image is a
+    // power of 2 in both dimensions.
+    if (isPowerOfTwo(image.width) && isPowerOfTwo(image.height)) {
+       // Yes, it's a power of 2. Generate mips.
+       gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+       // No, it's not a power of 2. Turn off mips and set
+       // wrapping to clamp to edge
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+
+    window.textureList[url] = texture;
+  });
+  return texture;
+}
 
 function isPowerOfTwo(n) {
   return (n & (n - 1)) === 0;
 }
 
 export async function initRenderListGl(gl) {
-  if(!renderList.program) {
-    renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+  if (!renderList.program) {
+    renderList.program = new Program(
+      gl,
+      RenderList_VERTEX_SOURCE,
+      RenderList_FRAG_SOURCE
+    );
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.BLEND);
@@ -311,7 +363,6 @@ export async function initRenderListGl(gl) {
 }
 
 async function loadImages(gl) {
-  
   let images = null;
   try {
     images = await Img.loadImagesAsync([
@@ -320,7 +371,7 @@ async function loadImages(gl) {
       "media/textures/stones_bump.jpg",
       "media/textures/tiles.jpg",
       "media/textures/wood.png",
-      "media/textures/brick_bump.jpg"
+      "media/textures/brick_bump.jpg",
     ]);
     // stores textures
     window.textureCatalogue = new Tex.TextureCatalogue(gl);
@@ -328,23 +379,28 @@ async function loadImages(gl) {
     // texture configuration object
     const textureDesc = Tex.makeTexture2DDescriptor(gl);
     textureDesc.generateMipmap = true;
-    textureDesc.name = 'tex';
+    textureDesc.name = "tex";
 
     textureDesc.paramList.push([gl.TEXTURE_WRAP_S, gl.REPEAT]);
     textureDesc.paramList.push([gl.TEXTURE_WRAP_T, gl.REPEAT]);
-    textureDesc.paramList.push([gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST]);
+    textureDesc.paramList.push([
+      gl.TEXTURE_MIN_FILTER,
+      gl.LINEAR_MIPMAP_NEAREST,
+    ]);
     textureDesc.paramList.push([gl.TEXTURE_MAG_FILTER, gl.LINEAR]);
 
     window.textures = Tex.makeIndividualTexture2DsWithImages(
       window.textureCatalogue,
       textureDesc,
       // array 0...length-1 for texture slots to use
-      Array.from({
-        length: images.length
-      }, (_, i) => i),
-      images, [
-      "brick", "stones","stones_bump","tiles","wood","brick_bump"
-    ],
+      Array.from(
+        {
+          length: images.length,
+        },
+        (_, i) => i
+      ),
+      images,
+      ["brick", "stones", "stones_bump", "tiles", "wood", "brick_bump"],
       0
     );
 
@@ -372,11 +428,9 @@ async function loadImages(gl) {
     //
     // index of first image in this atlas
     // const image = texAtlas.lookupImageByID(1)
-
   } catch (e) {
     console.error(e);
   }
-
 }
 
 // Creates a WebGL context and initializes it with some common default state.
@@ -1014,7 +1068,7 @@ export class Renderer {
         this._drawRenderPrimitiveSet(views, renderPrimitives);
       }
     }
- 
+
     if (this._vaoExt) {
       this._gl.bindVertexArray(null);
     }
@@ -1032,10 +1086,10 @@ export class Renderer {
     renderListScene(time);
     if (renderList.num > 0) {
       // console.log('-------------------');
-      for(let i = 0; i < renderList.num; i ++) {
+      for (let i = 0; i < renderList.num; i++) {
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
         // console.log(...renderList.endFrame(i));
-      }  
+      }
     }
   }
 
@@ -1059,11 +1113,17 @@ export class Renderer {
         program.use();
 
         if (program.uniform.LIGHT_DIRECTION1) {
-          gl.uniform3fv(program.uniform.LIGHT_DIRECTION1, this._globalLightDir1);
+          gl.uniform3fv(
+            program.uniform.LIGHT_DIRECTION1,
+            this._globalLightDir1
+          );
         }
 
         if (program.uniform.LIGHT_DIRECTION2) {
-          gl.uniform3fv(program.uniform.LIGHT_DIRECTION2, this._globalLightDir2);
+          gl.uniform3fv(
+            program.uniform.LIGHT_DIRECTION2,
+            this._globalLightDir2
+          );
         }
 
         if (program.uniform.LIGHT_COLOR) {
@@ -1104,7 +1164,7 @@ export class Renderer {
           this._bindPrimitive(primitive);
         }
       } else {
-       this._bindPrimitive(primitive, attribMask);
+        this._bindPrimitive(primitive, attribMask);
         attribMask = primitive._attributeMask;
       }
 
@@ -1152,16 +1212,34 @@ export class Renderer {
             );
           } else {
             gl.drawArrays(primitive._mode, 0, primitive._elementCount);
-          } 
+          }
         }
       }
     }
   }
 
-  _drawRenderListPrimitive(views, renderList, shape, matrix, color, opacity, textureInfo, fxMode, triangleMode, isToon, isMirror, isParticles) {
+  _drawRenderListPrimitive(
+    views,
+    renderList,
+    shape,
+    matrix,
+    color,
+    opacity,
+    textureInfo,
+    texture,
+    fxMode,
+    triangleMode,
+    isToon,
+    isMirror,
+    isParticles
+  ) {
     let gl = this._gl;
-    if(!renderList.program) {
-      renderList.program = new Program(gl, RenderList_VERTEX_SOURCE, RenderList_FRAG_SOURCE);
+    if (!renderList.program) {
+      renderList.program = new Program(
+        gl,
+        RenderList_VERTEX_SOURCE,
+        RenderList_FRAG_SOURCE
+      );
       // await loadImages(gl);
     }
     gl.enable(gl.DEPTH_TEST);
@@ -1177,59 +1255,90 @@ export class Renderer {
         0,
         shape.length / VERTEX_SIZE
       );
+    };
+    if (false) {
+      console.log("1", views);
+      console.log("2", renderList);
+      console.log("3", shape);
+      console.log("4", matrix);
+      console.log("5", color);
+      console.log("6", opacity);
+      console.log("7", textureInfo);
+      console.log("8", fxMode);
+      console.log("9", triangleMode);
+      console.log("10", isToon);
+      console.log("11", isMirror);
+      console.log("12", isParticles);
     }
-if (false) {
-    console.log('1', views);
-    console.log('2', renderList);
-    console.log('3', shape);
-    console.log('4', matrix);
-    console.log('5', color);
-    console.log('6', opacity);
-    console.log('7', textureInfo);
-    console.log('8', fxMode);
-    console.log('9', triangleMode);
-    console.log('10', isToon);
-    console.log('11', isMirror);
-    console.log('12', isParticles);
-}
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uParticles"), isParticles ? 1 : 0);
+    gl.uniform1f(
+      gl.getUniformLocation(pgm.program, "uParticles"),
+      isParticles ? 1 : 0
+    );
 
-    if(!renderList.vao) {
+    if (!renderList.vao) {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
       renderList.buffer = gl.createBuffer();
     }
-   // if (shape != renderList.prev_shape) {
-      renderList.buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
-      let bpe = Float32Array.BYTES_PER_ELEMENT;
+    // if (shape != renderList.prev_shape) {
+    renderList.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shape), gl.DYNAMIC_DRAW);
+    let bpe = Float32Array.BYTES_PER_ELEMENT;
 
-      let aPos = gl.getAttribLocation(pgm.program, 'aPos');
-      gl.enableVertexAttribArray(aPos);
-      gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 0);
+    let aPos = gl.getAttribLocation(pgm.program, "aPos");
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(
+      aPos,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 0
+    );
 
-      let aNor = gl.getAttribLocation(pgm.program, 'aNor');
-      gl.enableVertexAttribArray(aNor);
-      gl.vertexAttribPointer(aNor, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 3);
+    let aNor = gl.getAttribLocation(pgm.program, "aNor");
+    gl.enableVertexAttribArray(aNor);
+    gl.vertexAttribPointer(
+      aNor,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 3
+    );
 
-      let aTan = gl.getAttribLocation(pgm.program, 'aTan');
-      gl.enableVertexAttribArray(aTan);
-      gl.vertexAttribPointer(aTan, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 6);
+    let aTan = gl.getAttribLocation(pgm.program, "aTan");
+    gl.enableVertexAttribArray(aTan);
+    gl.vertexAttribPointer(
+      aTan,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 6
+    );
 
-      let aUV = gl.getAttribLocation(pgm.program, 'aUV');
-      gl.enableVertexAttribArray(aUV);
-      gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 9);
+    let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    gl.enableVertexAttribArray(aUV);
+    gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 9);
 
-      let aRGB = gl.getAttribLocation(pgm.program, 'aRGB');
-      gl.enableVertexAttribArray(aRGB);
-      gl.vertexAttribPointer(aRGB, 3, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 11);
+    let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
+    gl.enableVertexAttribArray(aRGB);
+    gl.vertexAttribPointer(
+      aRGB,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 11
+    );
 
-      renderList.bufferAux = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
+    renderList.bufferAux = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
     // }
-   
+
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
     gl.uniform4fv(
       gl.getUniformLocation(pgm.program, "uColor"),
@@ -1250,31 +1359,52 @@ if (false) {
 
     let uTex = [];
     for (let n = 0; n < gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS); n++) {
-      uTex[n] = gl.getUniformLocation(pgm.program, 'uTex' + n);
+      uTex[n] = gl.getUniformLocation(pgm.program, "uTex" + n);
       gl.uniform1i(uTex[n], n + 2);
     }
 
-    if (textureInfo.isValid) {
+    if(texture) {
+     
+      // gl.activeTexture(gl.TEXTURE0 + 2);
+      // gl.uniform1f(
+      //   gl.getUniformLocation(pgm.program, "uTexScale"),
+      //   1
+      // );
+      let txtr = loadTexture(gl, texture);
+      // console.log(txtr)
+      // this.gl.bindTexture(this.gl.TEXTURE_2D, txtr);
+      // renderList.textureCatalogue.setSlotByTextureInfo(txtr,2);
+      gl.activeTexture(gl.TEXTURE0 + 2);
+      gl.uniform1f(
+        gl.getUniformLocation(pgm.program, "uTexScale"),
+        1
+      );
+      gl.bindTexture(gl.TEXTURE_2D, txtr);
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+    } else if (textureInfo.isValid) {
       gl.activeTexture(gl.TEXTURE0 + 2);
 
-      // base texture : 0
-      // bump texture : 1
-      // ...
-      // console.log(textureInfo.textures.length)
-      console.log(textureInfo.textures[0])
       for (let i = 0; i < textureInfo.textures.length; i += 1) {
-        gl.uniform1f(gl.getUniformLocation(pgm.program, "uTexScale"), textureInfo.scale);
+        gl.uniform1f(
+          gl.getUniformLocation(pgm.program, "uTexScale"),
+          textureInfo.scale
+        );
 
         // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
-        renderList.textureCatalogue.setSlotByTextureInfo(textureInfo.textures[i], i + 2);
+        renderList.textureCatalogue.setSlotByTextureInfo(
+          textureInfo.textures[i],
+          i + 2
+        );
         gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
         //  }
       }
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), (textureInfo.textures.length > 1) ? 0 : -1);
-
+      gl.uniform1i(
+        gl.getUniformLocation(pgm.program, "uBumpIndex"),
+        textureInfo.textures.length > 1 ? 0 : -1
+      );
     } else {
-    gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
-    gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
+      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
     }
 
     if (views.length == 1) {

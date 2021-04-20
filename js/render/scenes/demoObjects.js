@@ -10,11 +10,11 @@ let DemoObjects = function () {
     m.save();
     m.translate(0, 1, -0.4);
     m.scale(0.04);
-    renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]).textureView(window.textures[1].lookupImageByID(1)).textureAtlas(window.textures[1]).textureAtlas(window.textures[2]);
-    renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
+    renderList.mCube().move(-4.5, 4.5, 0).turnY(time).color([1, 1, 1]).setBaseTexture("brick.png");
+    renderList.mQuad().move(-1.5, 4.5, 0).turnY(time).color([1, 1, 1]).setBaseTexture("stones.jpg");;
     renderList.mSquare().move(1.5, 4.5, 0).turnY(time).color([1, 1, 1]);
     renderList.mSphere().move(4.5, 4.5, 0).turnY(time).color([1, 1, 1]);
-    renderList.mCylinder().move(-4.5, 1.5, 0).turnY(time).color([1, 1, 1]).textureView(window.textures[3].lookupImageByID(1)).textureAtlas(window.textures[3]);
+    // renderList.mCylinder().move(-4.5, 1.5, 0).turnY(time).color([1, 1, 1]).textureView(window.textures[3].lookupImageByID(1)).textureAtlas(window.textures[3]);
     renderList
       .mRoundedCylinder()
       .move(-1.5, 1.5, 0)
