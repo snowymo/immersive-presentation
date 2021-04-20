@@ -107,6 +107,10 @@ let RenderList = function () {
       return this;
     };
 
+    this.setBaseTexture = (url) => {
+      this.texture = url;
+    }
+
     this.clone = () => {
       const cl = this.add(this.shape);
       cl.colorWithVector(this.rgb);
@@ -144,6 +148,7 @@ let RenderList = function () {
       this.rgb = [0, 0, 0];
       this.opac = 1;
       this.textureInfo = new TextureInfo();
+      this.texture = null;
       this.fxMode = 0;
       this.vertexMode = 0;
       this.toon = false;
@@ -255,6 +260,7 @@ let RenderList = function () {
           item.rgb,
           item.opac,
           item.textureInfo,
+          item.texture,
           item.fxMode,
           item.vertexMode,
           item.toon,
@@ -332,6 +338,7 @@ let RenderList = function () {
             item.rgb,
             item.opac,
             item.textureInfo,
+            item.texture,
             item.fxMode,
             item.vertexMode,
             item.toon,
