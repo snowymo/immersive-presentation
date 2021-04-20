@@ -366,8 +366,6 @@ async function loadImages(gl) {
   let images = null;
   try {
     images = await Img.loadImagesAsync([
-      "media/textures/brick.png",
-      "media/textures/stones.jpg",
       "media/textures/stones_bump.jpg",
       "media/textures/tiles.jpg",
       "media/textures/wood.png",
@@ -401,7 +399,7 @@ async function loadImages(gl) {
         (_, i) => i
       ),
       images,
-      ["brick", "stones", "stones_bump", "tiles", "wood", "brick_bump"],
+      ["stones_bump", "tiles", "wood", "brick_bump"],
       0
     );
 
