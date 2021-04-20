@@ -53,12 +53,22 @@ let DemoObjects = function () {
                                .turnY(time)
 			       .color([1, 1, 1]);
 
+    let isCircle = time % 4 > 2;
     m.save();
-       CG.particlesTextMessage(P, '  These are\nsome Metaroom\n   objects');
+       let msg = '  These are\nsome Metaroom\n   objects', A;
+
+       if (isCircle) {
+          A = [];
+          for (let n = 0 ; n < msg.length ; n++) {
+             let theta = Math.PI - 2 * Math.PI * n / msg.length;
+             A.push([10 * Math.cos(theta), 5 * Math.sin(theta), 0]);
+          }
+       }
+       CG.particlesTextMessage(P, msg, A);
        m.translate(0,0,3);
        m.rotateY(Math.sin(2 * time));
        m.scale(.3,.6,.6);
-       m.translate(-5,4,0);
+       m.translate(isCircle ? 1 : -5,isCircle ? 3 : 4,0);
        renderList.mMesh(P).color([10, 10, 0])
                           .textureView(window.textures[6].lookupImageByID(1))
 		          .textureAtlas(window.textures[6]);

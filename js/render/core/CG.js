@@ -596,15 +596,19 @@ CG.particlesCreateMesh = N => {
    return V;
 }
 
-CG.particlesTextMessage = (V, message) => {
+CG.particlesTextMessage = (V, message, A) => {
    let chToU0 = ch => (ch % 16) / 16 + .001;
    let chToV1 = ch => 1 - Math.floor((ch - 32) / 16) / 6;
    let chToU1 = ch => chToU0(ch) + 1 / 16 - .005;
    let chToV0 = ch => chToV1(ch) - 1 / 6;
 
    const vs = VERTEX_SIZE, skip = 6 * vs;
-   const nMax = Math.min(message.length, V.length / skip);
    let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
+
+   let nMax = Math.min(message.length, V.length / skip);
+   if (A !== undefined)
+      nMax = Math.min(nMax, A.length);
+
    let row = 0, col = 0;
    for (let n = 0 ; n < nMax ; n++) {
       let i0 = skip * n;
@@ -623,9 +627,17 @@ CG.particlesTextMessage = (V, message) => {
       }
 
       for (let i = 0 ; i < 4 ; i++) {
-         V[i0 + i * vs    ] =  col; // SET TILE ORIGIN
-         V[i0 + i * vs + 1] = -row;
-         V[i0 + i * vs + 2] =    0;
+
+         // SET TILE ORIGIN
+
+         if (A === undefined) {
+	    V[i0 + i * vs    ] =  col;        // DEFAULT:
+            V[i0 + i * vs + 1] = -row;        // ROWS AND COLUMNS
+            V[i0 + i * vs + 2] =    0;        // OF TEXT MESSAGE
+         }
+	 else
+	    for (let j = 0 ; j < 3 ; j++)     // IF POSITION SUPPLIED:
+	       V[i0 + i * vs + j] = A[n][j];  // THEN USE THAT
 
          V[i0 + i * vs + 3] = 0;    // SET NORMALS TO [0,0,1]
          V[i0 + i * vs + 4] = 0;
@@ -662,6 +674,9 @@ CG.particlesTextMessage = (V, message) => {
 }
 
 CG.particlesSetPositions = (V, A, M) => {
+
+   if (M === undefined)
+      M = CG.matrixIdentity();
 
    const vs = VERTEX_SIZE, skip = 6 * vs;
    const nMax = Math.min(A.length, V.length / skip);
