@@ -372,6 +372,7 @@ async function loadImages(gl) {
       "media/textures/tiles.jpg",
       "media/textures/wood.png",
       "media/textures/brick_bump.jpg",
+      "media/textures/font.png"
     ]);
     // stores textures
     window.textureCatalogue = new Tex.TextureCatalogue(gl);

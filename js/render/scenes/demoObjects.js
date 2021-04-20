@@ -1,10 +1,13 @@
 import { m, renderList } from "../core/renderList.js";
+import { CG } from "../core/CG.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoObjects = function () {
   this.background = "../../media/gltf/home-theater/home-theater.gltf";
   this.loadGLTF = false;
   this.envInd = null;
+
+  let P = CG.particlesCreateMesh(10000);
 
   this.display = () => {
     m.save();
