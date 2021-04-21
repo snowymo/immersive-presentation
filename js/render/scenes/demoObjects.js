@@ -21,7 +21,8 @@ let DemoObjects = function () {
                       .turnY(time).color([1, 1, 1])
                       .setBaseTexture("stones.jpg");;
     renderList.mSquare().move(1.5, 4.5, 0)
-                        .turnY(time).color([1, 1, 1]);
+                        .turnY(time).color([1, 1, 1])
+                        .setBaseTexture("font.png");
     renderList.mSphere().move(4.5, 4.5, 0)
                         .turnY(time).color([1, 1, 1]);
     renderList.mCylinder().move(-4.5, 1.5, 0)
@@ -64,8 +65,7 @@ let DemoObjects = function () {
        m.scale(.3,.6,.6);
        m.translate(isCircle ? 1 : -5,isCircle ? 3 : 4,0);
        renderList.mMesh(P).color([10, 10, 0])
-                          .textureView(window.textures[4].lookupImageByID(1))
-		          .textureAtlas(window.textures[4]);
+                          .setBaseTexture('font.png');
     m.restore();
 
     m.restore();
