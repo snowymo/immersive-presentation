@@ -48,28 +48,31 @@ let DemoObjects = function () {
                                .turnY(time)
 			       .color([1, 1, 1]);
 
-    let isCircle = time % 4 > 2;
-    m.save();
-       let msg = '  These are\nsome Metaroom\n   objects', A;
+    let mix = (a,b,t) => a + t * (b - a);
 
-       if (isCircle) {
-          A = [];
-          for (let n = 0 ; n < msg.length ; n++) {
-             let theta = Math.PI - 2 * Math.PI * n / msg.length;
-             A.push([10 * Math.cos(theta), 5 * Math.sin(theta), 0]);
-          }
+    m.save();
+       let t = Math.max(0, Math.min(1, .5 + Math.sin(time)));
+
+       let A = PT.layout();
+       for (let n = 0 ; n < msg.length ; n++) {
+          let theta = Math.PI - 2 * Math.PI * n / msg.length;
+	  A[n] = CG.mix(A[n], [10 * Math.cos(theta), 5 * Math.sin(theta), 0], t);
        }
-       CG.particlesTextMessage(P, msg, A);
+       PT.layout(A);
+
        m.translate(0,0,3);
        m.rotateY(Math.sin(2 * time));
        m.scale(.3,.6,.6);
-       m.translate(isCircle ? 1 : -5,isCircle ? 3 : 4,0);
-       renderList.mMesh(P).color([10, 10, 0])
-                          .setBaseTexture('font.png');
+       m.translate(mix(-5,1,t),mix(4,3,t),0);
+       renderList.mMesh(PT.mesh()).color([10, 10, 0])
+                                  .setBaseTexture('font.png');
     m.restore();
 
     m.restore();
   };
 };
+
+let msg = '  These are\nsome Metaroom\n   objects';
+let PT = new CG.ParticlesText(msg);
 
 export let demoObjects = new DemoObjects();
