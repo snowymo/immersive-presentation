@@ -51,7 +51,9 @@ export class Headset {
     this.position = vec3.fromValues(0, 0, 0);
     this.orientation = [0, 0, 0, 1];
     this.matrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    this.model = new Gltf2Node({ url: '../../media/gltf/headset/headset.gltf' });
+    console.log("here")
+    if(window.device == "VR") this.model = new Gltf2Node({ url: '../../media/gltf/headset/headset.gltf' });
+    else this.model = new Gltf2Node({ url: '../../media/gltf/sunflower/sunflower.gltf' });
     this.model.scale = vec3.fromValues(1, 1, 1);
     this.model.name = "headset";
     this.model.visible = false;

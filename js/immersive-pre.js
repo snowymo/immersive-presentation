@@ -60,10 +60,12 @@ function initXR() {
         onEndSession: onEndSession,
     });
     document.querySelector("header").appendChild(xrButton.domElement);
-
+    window.device = "deskTop";
     if (navigator.xr) {
         navigator.xr.isSessionSupported("immersive-vr").then((supported) => {
             xrButton.enabled = supported;
+            window.device = "VR";
+            console.log('VR')
         });
 
         // Load multiple audio sources.
@@ -135,7 +137,6 @@ function onRequestSession() {
 
 async function onSessionStarted(session) {
     session.addEventListener("end", onSessionEnded);
-
     session.addEventListener("selectstart", onSelectStart);
     session.addEventListener("selectend", onSelectEnd);
     session.addEventListener("select", (ev) => {
