@@ -31,12 +31,14 @@ const LOOK_SPEED = 0.0025;
 const WALK_SPEED = 0.05;
 
 export class InlineViewerHelper {
+
   constructor(canvas, referenceSpace) {
-    this.lookYaw = 0;
+
+    this.lookYaw = 2 * Math.PI * ((7 * window.playerid) % 12) / 12;
     this.lookPitch = 0;
     this.viewerHeight = 0;
 
-    this.walkPosition = [0, 0, 0];
+    this.walkPosition = [0, 0, -2];
 
     this.canvas = canvas;
     this.baseRefSpace = referenceSpace;
