@@ -38,7 +38,7 @@ export class InlineViewerHelper {
     this.lookPitch = 0;
     this.viewerHeight = 0;
 
-    this.walkPosition = [0, 0, -2];
+    this.walkPosition = [0, 0, -1];
 
     this.canvas = canvas;
     this.baseRefSpace = referenceSpace;
