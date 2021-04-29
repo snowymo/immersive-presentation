@@ -20,6 +20,7 @@ import {
 import { Client as WSClient } from "./util/websocket-client.js";
 import { updateController } from "./render/core/renderListScene.js";
 import * as keyboardInput from "./util/input_keyboard.js";
+import { InputController } from "./util/input_controller.js";
 
 window.wsport = 8447;
 
@@ -35,6 +36,7 @@ if (QueryArgs.getBool("usePolyfill", true)) {
 let xrButton = null;
 let xrImmersiveRefSpace = null;
 let inlineViewerHelper = null;
+let inputController = null;
 let time = 0;
 
 // WebGL scene globals.
@@ -141,7 +143,7 @@ async function onSessionStarted(session) {
     session.addEventListener("selectend", onSelectEnd);
     session.addEventListener("select", (ev) => {
         let refSpace = ev.frame.session.isImmersive
-            ? xrImmersiveRefSpace
+            ? inputController.referenceSpace
             : inlineViewerHelper.referenceSpace;
         window.scene.handleSelect(ev.inputSource, ev.frame, refSpace);
     });
@@ -156,7 +158,9 @@ async function onSessionStarted(session) {
     let refSpaceType = session.isImmersive ? "local-floor" : "viewer";
     session.requestReferenceSpace(refSpaceType).then((refSpace) => {
         if (session.isImmersive) {
-            xrImmersiveRefSpace = refSpace;
+            // xrImmersiveRefSpace = refSpace;
+             inputController = new InputController(refSpace);
+             xrImmersiveRefSpace = inputController.referenceSpace;
         } else {
             inlineViewerHelper = new InlineViewerHelper(gl.canvas, refSpace);
             inlineViewerHelper.setHeight(1.6);
@@ -306,7 +310,7 @@ window.testObjSync = function (id) {
 
 function onSelectStart(ev) {
     let refSpace = ev.frame.session.isImmersive
-        ? xrImmersiveRefSpace
+        ? inputController.referenceSpace
         : inlineViewerHelper.referenceSpace;
     hitTest(ev.inputSource, ev.frame, refSpace);
 }
@@ -335,7 +339,7 @@ function onXRFrame(t, frame) {
     time = t / 1000;
     let session = frame.session;
     let refSpace = session.isImmersive
-        ? xrImmersiveRefSpace
+        ? inputController.referenceSpace
         : inlineViewerHelper.referenceSpace;
     let pose = frame.getViewerPose(refSpace);
     window.scene.startFrame();
@@ -343,7 +347,6 @@ function onXRFrame(t, frame) {
     session.requestAnimationFrame(onXRFrame);
 
     updateInputSources(session, frame, refSpace);
-
     // ZH: send to websocket server for self avatar sync
     if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
 
