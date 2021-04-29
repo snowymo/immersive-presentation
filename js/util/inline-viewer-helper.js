@@ -163,11 +163,13 @@ export class InlineViewerHelper {
       quat.rotateX(invOrient, invOrient, -this.lookPitch);
       quat.rotateY(invOrient, invOrient, -this.lookYaw);
       let xform = new XRRigidTransform(
-        { x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 },
+        {},
         { x: invOrient[0], y: invOrient[1], z: invOrient[2], w: invOrient[3] }
       );
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
       xform = new XRRigidTransform({ y: -this.viewerHeight });
+      this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
+      xform = new XRRigidTransform({x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1});
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
       this.dirty = false;
     }
