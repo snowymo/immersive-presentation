@@ -4,11 +4,12 @@ const WALK_SPEED = 0.05;
 
 export class InputController {
     constructor(referenceSpace) {
-      this.lookYaw = 2 * Math.PI * ((7 * window.playerid) % 12) / 12;
+      this.theta = 2 * Math.PI * ((7 * window.playerid) % 12) / 12
+      this.lookYaw = this.theta;
       this.lookPitch = 0;
       this.viewerHeight = 0;
-  
-      this.walkPosition = [0, 0, -1];
+
+      this.walkPosition = [-Math.sin(this.theta), 0, -Math.cos(this.theta)];
   
       this.baseRefSpace = referenceSpace;
       this.refSpace = referenceSpace;
@@ -45,13 +46,15 @@ export class InputController {
         quat.rotateX(invOrient, invOrient, -this.lookPitch);
         quat.rotateY(invOrient, invOrient, -this.lookYaw);
         let xform = new XRRigidTransform(
-          { x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 },
+          {},
           { x: invOrient[0], y: invOrient[1], z: invOrient[2], w: invOrient[3] }
         );
         this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
         xform = new XRRigidTransform({ y: -this.viewerHeight });
         this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
-        // this.dirty = false;
+        xform = new XRRigidTransform({x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1});
+        this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
+        this.dirty = false;
       }
       return this.refSpace;
     }
