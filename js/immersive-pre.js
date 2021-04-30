@@ -66,8 +66,6 @@ function initXR() {
     if (navigator.xr) {
         navigator.xr.isSessionSupported("immersive-vr").then((supported) => {
             xrButton.enabled = supported;
-            window.device = "VR";
-            console.log('VR')
         });
 
         // Load multiple audio sources.
