@@ -22,6 +22,8 @@ import { updateController } from "./render/core/renderListScene.js";
 import * as keyboardInput from "./util/input_keyboard.js";
 import { InputController } from "./util/input_controller.js";
 
+import { corelink_message } from "./util/corelink_sender.js"
+
 window.wsport = 8447;
 
 // If requested, use the polyfill to provide support for mobile devices
@@ -79,12 +81,12 @@ function initXR() {
     // window.objs = [];
     DefaultSystemEvents.init();
     // websocket
-    window.wsclient = new WSClient();
-    if (window.location.port) {
-        window.wsclient.connect(window.location.hostname, window.location.port);
-    } else {
-        window.wsclient.connect("eye.3dvar.com", window.wsport);
-    }
+    // window.wsclient = new WSClient();
+    // if (window.location.port) {
+    //     window.wsclient.connect(window.location.hostname, window.location.port);
+    // } else {
+    //     window.wsclient.connect("eye.3dvar.com", window.wsport);
+    // }
     initModels();
     keyboardInput.initKeyEvents();
 }
@@ -158,8 +160,8 @@ async function onSessionStarted(session) {
     session.requestReferenceSpace(refSpaceType).then((refSpace) => {
         if (session.isImmersive) {
             // xrImmersiveRefSpace = refSpace;
-             inputController = new InputController(refSpace);
-             xrImmersiveRefSpace = inputController.referenceSpace;
+            inputController = new InputController(refSpace);
+            xrImmersiveRefSpace = inputController.referenceSpace;
         } else {
             inlineViewerHelper = new InlineViewerHelper(gl.canvas, refSpace);
             inlineViewerHelper.setHeight(1.6);
@@ -347,7 +349,14 @@ function onXRFrame(t, frame) {
 
     updateInputSources(session, frame, refSpace);
     // ZH: send to websocket server for self avatar sync
-    if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
+    // if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
+    // corelink
+    if (window.playerid != null) {
+        var msg = corelink_message("avatar", window.playerid);
+        corelink.send(metaroomSender, msg);
+        console.log("corelink.send", msg);
+        // window.wsclient.send("avatar", window.playerid);
+    }
 
     // Update the position of all currently selected audio sources. It's
     // possible to select multiple audio sources and drag them at the same

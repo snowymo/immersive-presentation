@@ -2,6 +2,7 @@
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
 import { SyncObject } from "../util/object-sync.js";
+import { corelink_message } from "../util/corelink_sender.js";
 
 export function init() {
   window.EventBus.subscribe("test", (json) => {
@@ -170,12 +171,21 @@ export function init() {
       );
       window.setUpPeer(peerUuid, signal.displayName);
       // window.serverConnection.send(JSON.stringify({ 'displayName': window.localDisplayName, 'uuid': window.localUuid, 'dest': peerUuid }));
-      window.wsclient.send("webrtc", {
+      // window.wsclient.send("webrtc", {
+      //   uuid: window.localUuid,
+      //   // roomID: window.avatars[window.playerid].roomID,
+      //   displayName: window.playerid,
+      //   dest: peerUuid,
+      // });
+      // corelink
+      var msg = corelink_message("webrtc", {
         uuid: window.localUuid,
         // roomID: window.avatars[window.playerid].roomID,
         displayName: window.playerid,
         dest: peerUuid,
       });
+      corelink.send(metaroomSender, msg);
+      console.log("corelink.send", msg);
       // JSON.stringify({ 'MR_Message': "Broadcast_All", 'displayName': MRVoip.username, 'uuid': MRVoip.localUuid, 'dest': peerUuid, 'roomID': MRVoip.roomID }));
     } else if (
       signal.displayName != undefined &&

@@ -2,6 +2,8 @@ const workspace = 'Holodeck'
 const protocol = 'ws'
 const datatype = ['metaroom']
 var receiverdata = 0.0
+var metaroomSender = "";
+var metaroomReceiver = "";
 
 function ab2str(buf) {
     var rawData = String.fromCharCode.apply(null, new Uint8Array(buf))
@@ -52,12 +54,16 @@ const run = async () => {
             }
         })
 
-        streams = await corelink.createReceiver({
+        metaroomSender = await corelink.createSender({
+            workspace, protocol, type: 'metaroom', echo: true, alert: true,
+        }).catch((err) => { console.log(err) })
+
+        metaroomReceiver = await corelink.createReceiver({
             workspace, protocol, type: datatype, echo: true, alert: true,
         }).catch((err) => { console.log(err) })
 
-        streams.forEach(async data => {
-            console.log("streams.forEach", data.streamID, data.meta.name)
+        metaroomReceiver.forEach(async data => {
+            console.log("metaroomReceiver.forEach", data.streamID, data.meta.name)
             // var btn = document.createElement("BUTTON")   // Create a <button> element
             // btn.innerHTML = " Plot: " + data.streamID + " " + data.meta.name
             // btn.id = "stream" + data.streamID
@@ -67,7 +73,6 @@ const run = async () => {
             // document.body.appendChild(btn)
             // document.body.appendChild(iDiv)
         })
-
 
         corelink.on('receiver', async (data) => {
             console.log("corelink.on('receiver', async (data)", data.streamID, data.meta.name)
