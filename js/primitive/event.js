@@ -323,7 +323,7 @@ export function init() {
     // update metadata for next frame's rendering
     let dirtyObjects = json["data"];
     Object.keys(dirtyObjects).forEach(function (key) {
-      console.log("object update: ", key, dirtyObjects[key]);
+      // console.log("object update: ", key, dirtyObjects[key]);
       if (!(key in window.objects))
         window.objects[key] = new SyncObject(
           key,

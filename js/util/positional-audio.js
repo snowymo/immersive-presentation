@@ -135,11 +135,11 @@ export function updateAudioNodes(scene) {
             // ZH
             let mymatrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
             mat4.identity(mymatrix);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             let mypos = source.position;
             mypos[1] -= 0.5;
             mat4.translate(mymatrix, mymatrix, mypos);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             mat4.rotateY(mymatrix, mymatrix, source.rotateY);
             let scale = getLoudnessScale(source.analyser);
             mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);
