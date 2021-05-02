@@ -51,7 +51,7 @@ export class Headset {
     this.position = vec3.fromValues(0, 0, 0);
     this.orientation = [0, 0, 0, 1];
     this.matrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    this.model = new Gltf2Node({ url: '../../media/gltf/headset/headset.gltf' });
+    this.model = new Gltf2Node({ url: 'media/gltf/headset/headset.gltf' });
     this.model.scale = vec3.fromValues(1, 1, 1);
     this.model.name = "headset";
     this.model.visible = false;
@@ -69,10 +69,10 @@ export class Controller {
     // this.x = new Button();
     // this.y = new Button();
     if (handedness == "left") {
-      this.model = new Gltf2Node({ url: '../../media/gltf/controller/controller-left.gltf' });
+      this.model = new Gltf2Node({ url: 'media/gltf/controller/controller-left.gltf' });
     }
     else {
-      this.model = new Gltf2Node({ url: '../../media/gltf/controller/controller.gltf' });
+      this.model = new Gltf2Node({ url: 'media/gltf/controller/controller.gltf' });
     }
     this.matrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     this.model.scale = vec3.fromValues(1, 1, 1);
