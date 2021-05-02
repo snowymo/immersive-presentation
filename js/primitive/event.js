@@ -1,9 +1,9 @@
 "use strict";
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
-import { SyncObject } from "../util/object-sync.js";
-import { corelink_message } from "../util/corelink_sender.js";
-import { metaroomSender } from "../corelink_handler.js"
+import { SyncObject } from "util/object-sync.js";
+import { corelink_message } from "util/corelink_sender.js";
+import { metaroomSender } from "corelink_handler.js"
 
 export function initSelfAvatar(id) {
   if (!window.avatars) {

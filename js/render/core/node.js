@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Ray } from "../math/ray.js";
-import { mat4, vec3, quat } from "../math/gl-matrix.js";
+import { Ray } from "math/ray.js";
+import { mat4, vec3, quat } from "math/gl-matrix.js";
 
 const DEFAULT_TRANSLATION = new Float32Array([0, 0, 0]);
 const DEFAULT_ROTATION = new Float32Array([0, 0, 0, 1]);
@@ -436,10 +436,10 @@ export class Node {
   }
 
   // Called when a selectable element is pointed at.
-  onHoverStart() {}
+  onHoverStart() { }
 
   // Called when a selectable element is no longer pointed at.
-  onHoverEnd() {}
+  onHoverEnd() { }
 
   _update(timestamp, frameDelta) {
     this.onUpdate(timestamp, frameDelta);
@@ -450,5 +450,5 @@ export class Node {
   }
 
   // Called every frame so that the nodes can animate themselves
-  onUpdate(timestamp, frameDelta) {}
+  onUpdate(timestamp, frameDelta) { }
 }
