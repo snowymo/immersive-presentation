@@ -1,7 +1,7 @@
 "use strict";
 
 import { CG, Matrix } from "./CG.js";
-import { ImprovedNoise } from "math/improvedNoise.js";
+import { ImprovedNoise } from "../math/improvedNoise.js";
 
 export let m = new Matrix();
 
@@ -138,7 +138,7 @@ let RenderList = function () {
 
     this.init = () => {
       this.shape = null;
-      this.list = null;
+      this.list  = null;
       this.type = 0; // default shape, 1 == list
       this.matrix = CG.matrixIdentity();
       this.auxMatrix = CG.matrixIdentity();
@@ -234,7 +234,7 @@ let RenderList = function () {
       buf0,
       CG.matrixRotateZWithBuffer(CG.rotateZBuffer, item.rz)
     );
-
+ 
     mat = CG.matrixMultiplyWithBuffer(
       item.auxMatrix,
       buf1,
@@ -431,7 +431,7 @@ export function mBeginBuild() {
   activeList = new RenderList();
 }
 export function mEndBuild() {
-  const out = activeList;
+  const out  = activeList;
   activeList = renderList;
   return out;
 }

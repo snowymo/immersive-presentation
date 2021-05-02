@@ -1,7 +1,7 @@
-import { initXR } from "js/immersive-pre.js"
-import { ab2str, corelink_message } from "js/util/corelink_sender.js"
-import { initSelfAvatar } from "js/primitive/event.js"
-import { initAvatar } from "js/primitive/avatar.js"
+import { initXR } from "../js/immersive-pre.js"
+import { ab2str, corelink_message } from "../js/util/corelink_sender.js"
+import { initSelfAvatar } from "../js/primitive/event.js"
+import { initAvatar } from "../js/primitive/avatar.js"
 
 const workspace = 'Chalktalk'
 const protocol = 'ws'

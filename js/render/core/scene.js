@@ -19,11 +19,11 @@
 // SOFTWARE.
 
 import { RenderView } from "./renderer.js";
-import { InputRenderer } from "nodes/input-renderer.js";
-import { StatsViewer } from "nodes/stats-viewer.js";
+import { InputRenderer } from "../nodes/input-renderer.js";
+import { StatsViewer } from "../nodes/stats-viewer.js";
 import { Node } from "./node.js";
-import { vec3, quat } from "math/gl-matrix.js";
-import { Ray } from "math/ray.js";
+import { vec3, quat } from "../math/gl-matrix.js";
+import { Ray } from "../math/ray.js";
 import { getViews } from "./renderListScene.js";
 
 export class WebXRView extends RenderView {

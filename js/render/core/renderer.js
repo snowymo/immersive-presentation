@@ -22,13 +22,13 @@ import { CAP, MAT_STATE, RENDER_ORDER, stateToBlendFunc } from "./material.js";
 import { Node } from "./node.js";
 import { Program } from "./program.js";
 import { DataTexture, VideoTexture } from "./texture.js";
-import { mat4, vec3 } from "math/gl-matrix.js";
+import { mat4, vec3 } from "../math/gl-matrix.js";
 import { CG, VERTEX_SIZE } from "./CG.js";
 import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
-import * as Img from "util/image.js";
-import * as Tex from "util/webgl_texture_util.js";
-// import { loadImage } from "immersive-pre.js"
+import * as Img from "../../util/image.js";
+import * as Tex from "../../util/webgl_texture_util.js";
+// import { loadImage } from "../../immersive-pre.js"
 
 export const ATTRIB = {
   POSITION: 1,
@@ -293,13 +293,13 @@ void main() {
     fragColor *= texture(uTex0, vUV);
   }
 }
-`;
+`; 
 
 window.textureList = {};
 const basePath = "media/textures/";
 
 function loadTexture(gl, url) {
-  if (window.textureList[url]) return window.textureList[url];
+  if(window.textureList[url]) return window.textureList[url];
 
   gl.activeTexture(gl.TEXTURE0 + 2);
   var texture = gl.createTexture();
@@ -313,8 +313,8 @@ function loadTexture(gl, url) {
   const srcType = gl.UNSIGNED_BYTE;
   const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
   gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-    width, height, border, srcFormat, srcType,
-    pixel);
+                width, height, border, srcFormat, srcType,
+                pixel);
 
   const image = new Image();
   image.src = basePath.concat(url);
@@ -322,20 +322,20 @@ function loadTexture(gl, url) {
     console.log("loaded")
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-      srcFormat, srcType, image);
+                  srcFormat, srcType, image);
 
     // WebGL1 has different requirements for power of 2 images
     // vs non power of 2 images so check if the image is a
     // power of 2 in both dimensions.
     if (isPowerOfTwo(image.width) && isPowerOfTwo(image.height)) {
-      // Yes, it's a power of 2. Generate mips.
-      gl.generateMipmap(gl.TEXTURE_2D);
+       // Yes, it's a power of 2. Generate mips.
+       gl.generateMipmap(gl.TEXTURE_2D);
     } else {
-      // No, it's not a power of 2. Turn off mips and set
-      // wrapping to clamp to edge
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+       // No, it's not a power of 2. Turn off mips and set
+       // wrapping to clamp to edge
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
 
     window.textureList[url] = texture;
@@ -772,7 +772,7 @@ class RenderMaterial {
     // First time we do a binding, cache the uniform locations and remove
     // unused uniforms from the list.
     if (this._firstBind) {
-      for (let i = 0; i < this._samplers.length;) {
+      for (let i = 0; i < this._samplers.length; ) {
         let sampler = this._samplers[i];
         if (!this._program.uniform[sampler._uniformName]) {
           this._samplers.splice(i, 1);
@@ -781,7 +781,7 @@ class RenderMaterial {
         ++i;
       }
 
-      for (let i = 0; i < this._uniforms.length;) {
+      for (let i = 0; i < this._uniforms.length; ) {
         let uniform = this._uniforms[i];
         uniform._uniform = this._program.uniform[uniform._uniformName];
         if (!uniform._uniform) {
@@ -1362,8 +1362,8 @@ export class Renderer {
       gl.uniform1i(uTex[n], n + 2);
     }
 
-    if (texture) {
-
+    if(texture) {
+     
       // gl.activeTexture(gl.TEXTURE0 + 2);
       // gl.uniform1f(
       //   gl.getUniformLocation(pgm.program, "uTexScale"),
