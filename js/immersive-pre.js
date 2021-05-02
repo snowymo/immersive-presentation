@@ -50,7 +50,7 @@ window.scene = new Scene();
 function initModels() {
     window.models = {};
     window.models["stereo"] = new Gltf2Node({
-        url: "../media/gltf/stereo/stereo.gltf",
+        url: "./media/gltf/stereo/stereo.gltf",
     });
     window.models["stereo"].visible = true;
     // window.scene.addNode(window.models['stereo']);

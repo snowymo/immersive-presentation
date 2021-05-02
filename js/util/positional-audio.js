@@ -19,7 +19,7 @@ let audioContext = new AudioContext();
 export let resonance = new ResonanceAudio(audioContext);
 resonance.output.connect(audioContext.destination);
 
-export let stereo = new Gltf2Node({ url: '../media/gltf/stereo/stereo.gltf' });
+export let stereo = new Gltf2Node({ url: './media/gltf/stereo/stereo.gltf' });
 // FIXME: Temporary fix to initialize for cloning.
 stereo.visible = false;
 
