@@ -228,17 +228,17 @@ export function updateAudioSources(frame, refSpace) {
 export function loadAudioSources(scene) {
     Promise.all([
         createAudioSource({
-            url: '../media/sound/guitar.ogg',
+            url: 'media/sound/guitar.ogg',
             position: [0, DEFAULT_HEIGHT, -1],
             rotateY: 0
         }),
         createAudioSource({
-            url: '../media/sound/drums.ogg',
+            url: 'media/sound/drums.ogg',
             position: [-1, DEFAULT_HEIGHT, 0],
             rotateY: Math.PI * 0.5
         }),
         createAudioSource({
-            url: '../media/sound/perc.ogg',
+            url: 'media/sound/perc.ogg',
             position: [1, DEFAULT_HEIGHT, 0],
             rotateY: Math.PI * -0.5
         }),
