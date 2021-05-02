@@ -124,10 +124,10 @@ export function updateAudioNodes(scene) {
     for (let source of audioSources) {
         if (!source.node) {
             // initObject first, if websocket is not ready, return directly
-            if (window.wsclient.ws.readyState != WebSocket.OPEN) {
-                console.log("websocket not ready");
-                return;
-            }
+            // if (window.wsclient.ws.readyState != WebSocket.OPEN) {
+            //     console.log("websocket not ready");
+            //     return;
+            // }
             source.node = stereo.clone();
             source.node.visible = true;
             source.node.selectable = true;
@@ -135,11 +135,11 @@ export function updateAudioNodes(scene) {
             // ZH
             let mymatrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
             mat4.identity(mymatrix);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             let mypos = source.position;
             mypos[1] -= 0.5;
             mat4.translate(mymatrix, mymatrix, mypos);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             mat4.rotateY(mymatrix, mymatrix, source.rotateY);
             let scale = getLoudnessScale(source.analyser);
             mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);

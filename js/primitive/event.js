@@ -2,6 +2,18 @@
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
 import { SyncObject } from "../util/object-sync.js";
+import { corelink_message } from "../util/corelink_sender.js";
+import { metaroomSender } from "../corelink_handler.js"
+
+export function initSelfAvatar(id) {
+  if (!window.avatars) {
+    window.avatars = {};
+  }
+
+  // create self avatar
+  initAvatar(id);
+  window.playerid = id;
+}
 
 export function init() {
   window.EventBus.subscribe("test", (json) => {
@@ -9,42 +21,37 @@ export function init() {
   });
 
   window.EventBus.subscribe("initialize", (json) => {
-    if (!window.avatars) {
-      window.avatars = {};
-    }
-
     const id = json["id"];
-
-    // create self avatar
-    initAvatar(id);
-    window.playerid = id;
+    initSelfAvatar(id);
 
     // create other avatars joined earlier
-    for (let key in json["avatars"]) {
-      const avid = json["avatars"][key]["user"];
+    if ("avatars" in json) {
+      for (let key in json["avatars"]) {
+        const avid = json["avatars"][key]["user"];
 
-      initAvatar(avid);
+        initAvatar(avid);
 
-      window.avatars[avid].headset.matrix =
-        json["avatars"][key]["state"]["mtx"];
-      window.avatars[avid].headset.position =
-        json["avatars"][key]["state"]["pos"];
-      window.avatars[avid].headset.orientation =
-        json["avatars"][key]["state"]["rot"];
+        window.avatars[avid].headset.matrix =
+          json["avatars"][key]["state"]["mtx"];
+        window.avatars[avid].headset.position =
+          json["avatars"][key]["state"]["pos"];
+        window.avatars[avid].headset.orientation =
+          json["avatars"][key]["state"]["rot"];
 
-      window.avatars[avid].leftController.matrix =
-        json["avatars"][key]["state"]["controllers"]["left"]["mtx"];
-      window.avatars[avid].leftController.position =
-        json["avatars"][key]["state"]["controllers"]["left"]["pos"];
-      window.avatars[avid].leftController.orientation =
-        json["avatars"][key]["state"]["controllers"]["left"]["rot"];
+        window.avatars[avid].leftController.matrix =
+          json["avatars"][key]["state"]["controllers"]["left"]["mtx"];
+        window.avatars[avid].leftController.position =
+          json["avatars"][key]["state"]["controllers"]["left"]["pos"];
+        window.avatars[avid].leftController.orientation =
+          json["avatars"][key]["state"]["controllers"]["left"]["rot"];
 
-      window.avatars[avid].rightController.matrix =
-        json["avatars"][key]["state"]["controllers"]["right"]["mtx"];
-      window.avatars[avid].rightController.position =
-        json["avatars"][key]["state"]["controllers"]["right"]["pos"];
-      window.avatars[avid].rightController.orientation =
-        json["avatars"][key]["state"]["controllers"]["right"]["rot"];
+        window.avatars[avid].rightController.matrix =
+          json["avatars"][key]["state"]["controllers"]["right"]["mtx"];
+        window.avatars[avid].rightController.position =
+          json["avatars"][key]["state"]["controllers"]["right"]["pos"];
+        window.avatars[avid].rightController.orientation =
+          json["avatars"][key]["state"]["controllers"]["right"]["rot"];
+      }
     }
 
     console.log("receive event: initialize", {
@@ -52,8 +59,8 @@ export function init() {
       avatars: window.avatars,
     });
 
-    // start webrtc signalling
-    window.webrtc_start();
+    // // start webrtc signalling
+    // window.webrtc_start();
   });
 
   window.EventBus.subscribe("join", (json) => {
@@ -90,51 +97,51 @@ export function init() {
     //if (MR.VRIsActive()) {
     // console.log("subscribe avatar")
     // console.log(json);
-    const payload = json["data"];
+    const payload = json;
     //console.log(payload);
-    for (let key in payload) {
-      //TODO: We should not be handling visible avatars like this.
-      //TODO: This is just a temporary bandaid.
-      if (payload[key]["user"] in window.avatars) {
-        window.avatars[payload[key]["user"]].headset.matrix =
-          payload[key]["state"]["mtx"];
-        window.avatars[payload[key]["user"]].headset.position =
-          payload[key]["state"]["pos"];
-        window.avatars[payload[key]["user"]].headset.orientation =
-          payload[key]["state"]["rot"];
-        window.avatars[payload[key]["user"]].leftController.matrix =
-          payload[key]["state"]["controllers"]["left"]["mtx"];
-        window.avatars[payload[key]["user"]].leftController.position =
-          payload[key]["state"]["controllers"]["left"]["pos"];
-        window.avatars[payload[key]["user"]].leftController.orientation =
-          payload[key]["state"]["controllers"]["left"]["rot"];
-        window.avatars[payload[key]["user"]].rightController.matrix =
-          payload[key]["state"]["controllers"]["right"]["mtx"];
-        window.avatars[payload[key]["user"]].rightController.position =
-          payload[key]["state"]["controllers"]["right"]["pos"];
-        window.avatars[payload[key]["user"]].rightController.orientation =
-          payload[key]["state"]["controllers"]["right"]["rot"];
-        window.avatars[payload[key]["user"]].headset.model.visible = true;
-        window.avatars[
-          payload[key]["user"]
-        ].leftController.model.visible = true;
-        window.avatars[
-          payload[key]["user"]
-        ].rightController.model.visible = true;
-        // window.avatars[payload[key]["user"]].mode = payload[key]["state"]["mode"];
+    // for (let key in payload) {
+    //TODO: We should not be handling visible avatars like this.
+    //TODO: This is just a temporary bandaid.
+    if (payload["user"] in window.avatars) {
+      window.avatars[payload["user"]].headset.matrix =
+        payload["state"]["mtx"];
+      window.avatars[payload["user"]].headset.position =
+        payload["state"]["pos"];
+      window.avatars[payload["user"]].headset.orientation =
+        payload["state"]["rot"];
+      window.avatars[payload["user"]].leftController.matrix =
+        payload["state"]["controllers"]["left"]["mtx"];
+      window.avatars[payload["user"]].leftController.position =
+        payload["state"]["controllers"]["left"]["pos"];
+      window.avatars[payload["user"]].leftController.orientation =
+        payload["state"]["controllers"]["left"]["rot"];
+      window.avatars[payload["user"]].rightController.matrix =
+        payload["state"]["controllers"]["right"]["mtx"];
+      window.avatars[payload["user"]].rightController.position =
+        payload["state"]["controllers"]["right"]["pos"];
+      window.avatars[payload["user"]].rightController.orientation =
+        payload["state"]["controllers"]["right"]["rot"];
+      window.avatars[payload["user"]].headset.model.visible = true;
+      window.avatars[
+        payload["user"]
+      ].leftController.model.visible = true;
+      window.avatars[
+        payload["user"]
+      ].rightController.model.visible = true;
+      // window.avatars[payload["user"]].mode = payload["state"]["mode"];
+    } else {
+      // never seen, create
+      console.log("previously unseen user avatar", payload["user"]);
+      if (
+        window.avatars[payload["user"]] &&
+        "leave" in window.avatars[payload["user"]]
+      ) {
+        console.log("left already");
       } else {
-        // never seen, create
-        console.log("previously unseen user avatar", payload[key]["user"]);
-        if (
-          window.avatars[payload[key]["user"]] &&
-          "leave" in window.avatars[payload[key]["user"]]
-        ) {
-          console.log("left already");
-        } else {
-          initAvatar(payload[key]["user"]);
-        }
+        initAvatar(payload["user"]);
       }
     }
+    // }
   });
 
   window.EventBus.subscribe("mute", (json) => {
@@ -145,7 +152,7 @@ export function init() {
 
   window.EventBus.subscribe("webrtc", (json) => {
     var signal = json["state"];
-    console.log("receive webrtc", json["ts"], Date.now());
+    console.log("receive webrtc", json, signal, json["ts"], Date.now());
     // if (!signal.roomID)
     //     return;
 
@@ -166,16 +173,29 @@ export function init() {
     ) {
       // set up peer connection object for a newcomer peer
       console.log(
-        "case 1: set up peer connection object for a newcomer peer:" + peerUuid
+        "[webrtc] case 1: set up peer connection object for a newcomer peer:" + peerUuid
       );
       window.setUpPeer(peerUuid, signal.displayName);
       // window.serverConnection.send(JSON.stringify({ 'displayName': window.localDisplayName, 'uuid': window.localUuid, 'dest': peerUuid }));
-      window.wsclient.send("webrtc", {
+      // window.wsclient.send("webrtc", {
+      //   uuid: window.localUuid,
+      //   // roomID: window.avatars[window.playerid].roomID,
+      //   displayName: window.playerid,
+      //   dest: peerUuid,
+      // });
+      // corelink
+      var msg = corelink_message("webrtc", {
         uuid: window.localUuid,
         // roomID: window.avatars[window.playerid].roomID,
         displayName: window.playerid,
         dest: peerUuid,
       });
+      corelink.send(metaroomSender, msg);
+      msg = corelink_message("webrtc", {
+        test: "hello"
+      });
+      corelink.send(metaroomSender, msg);
+      console.log("[webrtc] corelink.send from", window.localUuid, "to", peerUuid, msg);
       // JSON.stringify({ 'MR_Message': "Broadcast_All", 'displayName': MRVoip.username, 'uuid': MRVoip.localUuid, 'dest': peerUuid, 'roomID': MRVoip.roomID }));
     } else if (
       signal.displayName != undefined &&
@@ -184,11 +204,11 @@ export function init() {
     ) {
       // initiate call if we are the newcomer peer
       console.log(
-        "case 2: initiate call if we are the newcomer peer:" + peerUuid
+        "[webrtc] case 2: initiate call if we are the newcomer peer:" + peerUuid
       );
       window.setUpPeer(peerUuid, signal.displayName, true);
     } else if (signal.sdp) {
-      console.log("case 3: sdp");
+      console.log("[webrtc] case 3: sdp");
       window.peerConnections[peerUuid].pc
         .setRemoteDescription(new RTCSessionDescription(signal.sdp))
         .then(function () {
@@ -202,7 +222,7 @@ export function init() {
         })
         .catch(errorHandler);
     } else if (signal.ice) {
-      console.log("case 4: ice");
+      console.log("[webrtc] case 4: ice");
       window.peerConnections[peerUuid].pc
         .addIceCandidate(new RTCIceCandidate(signal.ice))
         .catch(errorHandler);
@@ -321,16 +341,27 @@ export function init() {
     // if (success) {
     // console.log("object update: ", json);
     // update metadata for next frame's rendering
-    let dirtyObjects = json["data"];
-    Object.keys(dirtyObjects).forEach(function (key) {
-      console.log("object update: ", key, dirtyObjects[key]);
-      if (!(key in window.objects))
-        window.objects[key] = new SyncObject(
-          key,
-          dirtyObjects[key]["state"]["type"]
-        );
-      window.objects[key].matrix = dirtyObjects[key]["state"]["matrix"];
-    });
+
+    // let dirtyObjects = json["data"];
+    // Object.keys(dirtyObjects).forEach(function (key) {
+    //   // console.log("object update: ", key, dirtyObjects[key]);
+    //   if (!(key in window.objects))
+    //     window.objects[key] = new SyncObject(
+    //       key,
+    //       dirtyObjects[key]["state"]["type"]
+    //     );
+    //   window.objects[key].matrix = dirtyObjects[key]["state"]["matrix"];
+    // });
+
+    let dirtyObject = json["state"];
+    // { type: objectType, matrix: objectMatrix, objid: objid }
+    if (!(dirtyObject["objid"] in window.objects))
+      window.objects[dirtyObject["objid"]] = new SyncObject(
+        dirtyObject["objid"],
+        dirtyObject["type"]
+      );
+    window.objects[dirtyObject["objid"]].matrix = dirtyObject["matrix"];
+
 
     // }
     // else {

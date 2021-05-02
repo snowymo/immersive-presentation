@@ -1,5 +1,7 @@
 import { initAvatar } from "../primitive/avatar.js";
 import { mat4, vec3, quat } from "../render/math/gl-matrix.js";
+import { metaroomSender } from "../corelink_handler.js"
+import { corelink_message } from "../util/corelink_sender.js"
 
 // vars
 window.localUuid = "";
@@ -85,11 +87,18 @@ window.webrtc_start = function () {
         // window.serverConnection.onopen = event => {
         //     window.serverConnection.send(JSON.stringify({ 'displayName': window.localDisplayName, 'uuid': window.localUuid, 'dest': 'all' }));
         // }
-        window.wsclient.send("webrtc", {
+        // window.wsclient.send("webrtc", {
+        //   displayName: window.playerid,
+        //   uuid: window.localUuid,
+        //   dest: "all",
+        // });
+        var msg = corelink_message("webrtc", {
           displayName: window.playerid,
           uuid: window.localUuid,
           dest: "all",
         });
+        corelink.send(metaroomSender, msg);
+        console.log("corelink.send", msg);
       })
       .catch(errorHandler);
   } else {
@@ -150,11 +159,18 @@ window.mute = function (peerUuid = window.localUuid) {
 
 function gotIceCandidate(event, peerUuid) {
   if (event.candidate != null) {
-    window.wsclient.send("webrtc", {
+    // window.wsclient.send("webrtc", {
+    //   ice: event.candidate,
+    //   uuid: window.localUuid,
+    //   dest: peerUuid,
+    // });
+    var msg = corelink_message("webrtc", {
       ice: event.candidate,
       uuid: window.localUuid,
       dest: peerUuid,
     });
+    corelink.send(metaroomSender, msg);
+    console.log("corelink.send", msg);
   }
 }
 
@@ -167,11 +183,18 @@ function createdDescription(description, peerUuid) {
     window.peerConnections[peerUuid].pc
       .setLocalDescription(description)
       .then(function () {
-        window.wsclient.send("webrtc", {
+        // window.wsclient.send("webrtc", {
+        //   sdp: window.peerConnections[peerUuid].pc.localDescription,
+        //   uuid: window.localUuid,
+        //   dest: peerUuid,
+        // });
+        var msg = corelink_message("webrtc", {
           sdp: window.peerConnections[peerUuid].pc.localDescription,
           uuid: window.localUuid,
           dest: peerUuid,
         });
+        corelink.send(metaroomSender, msg);
+        console.log("corelink.send", msg);
       })
       .catch(errorHandler);
   }
@@ -437,9 +460,14 @@ function errorHandler(error) {
 window.errorHandler = errorHandler;
 
 window.muteSelf = function () {
-  window.wsclient.send("mute", {
+  // window.wsclient.send("mute", {
+  //   uuid: window.localUuid,
+  // });
+  var msg = corelink_message("mute", {
     uuid: window.localUuid,
   });
+  corelink.send(metaroomSender, msg);
+  console.log("corelink.send", msg);
   if (demoSpeakState % 2) {
     //false by default
     document.querySelector("#Speak").innerText = "Mute";
