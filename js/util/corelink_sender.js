@@ -1,8 +1,31 @@
 "use strict";
 
+export function ab2str(buf) {
+    var rawBuf = String.fromCharCode.apply(null, new Uint16Array(buf));
+    // we are using json objects everywhere
+    var jsonObj = JSON.parse(rawBuf);
+    return jsonObj;
+}
+
+function str2ab(str) {
+    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+    var bufView = new Uint16Array(buf);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+}
+
 export function corelink_message(type, data) {
     let message;
     switch (type) {
+        case "initialize":
+            message = {
+                type: "initialize",
+                ts: Date.now(),
+                id: data
+            };
+            break;
         case "avatar":
             message = {
                 type: "avatar",
@@ -37,7 +60,7 @@ export function corelink_message(type, data) {
                     ts: Date.now(),
                 };
             }
-            // console.log("send webrtc", message);
+            console.log("send webrtc", message);
             break;
         case "object":
             {
@@ -46,8 +69,7 @@ export function corelink_message(type, data) {
                     type: "object",
                     ts: Date.now(),
                     uid: window.playerid,
-                    id: data["id"],
-                    state: data["state"],
+                    state: data,
                 };
             }
             break;
@@ -82,8 +104,9 @@ export function corelink_message(type, data) {
         default:
             break;
     }
-    var jsonStr = JSON.stringify(message);
+    var json_bytes = str2ab(JSON.stringify(message));
+    // var jsonStr = JSON.stringify(message);
     // read json string to Buffer
-    const buf = Buffer.from(jsonStr);
-    return buf;
+    // const buf = Buffer.from(jsonStr);
+    return json_bytes;
 }

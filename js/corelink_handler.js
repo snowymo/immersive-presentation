@@ -1,21 +1,22 @@
-const workspace = 'Holodeck'
+import { initXR } from "../js/immersive-pre.js"
+import { ab2str, corelink_message } from "../js/util/corelink_sender.js"
+import { initSelfAvatar } from "../js/primitive/event.js"
+import { initAvatar } from "../js/primitive/avatar.js"
+
+const workspace = 'Chalktalk'
 const protocol = 'ws'
 const datatype = ['metaroom']
 var receiverdata = 0.0
-var metaroomSender = "";
-var metaroomReceiver = "";
-
-function ab2str(buf) {
-    var rawData = String.fromCharCode.apply(null, new Uint8Array(buf))
-    return parseFloat(rawData)
-}
+export var metaroomSender = "";
+export var metaroomReceiver = "";
 
 const run = async () => {
 
-    config = {}
+    var config = {}
     config.username = 'Testuser'
     config.password = 'Testpassword'
     config.host = 'corelink.hpc.nyu.edu'
+    // config.host = 'localhost'
     config.port = 20012
 
 
@@ -54,16 +55,22 @@ const run = async () => {
             }
         })
 
-        metaroomSender = await corelink.createSender({
+        if (metaroomSender = await corelink.createSender({
             workspace, protocol, type: 'metaroom', echo: true, alert: true,
-        }).catch((err) => { console.log(err) })
+        }).catch((err) => { console.log(err) })) {
+            console.log("ZH: metaroomSender", metaroomSender);
+            // initialize
+            initSelfAvatar(metaroomSender);
+            // start webrtc signalling
+            window.webrtc_start();
+        }
 
         metaroomReceiver = await corelink.createReceiver({
             workspace, protocol, type: datatype, echo: true, alert: true,
         }).catch((err) => { console.log(err) })
 
         metaroomReceiver.forEach(async data => {
-            console.log("metaroomReceiver.forEach", data.streamID, data.meta.name)
+            console.log("[webrtc debug] metaroomReceiver.forEach", data.streamID, data.meta.name)
             // var btn = document.createElement("BUTTON")   // Create a <button> element
             // btn.innerHTML = " Plot: " + data.streamID + " " + data.meta.name
             // btn.id = "stream" + data.streamID
@@ -75,26 +82,25 @@ const run = async () => {
         })
 
         corelink.on('receiver', async (data) => {
-            console.log("corelink.on('receiver', async (data)", data.streamID, data.meta.name)
-            // var btn = document.createElement("BUTTON")  // Create a <button> element
-            // btn.innerHTML = " Plot: " + data.streamID + " " + data.meta.name;
-            // btn.id = "stream" + data.streamID
-            // var iDiv = document.createElement('div')
-            // iDiv.id = data.streamID;
-            // btn.onclick = () => plotmydata(iDiv.id)
-            // document.body.appendChild(btn)
-            // document.body.appendChild(iDiv)
-
+            console.log("[webrtc debug] corelink.on('receiver', async (data)", data.streamID, data.meta.name)
             await corelink.subscribe({ streamIDs: [data.streamID] })
+            if (!(data.streamID in window.avatars)) {
+                initAvatar(data.streamID);
+            }
         })
 
         corelink.on('data', (streamID, data, header) => {
 
             receiverdata = ab2str(data)
             window[streamID + '_data'] = ab2str(data)
-            console.log(streamID, window[streamID + '_data'])
+            window.EventBus.publish(receiverdata["type"], receiverdata);
+            if (receiverdata["type"] != "avatar")
+                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data'])
 
         }).catch((err) => { console.log(err) })
+
+        // Start the XR application.
+        initXR();
     }
 }
 

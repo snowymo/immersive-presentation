@@ -1,5 +1,7 @@
 import { initAvatar } from "../primitive/avatar.js";
 import { mat4, vec3, quat } from "../render/math/gl-matrix.js";
+import { metaroomSender } from "../corelink_handler.js"
+import { corelink_message } from "../util/corelink_sender.js"
 
 // vars
 window.localUuid = "";

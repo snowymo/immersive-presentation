@@ -5,6 +5,7 @@
 import { Gltf2Node } from '../render/nodes/gltf2.js';
 import { mat4, vec3 } from '../render/math/gl-matrix.js';
 import { corelink_message } from './corelink_sender.js';
+import { metaroomReceiver, metaroomSender } from '../corelink_handler.js'
 
 window.envObjID = 10000;
 export function initObject(objectType, objectMatrix, objid = 0) {
@@ -13,7 +14,7 @@ export function initObject(objectType, objectMatrix, objid = 0) {
     // server side: send object updates
 
     // window.wsclient.send("objectInit", { type: objectType, matrix: objectMatrix, objid: objid });
-    var msg = corelink_message("objectInit", { type: objectType, matrix: objectMatrix, objid: objid })
+    var msg = corelink_message("object", { type: objectType, matrix: objectMatrix, objid: objid })
     corelink.send(metaroomSender, msg);
     console.log("corelink.send", msg);
 }

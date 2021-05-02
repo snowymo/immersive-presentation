@@ -23,6 +23,7 @@ import * as keyboardInput from "./util/input_keyboard.js";
 import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
+import { metaroomSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
 
@@ -58,7 +59,7 @@ function initModels() {
 window.scene.standingStats(true);
 // window.scene.addNode(window.models['stereo']);
 
-function initXR() {
+export function initXR() {
     xrButton = new WebXRButton({
         onRequestSession: onRequestSession,
         onEndSession: onEndSession,
@@ -354,7 +355,7 @@ function onXRFrame(t, frame) {
     if (window.playerid != null) {
         var msg = corelink_message("avatar", window.playerid);
         corelink.send(metaroomSender, msg);
-        console.log("corelink.send", msg);
+        // console.log("corelink.send", msg);
         // window.wsclient.send("avatar", window.playerid);
     }
 
@@ -434,4 +435,4 @@ function updateObjects() {
 }
 
 // Start the XR application.
-initXR();
+// initXR();
