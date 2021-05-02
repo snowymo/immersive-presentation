@@ -10,8 +10,8 @@ const ANALYSER_FFT_SIZE = 1024;
 const DEFAULT_HEIGHT = 1.5;
 
 let playButton = null;
-let playTexture = new UrlTexture('../media/textures/play-button.png');
-let pauseTexture = new UrlTexture('../media/textures/pause-button.png');
+let playTexture = new UrlTexture('./media/textures/play-button.png');
+let pauseTexture = new UrlTexture('./media/textures/pause-button.png');
 // const AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // Audio scene globals

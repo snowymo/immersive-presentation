@@ -117,11 +117,11 @@ function initGL() {
 
     // Loads a generic controller meshes.
     window.scene.inputRenderer.setControllerMesh(
-        new Gltf2Node({ url: "media/gltf/controller/controller.gltf" }),
+        new Gltf2Node({ url: "./media/gltf/controller/controller.gltf" }),
         "right"
     );
     window.scene.inputRenderer.setControllerMesh(
-        new Gltf2Node({ url: "media/gltf/controller/controller-left.gltf" }),
+        new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
 }

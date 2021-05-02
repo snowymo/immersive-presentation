@@ -18,18 +18,18 @@ import {
 
 import { rokokoData } from "../../data/RokokoData.js";
 
-import { demoText      } from "./demoText.js";
-import { demoAirText   } from "./demoAirText.js";
-import { demoKen       } from "./demoKen.js";
-import { demoMocap     } from "./demoMocap.js";
-import { demoObjects   } from "./demoObjects.js";
+import { demoText } from "./demoText.js";
+import { demoAirText } from "./demoAirText.js";
+import { demoKen } from "./demoKen.js";
+import { demoMocap } from "./demoMocap.js";
+import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoNoiseGrid } from "./demoNoiseGrid.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
 let defaultBackground =
-  "../../media/gltf/Futuristic_Lab_Mockup_03/Futuristic_Lab_Mockup.gltf";
+  "./media/gltf/Futuristic_Lab_Mockup_03/Futuristic_Lab_Mockup.gltf";
 
 const FEET_TO_METERS = 0.3048;
 
@@ -41,16 +41,16 @@ export let mainScene = () => {
   }
 
   m.save();
-     // add the procedural objects you wish to have all the time here
+  // add the procedural objects you wish to have all the time here
   m.restore();
 
-  if (demoAirTextState   % 2) loadScene(demoAirText  ); else stopScene(demoAirText  );
-  if (demoKenState       % 2) loadScene(demoKen      ); else stopScene(demoKen      );
-  if (demoMocapState     % 2) loadScene(demoMocap    ); else stopScene(demoMocap    );
+  if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
+  if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
+  if (demoMocapState % 2) loadScene(demoMocap); else stopScene(demoMocap);
   if (demoNoiseGridState % 2) loadScene(demoNoiseGrid); else stopScene(demoNoiseGrid);
-  if (demoObjectsState   % 2) loadScene(demoObjects  ); else stopScene(demoObjects  );
+  if (demoObjectsState % 2) loadScene(demoObjects); else stopScene(demoObjects);
   if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
-  if (demoTextState      % 2) loadScene(demoText     ); else stopScene(demoText     );
+  if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
 };
 
 function loadScene(demo) {
@@ -72,8 +72,8 @@ function stopScene(demo) {
       curDemoEnv[curDemoEnv.length - 2].loadGLTF = true;
     }
     else switchBackground(defaultBackground);
-    for(let i = demo.envInd + 1; i < curDemoEnv.length; i ++) {
-      curDemoEnv[i].envInd --;
+    for (let i = demo.envInd + 1; i < curDemoEnv.length; i++) {
+      curDemoEnv[i].envInd--;
     }
     curDemoEnv.splice(demo.envInd, 1);
     demo.envInd = null;
