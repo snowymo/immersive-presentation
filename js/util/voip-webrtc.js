@@ -144,15 +144,20 @@ window.mute = function (peerUuid = window.localUuid) {
       window.peerConnections[peerUuid]
     );
     // udpated
-    window.peerConnections[peerUuid].audioInputStream.mediaStream
-      .getAudioTracks()
-      .forEach((t) => {
-        if (t.kind === "audio") {
-          t.enabled = !t.enabled;
-          hasAudio = t.enabled;
-          return hasAudio;
-        }
-      });
+    if (peerUuid in window.peerConnections && window.peerConnections[peerUuid].audioInputStream) {
+      window.peerConnections[peerUuid].audioInputStream.mediaStream
+        .getAudioTracks()
+        .forEach((t) => {
+          if (t.kind === "audio") {
+            t.enabled = !t.enabled;
+            hasAudio = t.enabled;
+            return hasAudio;
+          }
+        });
+    } else {
+      console.log("[webrtc] warning no mediaStream in", window.peerConnections[peerUuid].audioInputStream);
+    }
+
     return hasAudio;
   }
 };

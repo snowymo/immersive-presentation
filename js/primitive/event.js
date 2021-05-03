@@ -191,10 +191,10 @@ export function init() {
         dest: peerUuid,
       });
       corelink.send(metaroomSender, msg);
-      msg = corelink_message("webrtc", {
-        test: "hello"
-      });
-      corelink.send(metaroomSender, msg);
+      // msg = corelink_message("webrtc", {
+      //   test: "hello"
+      // });
+      // corelink.send(metaroomSender, msg);
       console.log("[webrtc] corelink.send from", window.localUuid, "to", peerUuid, msg);
       // JSON.stringify({ 'MR_Message': "Broadcast_All", 'displayName': MRVoip.username, 'uuid': MRVoip.localUuid, 'dest': peerUuid, 'roomID': MRVoip.roomID }));
     } else if (

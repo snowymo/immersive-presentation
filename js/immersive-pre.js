@@ -88,8 +88,20 @@ export function initXR() {
     // } else {
     //     window.wsclient.connect("eye.3dvar.com", window.wsport);
     // }
+    setAvatarSync();
     initModels();
     keyboardInput.initKeyEvents();
+}
+
+function setAvatarSync() {
+    setInterval(function () {
+        if (window.playerid != null) {
+            var msg = corelink_message("avatar", window.playerid);
+            corelink.send(metaroomSender, msg);
+            // console.log("corelink.send", msg);
+            // window.wsclient.send("avatar", window.playerid);
+        }
+    }, 40);
 }
 
 window.testws = function () {
@@ -352,12 +364,12 @@ function onXRFrame(t, frame) {
     // ZH: send to websocket server for self avatar sync
     // if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
     // corelink
-    if (window.playerid != null) {
-        var msg = corelink_message("avatar", window.playerid);
-        corelink.send(metaroomSender, msg);
-        // console.log("corelink.send", msg);
-        // window.wsclient.send("avatar", window.playerid);
-    }
+    // if (window.playerid != null) {
+    //     var msg = corelink_message("avatar", window.playerid);
+    //     corelink.send(metaroomSender, msg);
+    //     // console.log("corelink.send", msg);
+    //     // window.wsclient.send("avatar", window.playerid);
+    // }
 
     // Update the position of all currently selected audio sources. It's
     // possible to select multiple audio sources and drag them at the same

@@ -18,6 +18,7 @@ const run = async () => {
     config.host = 'corelink.hpc.nyu.edu'
     // config.host = 'localhost'
     config.port = 20012
+    corelink.debug = false;
 
 
     if (await corelink.connect({ username: config.username, password: config.password }, { ControlIP: config.host, ControlPort: config.port }).catch((err) => { console.log(err) })) {
