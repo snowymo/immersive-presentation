@@ -4,7 +4,7 @@ Prototype SIG21
 
 # How to run locally
 
-install python if you haven't
+install python3 if you haven't
 
 `python -m http.server`
 
