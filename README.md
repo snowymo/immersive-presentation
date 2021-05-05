@@ -4,17 +4,17 @@ Prototype SIG21
 
 # How to run locally
 
-`npm install`
+install python if you haven't
 
-`npm start`
+`python -m http.server`
 
-go to https://yourip:8447
+go to https://lcoalhost:8000/sig21.html
 
 # How to access in public
 
-It is currently hosted on my friend's website, https://eye3.3dvar.com/.
+Ping me if you want to deploy the lastest main branch, or follow this link https://github.com/futurerealitylab/immersive-presentation/issues/9.
 
-If not working, visit https://eye.3dvar.com:8447.
+Visit https://corelink.hpc.nyu.edu/metaroom/sig21.html
 
 # Manual
 [To develop](https://github.com/snowymo/immersive-presentation/wiki)

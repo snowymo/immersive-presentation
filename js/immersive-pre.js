@@ -20,6 +20,10 @@ import {
 import { Client as WSClient } from "./util/websocket-client.js";
 import { updateController } from "./render/core/renderListScene.js";
 import * as keyboardInput from "./util/input_keyboard.js";
+import { InputController } from "./util/input_controller.js";
+
+import { corelink_message } from "./util/corelink_sender.js"
+import { metaroomSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
 
@@ -35,6 +39,7 @@ if (QueryArgs.getBool("usePolyfill", true)) {
 let xrButton = null;
 let xrImmersiveRefSpace = null;
 let inlineViewerHelper = null;
+let inputController = null;
 let time = 0;
 
 // WebGL scene globals.
@@ -45,7 +50,7 @@ window.scene = new Scene();
 function initModels() {
     window.models = {};
     window.models["stereo"] = new Gltf2Node({
-        url: "../media/gltf/stereo/stereo.gltf",
+        url: "./media/gltf/stereo/stereo.gltf",
     });
     window.models["stereo"].visible = true;
     // window.scene.addNode(window.models['stereo']);
@@ -54,7 +59,7 @@ function initModels() {
 window.scene.standingStats(true);
 // window.scene.addNode(window.models['stereo']);
 
-function initXR() {
+export function initXR() {
     xrButton = new WebXRButton({
         onRequestSession: onRequestSession,
         onEndSession: onEndSession,
@@ -77,14 +82,26 @@ function initXR() {
     // window.objs = [];
     DefaultSystemEvents.init();
     // websocket
-    window.wsclient = new WSClient();
-    if (window.location.port) {
-        window.wsclient.connect(window.location.hostname, window.location.port);
-    } else {
-        window.wsclient.connect("eye.3dvar.com", window.wsport);
-    }
+    // window.wsclient = new WSClient();
+    // if (window.location.port) {
+    //     window.wsclient.connect(window.location.hostname, window.location.port);
+    // } else {
+    //     window.wsclient.connect("eye.3dvar.com", window.wsport);
+    // }
+    setAvatarSync();
     initModels();
     keyboardInput.initKeyEvents();
+}
+
+function setAvatarSync() {
+    setInterval(function () {
+        if (window.playerid != null) {
+            var msg = corelink_message("avatar", window.playerid);
+            corelink.send(metaroomSender, msg);
+            // console.log("corelink.send", msg);
+            // window.wsclient.send("avatar", window.playerid);
+        }
+    }, 40);
 }
 
 window.testws = function () {
@@ -112,11 +129,11 @@ function initGL() {
 
     // Loads a generic controller meshes.
     window.scene.inputRenderer.setControllerMesh(
-        new Gltf2Node({ url: "media/gltf/controller/controller.gltf" }),
+        new Gltf2Node({ url: "./media/gltf/controller/controller.gltf" }),
         "right"
     );
     window.scene.inputRenderer.setControllerMesh(
-        new Gltf2Node({ url: "media/gltf/controller/controller-left.gltf" }),
+        new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
 }
@@ -140,7 +157,7 @@ async function onSessionStarted(session) {
     session.addEventListener("selectend", onSelectEnd);
     session.addEventListener("select", (ev) => {
         let refSpace = ev.frame.session.isImmersive
-            ? xrImmersiveRefSpace
+            ? inputController.referenceSpace
             : inlineViewerHelper.referenceSpace;
         window.scene.handleSelect(ev.inputSource, ev.frame, refSpace);
     });
@@ -155,7 +172,9 @@ async function onSessionStarted(session) {
     let refSpaceType = session.isImmersive ? "local-floor" : "viewer";
     session.requestReferenceSpace(refSpaceType).then((refSpace) => {
         if (session.isImmersive) {
-            xrImmersiveRefSpace = refSpace;
+            // xrImmersiveRefSpace = refSpace;
+            inputController = new InputController(refSpace);
+            xrImmersiveRefSpace = inputController.referenceSpace;
         } else {
             inlineViewerHelper = new InlineViewerHelper(gl.canvas, refSpace);
             inlineViewerHelper.setHeight(1.6);
@@ -305,7 +324,7 @@ window.testObjSync = function (id) {
 
 function onSelectStart(ev) {
     let refSpace = ev.frame.session.isImmersive
-        ? xrImmersiveRefSpace
+        ? inputController.referenceSpace
         : inlineViewerHelper.referenceSpace;
     hitTest(ev.inputSource, ev.frame, refSpace);
 }
@@ -334,7 +353,7 @@ function onXRFrame(t, frame) {
     time = t / 1000;
     let session = frame.session;
     let refSpace = session.isImmersive
-        ? xrImmersiveRefSpace
+        ? inputController.referenceSpace
         : inlineViewerHelper.referenceSpace;
     let pose = frame.getViewerPose(refSpace);
     window.scene.startFrame();
@@ -342,9 +361,15 @@ function onXRFrame(t, frame) {
     session.requestAnimationFrame(onXRFrame);
 
     updateInputSources(session, frame, refSpace);
-
     // ZH: send to websocket server for self avatar sync
-    if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
+    // if (window.playerid != null) window.wsclient.send("avatar", window.playerid);
+    // corelink
+    // if (window.playerid != null) {
+    //     var msg = corelink_message("avatar", window.playerid);
+    //     corelink.send(metaroomSender, msg);
+    //     // console.log("corelink.send", msg);
+    //     // window.wsclient.send("avatar", window.playerid);
+    // }
 
     // Update the position of all currently selected audio sources. It's
     // possible to select multiple audio sources and drag them at the same
@@ -422,4 +447,4 @@ function updateObjects() {
 }
 
 // Start the XR application.
-initXR();
+// initXR();

@@ -10,8 +10,8 @@ const ANALYSER_FFT_SIZE = 1024;
 const DEFAULT_HEIGHT = 1.5;
 
 let playButton = null;
-let playTexture = new UrlTexture('../media/textures/play-button.png');
-let pauseTexture = new UrlTexture('../media/textures/pause-button.png');
+let playTexture = new UrlTexture('./media/textures/play-button.png');
+let pauseTexture = new UrlTexture('./media/textures/pause-button.png');
 // const AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // Audio scene globals
@@ -19,7 +19,7 @@ let audioContext = new AudioContext();
 export let resonance = new ResonanceAudio(audioContext);
 resonance.output.connect(audioContext.destination);
 
-export let stereo = new Gltf2Node({ url: '../media/gltf/stereo/stereo.gltf' });
+export let stereo = new Gltf2Node({ url: './media/gltf/stereo/stereo.gltf' });
 // FIXME: Temporary fix to initialize for cloning.
 stereo.visible = false;
 
@@ -124,10 +124,10 @@ export function updateAudioNodes(scene) {
     for (let source of audioSources) {
         if (!source.node) {
             // initObject first, if websocket is not ready, return directly
-            if (window.wsclient.ws.readyState != WebSocket.OPEN) {
-                console.log("websocket not ready");
-                return;
-            }
+            // if (window.wsclient.ws.readyState != WebSocket.OPEN) {
+            //     console.log("websocket not ready");
+            //     return;
+            // }
             source.node = stereo.clone();
             source.node.visible = true;
             source.node.selectable = true;
@@ -135,11 +135,11 @@ export function updateAudioNodes(scene) {
             // ZH
             let mymatrix = mat4.fromValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
             mat4.identity(mymatrix);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             let mypos = source.position;
             mypos[1] -= 0.5;
             mat4.translate(mymatrix, mymatrix, mypos);
-            console.log("mymatrix", mymatrix);
+            // console.log("mymatrix", mymatrix);
             mat4.rotateY(mymatrix, mymatrix, source.rotateY);
             let scale = getLoudnessScale(source.analyser);
             mat4.scale(mymatrix, mymatrix, [scale, scale, scale]);
@@ -228,17 +228,17 @@ export function updateAudioSources(frame, refSpace) {
 export function loadAudioSources(scene) {
     Promise.all([
         createAudioSource({
-            url: '../media/sound/guitar.ogg',
+            url: 'media/sound/guitar.ogg',
             position: [0, DEFAULT_HEIGHT, -1],
             rotateY: 0
         }),
         createAudioSource({
-            url: '../media/sound/drums.ogg',
+            url: 'media/sound/drums.ogg',
             position: [-1, DEFAULT_HEIGHT, 0],
             rotateY: Math.PI * 0.5
         }),
         createAudioSource({
-            url: '../media/sound/perc.ogg',
+            url: 'media/sound/perc.ogg',
             position: [1, DEFAULT_HEIGHT, 0],
             rotateY: Math.PI * -0.5
         }),

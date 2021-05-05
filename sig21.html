@@ -20,58 +20,63 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
-    <link rel="stylesheet" href="css/common.css" />
 
-    <title>SIG21 Prototyping</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+  <link rel="stylesheet" href="css/common.css" />
 
-    <script src="https://cdn.jsdelivr.net/npm/resonance-audio/build/resonance-audio.min.js"></script>
-  </head>
+  <title>SIG21 Prototyping</title>
 
-  <body>
-    <header id=header>
-      <details open>
-        <summary>Metaroom (SIGGRAPH 2021 Version)</summary>
-        <p>
-          The capabilities that we will be showing at Siggraph 2021.
-          <!-- <a class="back" href="./">Back</a> -->
-        </p>
-      </details>
-    </header>
-    <!-- <script type="module" src="js/primitive/avatar.js"></script> -->
-    <!-- <script type="module" src="js/util/voip-webrtc.js"></script> -->
-    <script type="module" src="js/util/voip-webrtc.js"></script>
-    <!-- <script type="module" src="js/util/positional-audio.js"></script> -->
-    <script type="module" src="js/immersive-pre.js"></script>
-    <div id="audios">
-      <!-- local audio -->
-      <audio id="local_webrtc" autoplay></audio>
-    </div>
-    <script>
-       window.addDemoButtons = demoNames => {
-          let names = demoNames.split(',').map(item=>item.trim());
-          let header = document.getElementById("header");
-          for (let n = 0 ; n < names.length ; n++) {
-             let flag = 'demo' + names[n] + 'State';
-             window[flag] = 0;
-             if(names[n] != "Speak"){
-              header.innerHTML += '<button onclick=window.' + flag + '++>' + names[n] + '</button>';
-             }              
-              else{
-                header.innerHTML += '<button id=\"Speak\" onclick=\"window.' + flag + '=!window.' + flag 
-                + ';window.muteSelf()\">' + names[n] + '</button>';
-              }
-          }
+  <script src="https://cdn.jsdelivr.net/npm/resonance-audio/build/resonance-audio.min.js"></script>
+
+  <script src="https://corelink.hpc.nyu.edu/client/browser/corelink.browser.lib.js"></script>
+  <!-- this is the library-->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="js/buffer-browser.js"></script>
+</head>
+
+<body>
+  <header id=header>
+    <details open>
+      <summary>Metaroom (SIGGRAPH 2021 Version)</summary>
+      <p>
+        The capabilities that we will be showing at Siggraph 2021.
+        <!-- <a class="back" href="./">Back</a> -->
+      </p>
+    </details>
+  </header>
+  <!-- <script type="module" src="js/primitive/avatar.js"></script> -->
+  <!-- <script type="module" src="js/util/voip-webrtc.js"></script> -->
+  <script type="module" src="js/util/voip-webrtc.js"></script>
+  <!-- <script type="module" src="js/util/positional-audio.js"></script> -->
+  <script type="module" src="js/immersive-pre.js"></script>
+  <script type="module" src="js/corelink_handler.js"></script>
+  <div id="audios">
+    <!-- local audio -->
+    <audio id="local_webrtc" autoplay></audio>
+  </div>
+  <script>
+    window.addDemoButtons = demoNames => {
+      let names = demoNames.split(',').map(item => item.trim());
+      let header = document.getElementById("header");
+      for (let n = 0; n < names.length; n++) {
+        let flag = 'demo' + names[n] + 'State';
+        window[flag] = 0;
+        if (names[n] != "Speak") {
+          header.innerHTML += '<button onclick=window.' + flag + '++>' + names[n] + '</button>';
+        }
+        else {
+          header.innerHTML += '<button id=\"Speak\" onclick=\"window.' + flag + '=!window.' + flag
+            + ';window.muteSelf()\">' + names[n] + '</button>';
+        }
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
+
 </html>
