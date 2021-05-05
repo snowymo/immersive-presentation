@@ -3,7 +3,7 @@ import { CG } from "../core/CG.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoText = function () {
-  this.background = "../../media/gltf/home-theater/home-theater.gltf";
+  this.background = null;
   this.loadGLTF = false;
   this.envInd = null;
 
