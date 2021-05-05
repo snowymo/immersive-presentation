@@ -1,6 +1,6 @@
 import { initAvatar } from "../primitive/avatar.js";
 import { mat4, vec3, quat } from "../render/math/gl-matrix.js";
-import { metaroomSender } from "../corelink_handler.js"
+import { metaroomWebrtcSender } from "../corelink_handler.js"
 import { corelink_message } from "../util/corelink_sender.js"
 
 // vars
@@ -97,7 +97,7 @@ window.webrtc_start = function () {
           uuid: window.localUuid,
           dest: "all",
         });
-        corelink.send(metaroomSender, msg);
+        corelink.send(metaroomWebrtcSender, msg);
         console.log("corelink.send", msg);
       })
       .catch(errorHandler);
@@ -174,7 +174,7 @@ function gotIceCandidate(event, peerUuid) {
       uuid: window.localUuid,
       dest: peerUuid,
     });
-    corelink.send(metaroomSender, msg);
+    corelink.send(metaroomWebrtcSender, msg);
     console.log("corelink.send", msg);
   }
 }
@@ -198,7 +198,7 @@ function createdDescription(description, peerUuid) {
           uuid: window.localUuid,
           dest: peerUuid,
         });
-        corelink.send(metaroomSender, msg);
+        corelink.send(metaroomWebrtcSender, msg);
         console.log("corelink.send", msg);
       })
       .catch(errorHandler);
@@ -471,7 +471,7 @@ window.muteSelf = function () {
   var msg = corelink_message("mute", {
     uuid: window.localUuid,
   });
-  corelink.send(metaroomSender, msg);
+  corelink.send(metaroomWebrtcSender, msg);
   console.log("corelink.send", msg);
   if (demoSpeakState % 2) {
     //false by default

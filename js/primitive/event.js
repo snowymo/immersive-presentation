@@ -3,7 +3,7 @@
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
 import { SyncObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
-import { metaroomSender } from "../corelink_handler.js"
+import { metaroomSyncSender, metaroomWebrtcSender } from "../corelink_handler.js"
 
 export function initSelfAvatar(id) {
   if (!window.avatars) {
@@ -190,11 +190,11 @@ export function init() {
         displayName: window.playerid,
         dest: peerUuid,
       });
-      corelink.send(metaroomSender, msg);
+      corelink.send(metaroomWebrtcSender, msg);
       // msg = corelink_message("webrtc", {
       //   test: "hello"
       // });
-      // corelink.send(metaroomSender, msg);
+      // corelink.send(metaroomSyncSender, msg);
       console.log("[webrtc] corelink.send from", window.localUuid, "to", peerUuid, msg);
       // JSON.stringify({ 'MR_Message': "Broadcast_All", 'displayName': MRVoip.username, 'uuid': MRVoip.localUuid, 'dest': peerUuid, 'roomID': MRVoip.roomID }));
     } else if (

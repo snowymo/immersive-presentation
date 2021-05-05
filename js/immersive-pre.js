@@ -23,7 +23,7 @@ import * as keyboardInput from "./util/input_keyboard.js";
 import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
-import { metaroomSender } from "./corelink_handler.js"
+import { metaroomSyncSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
 
@@ -97,7 +97,7 @@ function setAvatarSync() {
     setInterval(function () {
         if (window.playerid != null) {
             var msg = corelink_message("avatar", window.playerid);
-            corelink.send(metaroomSender, msg);
+            corelink.send(metaroomSyncSender, msg);
             // console.log("corelink.send", msg);
             // window.wsclient.send("avatar", window.playerid);
         }
@@ -366,7 +366,7 @@ function onXRFrame(t, frame) {
     // corelink
     // if (window.playerid != null) {
     //     var msg = corelink_message("avatar", window.playerid);
-    //     corelink.send(metaroomSender, msg);
+    //     corelink.send(metaroomSyncSender, msg);
     //     // console.log("corelink.send", msg);
     //     // window.wsclient.send("avatar", window.playerid);
     // }
