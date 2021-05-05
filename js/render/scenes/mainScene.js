@@ -28,8 +28,7 @@ import { demoNoiseGrid } from "./demoNoiseGrid.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
-let defaultBackground =
-  "./media/gltf/Futuristic_Lab_Mockup_03/Futuristic_Lab_Mockup.gltf";
+let defaultBackground = "./media/gltf/60_fifth_ave/60_fifth_ave.gltf";
 
 const FEET_TO_METERS = 0.3048;
 
