@@ -110,3 +110,4 @@ function switchBackground(background) {
 }
 
 addDemoButtons("AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Text");
+window.addNameField();
