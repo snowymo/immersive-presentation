@@ -50,3 +50,16 @@ export class SyncObject {
         this.draggingInput = undefined;
     }
 }
+
+window.syncDemos = function () {
+    // window[flag]
+    // window.demoNames
+    var flags = {};
+    window.demoNames.split(",").forEach(element => {
+        var temp = 'demo' + element + 'State';
+        flags[temp] = window[temp];
+    });
+    var msg = corelink_message("demo", flags);
+    corelink.send(metaroomSyncSender, msg);
+    console.log("corelink.send", msg);
+}

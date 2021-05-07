@@ -56,6 +56,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <!-- <script type="module" src="js/util/positional-audio.js"></script> -->
   <script type="module" src="js/immersive-pre.js"></script>
   <script type="module" src="js/corelink_handler.js"></script>
+  <script type="module" src="js/util/corelink_sender.js"></script>
   <div id="audios">
     <!-- local audio -->
     <audio id="local_webrtc" autoplay></audio>
@@ -68,7 +69,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         let flag = 'demo' + names[n] + 'State';
         window[flag] = 0;
         if (names[n] != "Speak") {
-          header.innerHTML += '<button onclick=window.' + flag + '++>' + names[n] + '</button>';
+          header.innerHTML += '<button onclick=window.' + flag + '++;window.syncDemos();>' + names[n] + '</button>';
         }
         else {
           header.innerHTML += '<button id=\"Speak\" onclick=\"window.' + flag + '=!window.' + flag

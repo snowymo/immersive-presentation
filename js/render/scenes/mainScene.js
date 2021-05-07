@@ -109,4 +109,6 @@ function switchBackground(background) {
   window.scene.addNode(new Gltf2Node({ url: background })).name = "backGround";
 }
 
-addDemoButtons("AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Text");
+window.demoNames = "AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Text";
+addDemoButtons(window.demoNames);
+// initDemos(window.demoNames);

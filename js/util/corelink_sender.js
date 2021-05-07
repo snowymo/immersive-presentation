@@ -101,6 +101,14 @@ export function corelink_message(type, data) {
                 };
             }
             break;
+        case "demo":
+            message = {
+                type: "demo",
+                uid: window.playerid,
+                state: data,
+            };
+            console.log("demo", message);
+            break;
         default:
             break;
     }

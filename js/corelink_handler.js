@@ -105,7 +105,7 @@ const run = async () => {
             window[streamID + '_data'] = ab2str(data)
             window.EventBus.publish(receiverdata["type"], receiverdata);
             if (receiverdata["type"] != "avatar")
-                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data'])
+                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
 
         }).catch((err) => { console.log(err) })
 

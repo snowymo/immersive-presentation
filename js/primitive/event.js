@@ -369,6 +369,14 @@ export function init() {
     // }
   });
 
+  window.EventBus.subscribe("demo", (json) => {
+    for (const [flagname, flagvalue] of Object.entries(json["state"])) {
+      window[flagname] = flagvalue;
+      // console.log(key, value);
+    }
+    // flags[temp] = window[temp];
+  });
+
   // on success
   // const response = {
   //   "type": "calibrate",
