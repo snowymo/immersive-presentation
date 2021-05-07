@@ -129,7 +129,7 @@ function setUpPeer(peerUuid, displayName, initCall = false) {
 }
 window.setUpPeer = setUpPeer;
 
-window.mute = function (peerUuid = window.localUuid) {
+window.mute = function (peerUuid = window.localUuid, operation = false) {
   // or unmute
   if (peerUuid == window.localUuid) {
     console.log("DONT mute self", window.localUuid);
@@ -140,6 +140,7 @@ window.mute = function (peerUuid = window.localUuid) {
     var hasAudio = false;
     console.log(
       peerUuid,
+      operation,
       window.peerConnections,
       window.peerConnections[peerUuid]
     );
@@ -149,13 +150,13 @@ window.mute = function (peerUuid = window.localUuid) {
         .getAudioTracks()
         .forEach((t) => {
           if (t.kind === "audio") {
-            t.enabled = !t.enabled;
-            hasAudio = t.enabled;
+            t.enabled = (operation == 1);
+            hasAudio = (operation == 1);
             return hasAudio;
           }
         });
     } else {
-      console.log("[webrtc] warning no mediaStream in", window.peerConnections[peerUuid].audioInputStream);
+      console.log("[webrtc] warning no mediaStream in", peerUuid, window.peerConnections);
     }
 
     return hasAudio;
@@ -470,6 +471,7 @@ window.muteSelf = function () {
   // });
   var msg = corelink_message("mute", {
     uuid: window.localUuid,
+    operation: demoSpeakState,
   });
   corelink.send(metaroomWebrtcSender, msg);
   console.log("corelink.send", msg);

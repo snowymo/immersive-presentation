@@ -147,7 +147,7 @@ export function init() {
   window.EventBus.subscribe("mute", (json) => {
     // a client wants to mute self
     console.log("receive webrtc", json["ts"], Date.now());
-    window.mute(json["state"]["uuid"]);
+    window.mute(json["state"]["uuid"], json["state"]["operation"]);
   });
 
   window.EventBus.subscribe("webrtc", (json) => {
