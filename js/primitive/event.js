@@ -103,7 +103,7 @@ export function init() {
     //TODO: We should not be handling visible avatars like this.
     //TODO: This is just a temporary bandaid.
     if (payload["user"] in window.avatars) {
-      window.avatars[payload["user"]].fromJson();
+      window.avatars[payload["user"]].fromJson(payload);
     } else {
       // never seen, create
       console.log("previously unseen user avatar", payload["user"]);
@@ -324,7 +324,7 @@ export function init() {
         dirtyObject["objid"],
         dirtyObject["type"]
       );
-    window.objects[dirtyObject["objid"]].fromJson();
+    window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
   });
 
   // on success
