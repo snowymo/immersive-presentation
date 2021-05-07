@@ -30,8 +30,47 @@ export class Avatar {
     this.roomID = "chalktalk";
     this.localUuid = this.createUUID();
     this.localStream = null;
+    this.name = id;
 
     this.audioContext = null;
+    // toJson will be called in corelink_sender.js for generating the msg to be sent over corelink server
+    this.toJson = function () {
+      var jsonObj = {
+        name: this.name,
+        mtx: this.headset.matrix,
+        pos: this.headset.position,
+        rot: this.headset.orientation,
+        controllers: {
+          left: {
+            mtx: this.leftController.matrix,
+            pos: this.leftController.position,
+            rot: this.leftController.orientation,
+          },
+          right: {
+            mtx: this.rightController.matrix,
+            pos: this.rightController.position,
+            rot: this.rightController.orientation,
+          },
+        },
+      }
+      return jsonObj;
+    }
+    // fromJson will be called in event.js for unpacking the msg from the server
+    this.fromJson = function (payload) {
+      this.headset.matrix = payload["state"]["mtx"];
+      this.headset.position = payload["state"]["pos"];
+      this.headset.orientation = payload["state"]["rot"];
+      this.leftController.matrix = payload["state"]["controllers"]["left"]["mtx"];
+      this.leftController.position = payload["state"]["controllers"]["left"]["pos"];
+      this.leftController.orientation = payload["state"]["controllers"]["left"]["rot"];
+      this.rightController.matrix = payload["state"]["controllers"]["right"]["mtx"];
+      this.rightController.position = payload["state"]["controllers"]["right"]["pos"];
+      this.rightController.orientation = payload["state"]["controllers"]["right"]["rot"];
+      this.headset.model.visible = true;
+      this.leftController.model.visible = true;
+      this.rightController.model.visible = true;
+      this.name = payload["state"]["name"]
+    }
   }
 
   // Taken from http://stackoverflow.com/a/105074/515584

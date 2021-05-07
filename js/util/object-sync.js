@@ -19,7 +19,7 @@ export function initObject(objectType, objectMatrix, objid = 0) {
     console.log("corelink.send", msg);
 }
 
-export function updateObject(objectID, objectMatrix) {
+export function updateObject(objectID) {
     // window.wsclient.send("object",
     //     {
     //         id: objectID,
@@ -28,14 +28,7 @@ export function updateObject(objectID, objectMatrix) {
     //             matrix: objectMatrix,
     //         },
     //     });
-    var msg = corelink_message("object",
-        {
-            id: objectID,
-            state: {
-                type: window.objects[objectID].type,
-                matrix: objectMatrix,
-            },
-        });
+    var msg = corelink_message("object", window.objects[objectID].toJson());
     corelink.send(metaroomSyncSender, msg);
     console.log("corelink.send", msg);
 }
@@ -48,5 +41,20 @@ export class SyncObject {
         this.node = null;
         this.draggingTransform = undefined;
         this.draggingInput = undefined;
+
+        this.toJson = function () {
+            var jsonObj = {
+                id: this.objid,
+                state: {
+                    type: this.type,
+                    matrix: this.node.matrix,
+                },
+            };
+            return jsonObj;
+        }
+
+        this.fromJson = function (dirtyObject) {
+            this.matrix = dirtyObject["matrix"];
+        }
     }
 }
