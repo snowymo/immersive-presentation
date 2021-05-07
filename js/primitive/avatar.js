@@ -53,7 +53,7 @@ export class Avatar {
           },
         },
       }
-      console.log("this.name", this.name, "jsonObj.name", jsonObj.name);
+      // console.log("this.name", this.name, "jsonObj.name", jsonObj.name);
       return jsonObj;
     }
     // fromJson will be called in event.js for unpacking the msg from the server
