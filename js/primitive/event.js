@@ -98,6 +98,10 @@ export function init() {
     // console.log("subscribe avatar")
     // console.log(json);
     const payload = json;
+    if (payload["user"] == window.playerid) {
+      // self
+      return;
+    }
     //console.log(payload);
     // for (let key in payload) {
     //TODO: We should not be handling visible avatars like this.

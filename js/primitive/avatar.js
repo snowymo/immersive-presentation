@@ -53,6 +53,7 @@ export class Avatar {
           },
         },
       }
+      console.log("this.name", this.name, "jsonObj.name", jsonObj.name);
       return jsonObj;
     }
     // fromJson will be called in event.js for unpacking the msg from the server
@@ -69,7 +70,8 @@ export class Avatar {
       this.headset.model.visible = true;
       this.leftController.model.visible = true;
       this.rightController.model.visible = true;
-      this.name = payload["state"]["name"]
+      this.name = payload["state"]["name"];
+      console.log("this.playerid", this.playerid, "this.name", this.name);
     }
   }
 
@@ -133,4 +135,8 @@ export class Button {
   constructor() {
     this.pressed = false;
   }
+}
+
+window.updateName = function () {
+  window.avatars[window.playerid].name = document.getElementById("name").value;
 }
