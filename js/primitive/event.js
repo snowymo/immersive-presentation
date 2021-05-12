@@ -98,37 +98,16 @@ export function init() {
     // console.log("subscribe avatar")
     // console.log(json);
     const payload = json;
+    if (payload["user"] == window.playerid) {
+      // self
+      return;
+    }
     //console.log(payload);
     // for (let key in payload) {
     //TODO: We should not be handling visible avatars like this.
     //TODO: This is just a temporary bandaid.
     if (payload["user"] in window.avatars) {
-      window.avatars[payload["user"]].headset.matrix =
-        payload["state"]["mtx"];
-      window.avatars[payload["user"]].headset.position =
-        payload["state"]["pos"];
-      window.avatars[payload["user"]].headset.orientation =
-        payload["state"]["rot"];
-      window.avatars[payload["user"]].leftController.matrix =
-        payload["state"]["controllers"]["left"]["mtx"];
-      window.avatars[payload["user"]].leftController.position =
-        payload["state"]["controllers"]["left"]["pos"];
-      window.avatars[payload["user"]].leftController.orientation =
-        payload["state"]["controllers"]["left"]["rot"];
-      window.avatars[payload["user"]].rightController.matrix =
-        payload["state"]["controllers"]["right"]["mtx"];
-      window.avatars[payload["user"]].rightController.position =
-        payload["state"]["controllers"]["right"]["pos"];
-      window.avatars[payload["user"]].rightController.orientation =
-        payload["state"]["controllers"]["right"]["rot"];
-      window.avatars[payload["user"]].headset.model.visible = true;
-      window.avatars[
-        payload["user"]
-      ].leftController.model.visible = true;
-      window.avatars[
-        payload["user"]
-      ].rightController.model.visible = true;
-      // window.avatars[payload["user"]].mode = payload["state"]["mode"];
+      window.avatars[payload["user"]].fromJson(payload);
     } else {
       // never seen, create
       console.log("previously unseen user avatar", payload["user"]);
@@ -176,13 +155,6 @@ export function init() {
         "[webrtc] case 1: set up peer connection object for a newcomer peer:" + peerUuid
       );
       window.setUpPeer(peerUuid, signal.displayName);
-      // window.serverConnection.send(JSON.stringify({ 'displayName': window.localDisplayName, 'uuid': window.localUuid, 'dest': peerUuid }));
-      // window.wsclient.send("webrtc", {
-      //   uuid: window.localUuid,
-      //   // roomID: window.avatars[window.playerid].roomID,
-      //   displayName: window.playerid,
-      //   dest: peerUuid,
-      // });
       // corelink
       var msg = corelink_message("webrtc", {
         uuid: window.localUuid,
@@ -191,10 +163,6 @@ export function init() {
         dest: peerUuid,
       });
       corelink.send(metaroomWebrtcSender, msg);
-      // msg = corelink_message("webrtc", {
-      //   test: "hello"
-      // });
-      // corelink.send(metaroomSyncSender, msg);
       console.log("[webrtc] corelink.send from", window.localUuid, "to", peerUuid, msg);
       // JSON.stringify({ 'MR_Message': "Broadcast_All", 'displayName': MRVoip.username, 'uuid': MRVoip.localUuid, 'dest': peerUuid, 'roomID': MRVoip.roomID }));
     } else if (
@@ -360,13 +328,7 @@ export function init() {
         dirtyObject["objid"],
         dirtyObject["type"]
       );
-    window.objects[dirtyObject["objid"]].matrix = dirtyObject["matrix"];
-
-
-    // }
-    // else {
-    //     console.log("failed object message", json);
-    // }
+    window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
   });
 
   window.EventBus.subscribe("demo", (json) => {

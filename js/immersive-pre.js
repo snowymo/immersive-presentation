@@ -304,7 +304,7 @@ function hitTest(inputSource, frame, refSpace) {
                     window.objects[id].draggingTransform,
                     window.objects[id].node.matrix
                 );
-                updateObject(id, window.objects[id].node.matrix);
+                updateObject(id);
                 return true;
             }
         }

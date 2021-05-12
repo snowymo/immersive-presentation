@@ -111,4 +111,4 @@ function switchBackground(background) {
 
 window.demoNames = "AirText,Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Text";
 addDemoButtons(window.demoNames);
-// initDemos(window.demoNames);
+window.addNameField();
