@@ -29,6 +29,7 @@ import { demoNoiseGrid } from "./demoNoiseGrid.js";
 let loadGLTF = false;
 let curDemoEnv = [];
 let defaultBackground = "./media/gltf/60_fifth_ave/60_fifth_ave.gltf";
+let tableUrl = "./media/gltf/table/Table.gltf"
 
 const FEET_TO_METERS = 0.3048;
 
@@ -38,6 +39,7 @@ export let mainScene = () => {
       "backGround";
     loadGLTF = true;
   }
+  window.scene.AddNode(new Gltf2Node({ url: tableUrl})).name = "table";
 
   m.save();
   // add the procedural objects you wish to have all the time here
