@@ -7,13 +7,15 @@ let DemoText = function () {
   this.loadGLTF = false;
   this.envInd = null;
 
+  console.log('hi mom');
+
   this.display = () => {
     m.save();
-       m.translate(0, 0, -0.4);
-       m.scale(0.04);
+       m.translate(0, 1.5, 0);
+       m.scale(0.1);
 
        renderList.mSquare().move(1.5, 4.5, 0)
-                           .turnY(time).color([10, 10, 10])
+                           .turnY(time).color([10, 0, 0])
                            .setBaseTexture("font.png");
 
        m.save();
@@ -27,7 +29,7 @@ let DemoText = function () {
              C[n] = CG.mix(A[n], B[n], t);
 
           PT.layout(C);
-          renderList.mMesh(PT.mesh()).color([10, 10, 0])
+          renderList.mMesh(PT.mesh()).color([10, 0, 10])
                                      .setBaseTexture('font.png');
        m.restore();
 

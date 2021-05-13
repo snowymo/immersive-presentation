@@ -5,13 +5,12 @@ import { rokokoData } from "../../data/RokokoData.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoMocap = function () {
-  this.background = "./media/gltf/garage/garage.gltf";
+  this.background = null;
   this.loadGLTF = false;
   this.envInd = null;
 
   this.display = () => {
     m.save();
-    m.translate(.5, -0.8, -1.5);
     let bones = rokokoData[mocapFrame].Bones;
     for (let j = 0; j < bones.length; j++) {
       let name = bones[j].BoneName;
