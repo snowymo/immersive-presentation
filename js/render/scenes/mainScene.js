@@ -39,7 +39,7 @@ export let mainScene = () => {
       "backGround";
     loadGLTF = true;
   }
-  window.scene.AddNode(new Gltf2Node({ url: tableUrl})).name = "table";
+  window.scene.addNode(new Gltf2Node({ url: tableUrl}));
 
   m.save();
   // add the procedural objects you wish to have all the time here
