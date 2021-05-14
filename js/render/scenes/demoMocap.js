@@ -12,7 +12,7 @@ let DemoMocap = function () {
    this.display = () => {
       m.save();
 
-         m.translate(0,0.7,0);
+         m.translate(0,.75,0);
          m.scale(1/3);
 
 	 let mocapFrame = Math.floor(30 * time) % rokokoData.length;
