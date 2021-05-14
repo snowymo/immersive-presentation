@@ -30,11 +30,11 @@ let DemoParticles = function () {
     // RENDER THE PARTICLES AS A SINGLE MESH
 
     m.save();
-    m.translate(0, 1.0, -0.4);
+    m.translate(0, 1.5, 0);
     m.rotateY(time / 10);
     m.scale(0.3);
     CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
-    renderList.mMesh(P).color([2, 2, 2]); //.isParticles(true);
+    renderList.mMesh(P).color([10, 10, 10]); //.isParticles(true);
     m.restore();
   };
 

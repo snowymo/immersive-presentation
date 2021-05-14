@@ -14,7 +14,7 @@ let msg = 'Future Reality Lab\n    Metaroom', P;
 }
 
 let DemoAirText = function () {
-   this.background = "./media/gltf/cave/cave.gltf";
+   this.background = null;
    this.loadGLTF = false;
    this.envInd = null;
 
@@ -52,8 +52,11 @@ let DemoAirText = function () {
       }
       CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
       m.save();
-      m.translate(-.35, 1., -.5);
-      renderList.mMesh(P).size(.1).color([10, 10, 10]);
+         m.translate(-.5, 1.5, -.1);
+         renderList.mMesh(P).size(.1).color([10, 10, 10]);
+      m.restore();
+      m.save();
+         renderList.mCube().move(0,1.5,0).size(0.2).turnY(time).color([0, 1, 0]);
       m.restore();
    }
 }

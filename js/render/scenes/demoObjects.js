@@ -3,14 +3,14 @@ import { CG } from "../core/CG.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoObjects = function () {
-   this.background = "./media/gltf/home-theater/home-theater.gltf";
+   this.background = null;
    this.loadGLTF = false;
    this.envInd = null;
 
    this.display = () => {
       m.save();
-      m.translate(0, 0, -0.4);
-      m.scale(0.04);
+      m.translate(0, 1.5, 0);
+      m.scale(0.1);
 
       renderList.mCube().move(-4.5, 4.5, 0)
          .turnY(time).color([1, 1, 1])
