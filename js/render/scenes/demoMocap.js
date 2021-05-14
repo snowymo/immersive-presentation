@@ -5,57 +5,61 @@ import { rokokoData } from "../../data/RokokoData.js";
 import { time } from "../core/renderListScene.js";
 
 let DemoMocap = function () {
-  this.background = null;
-  this.loadGLTF = false;
-  this.envInd = null;
+   this.background = null;
+   this.loadGLTF = false;
+   this.envInd = null;
 
-  this.display = () => {
-    m.save();
-    let bones = rokokoData[mocapFrame].Bones;
-    for (let j = 0; j < bones.length; j++) {
-      let name = bones[j].BoneName;
-
-      let size = .025;
-      for (let n = 0; n < fingerNames.length; n++)
-        if (name.indexOf(fingerNames[n]) >= 0)
-          size = .005;
-
+   this.display = () => {
       m.save();
-      m.translate(bones[j].px, bones[j].py, bones[j].pz);
-      m.rotateZ(bones[j].qz);
-      m.rotateY(bones[j].qy);
-      m.rotateX(bones[j].qx);
-      if (j == 9) {
-        m.rotateZ(-1);
-        renderList.mSphere().move(0, .15, 0).size(.1, .15, .1).color([0, 2, 2]);
-      }
-      else
-        renderList.mCube().size(size).color([0, 2, 2]);
-      m.restore();
-    }
 
-    for (let n = 0; n < limbs.length; n++) {
-      let i = limbs[n][0], j = limbs[n][1];
-      let A = [bones[i].px, bones[i].py, bones[i].pz];
-      let B = [bones[j].px, bones[j].py, bones[j].pz];
-      m.save();
-      m.translate(CG.mix(A, B, .5));
-      let AB = CG.subtract(B, A);
-      m.aimZ(AB);
-      let r = n < 19 ? .015 : .005;
-      m.scale(r, r, CG.norm(AB) / 2);
-      renderList.mCylinder().color([2, 1, 1]);;
-      m.restore();
-    }
+         m.translate(0,0.7,0);
+         m.scale(1/3);
 
-    m.restore();
-    mocapFrame = (mocapFrame + 1) % rokokoData.length;
-  }
+	 let mocapFrame = Math.floor(30 * time) % rokokoData.length;
+         let bones = rokokoData[mocapFrame].Bones;
+
+         for (let j = 0; j < bones.length; j++) {
+            let name = bones[j].BoneName;
+
+            let size = .025;
+            for (let n = 0; n < fingerNames.length; n++)
+               if (name.indexOf(fingerNames[n]) >= 0)
+                  size = .005;
+
+            m.save();
+               m.translate(bones[j].px, bones[j].py, bones[j].pz);
+               m.rotateZ(bones[j].qz);
+               m.rotateY(bones[j].qy);
+               m.rotateX(bones[j].qx);
+               if (j == 9) {
+                  m.rotateZ(-1);
+                  renderList.mSphere().move(0, .15, 0).size(.1, .15, .1).color([0, 2, 2]);
+               }
+               else
+                  renderList.mCube().size(size).color([0, 2, 2]);
+            m.restore();
+         }
+
+         for (let n = 0; n < limbs.length; n++) {
+            let i = limbs[n][0], j = limbs[n][1];
+            let A = [bones[i].px, bones[i].py, bones[i].pz];
+            let B = [bones[j].px, bones[j].py, bones[j].pz];
+            m.save();
+               m.translate(CG.mix(A, B, .5));
+               let AB = CG.subtract(B, A);
+               m.aimZ(AB);
+               let r = n < 19 ? .015 : .005;
+               m.scale(r, r, CG.norm(AB) / 2);
+               renderList.mCylinder().color([2, 1, 1]);;
+            m.restore();
+         }
+
+      m.restore();
+   }
 }
 
 export let demoMocap = new DemoMocap();
 
-let mocapFrame = 0;
 let fingerNames = 'Hand,Thumb,Index,Middle,Ring,Little'.split(',');
 let limbs = [[1, 3], [2, 4], [9, 8], [3, 5], [4, 6], [5, 18], [6, 19],
 [10, 12], [11, 13], [12, 14], [13, 15], [14, 16], [15, 17],

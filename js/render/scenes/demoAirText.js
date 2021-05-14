@@ -35,14 +35,18 @@ let DemoAirText = function () {
          }
          let ns = 50 * airfont.strokeLength(ch);
          for (let n = 0; n < ns; n++) {
-            let xy = airfont.eval(n / ns, ch);
-            let rx = CG.random(), ry = CG.random(), rz = CG.random();
-            rx += .3 * Math.cos(1000 * n / ns + time / 2 * (n % 2 ? 1 : -1));
-            rz += .3 * Math.sin(1000 * n / ns + time / 2 * (n % 2 ? 1 : -1));
-            R.push([mix(0.5 * x + xy[0], 1 + 6 * rx, t),
-            mix(1.5 * y + xy[1], 2.4 + 1.5 * ry, t),
-            mix(0, 6 * rz - 1.5, t), .03,
-            i / msg.length, CG.random(), 1 - i / msg.length]);
+            let xy = airfont.eval(n / ns, ch),
+                theta = 1000 * n / ns + time / 2 * (n % 2 ? 1 : -1),
+                rx = CG.random() + .3 * Math.cos(theta),
+	        ry = CG.random() + .3 * Math.sin(theta),
+		rz = CG.random();
+            R.push([mix(0.5 * x + xy[0], 1 + 6 * rx, t),     // x
+                    mix(1.5 * y + xy[1], 2.4 + 1.5 * ry, t), // y
+                    mix(0, 6 * rz - 1.5, t),                 // z
+		    .03,                                     // radius
+                    i / msg.length,                          // red
+		    CG.random(),                             // green
+		    1 - i / msg.length]);                    // blue
          }
          x++;
          if (ch == '\n') {
@@ -52,11 +56,8 @@ let DemoAirText = function () {
       }
       CG.particlesSetPositions(P, R, CG.matrixMultiply(viewMatrix[0], m.value()));
       m.save();
-         m.translate(-.5, 1.5, -.1);
+         m.translate(-.5, 1, -.1);
          renderList.mMesh(P).size(.1).color([10, 10, 10]);
-      m.restore();
-      m.save();
-         renderList.mCube().move(0,1.5,0).size(0.2).turnY(time).color([0, 1, 0]);
       m.restore();
    }
 }
