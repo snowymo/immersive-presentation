@@ -45,6 +45,8 @@ export let mainScene = () => {
 
   m.save();
       renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
+      renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
+      renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
   m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
