@@ -9,72 +9,56 @@ let DemoObjects = function () {
 
    this.display = () => {
       m.save();
-      m.translate(0, 1.5, 0);
-      m.scale(0.1);
+      m.translate(0, 1, 0);
 
-      renderList.mCube().move(-4.5, 4.5, 0)
-         .turnY(time).color([1, 1, 1])
-         .setBaseTexture("brick.png");
-      renderList.mQuad().move(-1.5, 4.5, 0)
-         .turnY(time).color([1, 1, 1])
-         .setBaseTexture("stones.jpg");;
-      renderList.mSquare().move(1.5, 4.5, 0)
-         .turnY(time).color([10, 10, 10])
-         .setBaseTexture("font.png");
-      renderList.mSphere().move(4.5, 4.5, 0)
-         .turnY(time).color([1, 1, 1]);
+      for (let n = 0 ; n < 8 ; n++) {
+         m.save();
+         m.rotateY(2 * Math.PI * n / 7);
+         m.translate(n==0 ? 0 : .5, n==0 ? 0.05 : 0, 0);
+         m.scale(n==0 ? 0.15 : 0.1);
 
-      renderList.mCylinder().move(-4.5, 1.5, 0)
-         .turnY(time).color([1, 1, 1])
-         .textureView(window.textures[1].lookupImageByID(1))
-         .textureAtlas(window.textures[1]);
-      renderList.mRoundedCylinder().move(-1.5, 1.5, 0)
-         .turnY(time)
-         .color([1, 1, 1])
-         .textureView(window.textures[2].lookupImageByID(1))
-         .textureAtlas(window.textures[2]);
-      renderList.mTorus().move(1.5, 1.5, 0)
-         .turnY(time).color([1, 1, 1]);
-      renderList.mDisk().move(4.5, 1.5, 0)
-         .turnY(time).color([1, 1, 1]);
+	 switch (n) {
+	 case 0:
+	 m.save();
+	 m.rotateY(time);
+         renderList.mSphere().turnX(-Math.PI/2).color([1, 1, 1]).setBaseTexture("earth_texture.png");
+	 m.restore();
+	 break;
 
-      renderList.mCone().move(-4.5, -1.5, 0)
-         .turnY(time).color([1, 1, 1]);
-      renderList.mTube().move(-1.5, -1.5, 0)
-         .turnY(time).color([1, 1, 1]);
-      renderList.mTube3().move(1.5, -1.5, 0)
-         .turnY(time).color([1, 1, 1]);
-      renderList.mGluedCylinder().move(4.5, -1.5, 0)
-         .turnY(time)
-         .color([1, 1, 1]);
+	 case 1:
+         renderList.mCube().turnY(time).color([1, 1, 1]).setBaseTexture("brick.png");
+         break;
 
-      m.save();
-      m.translate(0, 0, 3);
-      m.rotateY(Math.sin(2 * time));
-      m.translate(-2, 1, 0);
-      m.scale(.3, .6, .6);
+	 case 2:
+         renderList.mQuad().turnY(time).color([1, 1, 1]).setBaseTexture("stones.jpg");;
+	 break;
 
-      let t = Math.max(0, Math.min(1, .5 + Math.sin(time)));
-      for (let n = 0; n < msg.length; n++)
-         C[n] = CG.mix(A[n], B[n], t);
+	 case 3:
+         renderList.mSquare().turnY(time).color([10, 0, 0]).setBaseTexture("font.png");
+	 break;
 
-      PT.layout(C);
-      renderList.mMesh(PT.mesh()).color([10, 10, 0])
-         .setBaseTexture('font.png');
-      m.restore();
+	 case 4:
+         renderList.mCylinder().turnY(time).color([1, 1, 1])
+	           .textureView(window.textures[1].lookupImageByID(1)).textureAtlas(window.textures[1]);
+	 break;
 
+	 case 5:
+         renderList.mRoundedCylinder().turnY(time).color([1, 1, 1])
+	           .textureView(window.textures[2].lookupImageByID(1)).textureAtlas(window.textures[2]);
+	 break;
+
+	 case 6:
+         renderList.mTorus().turnY(time).color([1, 1, 1]);
+	 break;
+
+	 case 7:
+         renderList.mCone().turnY(time).color([1, 1, 1]);
+	 break;
+         }
+         m.restore();
+      }
       m.restore();
    };
 };
-
-let msg = '  These are\nsome Metaroom\n   objects';
-let PT = new CG.ParticlesText(msg);
-
-let A = PT.layout(), B = [], C = [];
-for (let n = 0; n < msg.length; n++) {
-   let theta = Math.PI - 2 * Math.PI * n / msg.length;
-   B[n] = [10 * Math.cos(theta) + 6, 5 * Math.sin(theta) - 1, 0];
-   C[n] = B[n].slice();
-}
 
 export let demoObjects = new DemoObjects();

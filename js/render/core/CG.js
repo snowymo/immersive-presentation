@@ -465,11 +465,14 @@ CG.createMeshVertices = (M, N, uvToShape, vars) => {
 }
 
 CG.uvToVertex = (u,v,A,f) => {
-   let e = .001, P = f(u-e, v-e, A), Q = f(u+e, v-e, A),
-                 R = f(u-e, v+e, A), S = f(u+e, v+e, A),
-                 T = CG.subtract(CG.add(Q,S), CG.add(P,R)),
-                 U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
-                 N = CG.cross(T, U);
+   let e = .001,
+       P = f(Math.max(0,u-e), Math.max(0, v-e), A),
+       Q = f(Math.min(1,u+e), Math.max(0, v-e), A),
+       R = f(Math.max(0,u-e), Math.min(1, v+e), A),
+       S = f(Math.min(1,u+e), Math.min(1, v+e), A),
+       T = CG.subtract(CG.add(Q,S), CG.add(P,R)),
+       U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
+       N = CG.cross(T, U);
    return P.concat(CG.normalize(N))
            .concat(CG.normalize(T))
            .concat([u,v, 1,1,1]);
@@ -749,10 +752,10 @@ CG.uvToTube = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
 });
 
 CG.uvToCone = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
-   let t = 2 * Math.PI * u;
-   return [ Math.cos(t) * Math.sin(v) ,
-            Math.sin(t) * Math.sin(v) ,
-                          2*v - 1 ];
+   let t = -2 * Math.PI * u;
+   return [ Math.cos(t) * v ,
+            Math.sin(t) * v ,
+            1 - 2*v ];
 });
 
 CG.uvToRoundedCylinder = (u,v,p) => CG.uvToVertex(u,v,p, (u,v,p) => {
@@ -774,7 +777,7 @@ CG.uvToTorus = (u,v,r) => CG.uvToVertex(u,v,r, (u,v,r) => {
 });
 
 CG.uvToDisk = (u,v,s) => CG.uvToVertex(u,v,s, (u,v,s) => {
-  let theta = 2 * Math.PI * u,
+  let theta = -2 * Math.PI * u,
       x = Math.cos(theta),
       y = Math.sin(theta),
       z = 0;
@@ -804,7 +807,9 @@ CG.roundedCylinder = CG.createMeshVertices(32, 16, CG.uvToRoundedCylinder, 8);
 CG.torus           = CG.createMeshVertices(32, 16, CG.uvToTorus, 0.5);
 CG.torus1          = CG.createMeshVertices(32, 16, CG.uvToTorus, 0.1);
 CG.disk            = CG.createMeshVertices(32, 16, CG.uvToDisk, 1);
-CG.cone            = CG.createMeshVertices(32, 16, CG.uvToCone);
+//CG.cone            = CG.createMeshVertices(32, 16, CG.uvToCone);
+CG.cone            = CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToCone),
+                                   CG.createMeshVertices(32, 16, CG.uvToDisk, -1));
 CG.tube            = CG.createMeshVertices(32, 16, CG.uvToTube);
 CG.tube3           = CG.createMeshVertices( 4,  3, CG.uvToTube);
 CG.gluedCylinder   = CG.glueMeshes(CG.tube,
