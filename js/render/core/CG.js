@@ -3,11 +3,15 @@
 import { noiseGridVertices } from "../../data/NoiseGrid.js"
 export let CG = {};
 
-////////////////////////////// SUPPORT FOR VECTORS
 
-CG.add   = (a,b) => [ a[0] + b[0], a[1] + b[1], a[2] + b[2] ];
-CG.cross = (a,b) => [ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] ];
-CG.dot   = (a,b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+/////////////////// SUPPORT FOR VECTORS //////////////////////
+
+CG.abs    = a => [Math.abs(a[0]), Math.abs(a[1]), Math.abs(a[2])];
+CG.add    = (a,b) => [ a[0] + b[0], a[1] + b[1], a[2] + b[2] ];
+CG.cross  = (a,b) => [ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] ];
+CG.distV3 = (a,b) => [Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2) + Math.pow(a[2] - b[2], 2))];
+CG.dot    = (a,b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+CG.equal  = (a,b) => CG.norm(CG.subtract(a, b)) < .001;
 CG.ik = (a,b,C,D) => {
    let c = CG.dot(C,C), x = (1 + (a*a - b*b)/c) / 2, y = CG.dot(C,D)/c;
    for (let i = 0 ; i < 3 ; i++) D[i] -= y * C[i];
@@ -40,12 +44,11 @@ CG.random = function() {
                ((z = (170 * z) % 30323) / 30323) ) % 1;
    }
 }();
-
 CG.sCurve = (t) => t * t * (3 - 2 * t);
 CG.scale = (a,s) => [ s*a[0], s*a[1], s*a[2] ];
 CG.subtract = (a,b) => [ a[0] - b[0], a[1] - b[1], a[2] - b[2] ];
-CG.abs = a => [Math.abs(a[0]), Math.abs(a[1]), Math.abs(a[2])];
-CG.distV3 = (a,b) => [Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2) + Math.pow(a[2] - b[2], 2))];
+
+
 ////////////////////////////// SUPPORT FOR MATRICES
 
 CG.matrixAimZ = function(Z) {
@@ -124,17 +127,13 @@ CG.matrixMultiplyWithBuffer = (c, a, b) => {
    }
    return c;
 }
-CG.extractTranslation = a    => [a[12], a[13], a[14]];
-CG.extracScale = a => {
-  let s = [];
-  s.push( Math.sqrt(Math.pow(a[0],2) + Math.pow(a[1],2) + Math.pow(a[2],2)),
-          Math.sqrt(Math.pow(a[4],2) + Math.pow(a[5],2) + Math.pow(a[6],2)),
-          Math.sqrt(Math.pow(a[8],2) + Math.pow(a[9],2) + Math.pow(a[10],2)),
-  )
-  return s;
-}
-CG.extracRotation = a => {
+CG.extractTranslation = a => [a[12], a[13], a[14]];
+CG.extractScale = a => [ norm([a[0],a[1],a[ 2]]), 
+                         norm([a[4],a[5],a[ 6]]), 
+                         norm([a[8],a[9],a[10]]) ];
+CG.extractRotation = a => {
  //TODO
+ return [0,0,0];
 }
 CG.setTranslate = (m,t)      => {
   m[12] = t[0]; m[13] = t[1]; m[14] = t[2];
@@ -280,22 +279,6 @@ export let Matrix = function() {
    this.setTranslate = t       => CG.setTranslate(getVal(), t);
 }
 
-let V3 = {
-  cross     : (a, b) => [ a[1] * b[2] - a[2] * b[1],
-                          a[2] * b[0] - a[0] * b[2],
-                          a[0] * b[1] - a[1] * b[0] ],
-
-  dot       : (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
-
-  equal     : (a, b) => V3.norm(V3.subtract(a, b)) < .001,
-
-  norm      : v => Math.sqrt(V3.dot(v, v)),
-
-  normalize : v => { let s = Math.sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
-                     return [ v[0] / s, v[1] / s, v[2] / s ]; },
-
-  subtract  : (a, b) => [ a[0] - b[0], a[1] - b[1], a[2] - b[2] ],
-}
 
 ////////////////////////////// SUPPORT FOR SPLINES
 
@@ -332,7 +315,7 @@ CG.sampleBezierPath = (X, Y, Z, n) => {
 
   // FIND A START VECTOR TO HELP COMPUTE FIRST U VECTOR
 
-  let U, V, W = V3.normalize(V3.subtract(P[1], P[0]));
+  let U, V, W = CG.normalize(CG.subtract(P[1], P[0]));
   let x = Math.abs(W[0]),
       y = Math.abs(W[1]),
       z = Math.abs(W[2]);
@@ -342,9 +325,9 @@ CG.sampleBezierPath = (X, Y, Z, n) => {
   // CONTINUALLY MODIFY U AS PATH TURNS
 
   for (let i = 0 ; i < n ; i++) {
-     W = V3.normalize(V3.subtract(P[i+1], P[i]));
-     V = V3.normalize(V3.cross(W, U));
-     U = V3.normalize(V3.cross(V, W));
+     W = CG.normalize(CG.subtract(P[i+1], P[i]));
+     V = CG.normalize(CG.cross(W, U));
+     U = CG.normalize(CG.cross(V, W));
      P[i].push(U[0], U[1], U[2]);      // APPEND U TO POSITION
   }
   P[n].push(U[0], U[1], U[2]);         // APPEND U TO LAST POSITION
@@ -366,10 +349,10 @@ CG.evalCRSpline = (keys, t) => {
       i = Math.floor(n * t),
       f = n * t % 1;
 
-  let P0 = keys[i > 0 ? i-1 : V3.equal(keys[0], keys[n]) ? n-1 : 0],
+  let P0 = keys[i > 0 ? i-1 : CG.equal(keys[0], keys[n]) ? n-1 : 0],
       P1 = keys[i],
       P2 = keys[i+1],
-      P3 = keys[i+1 < n ? i+2 : V3.equal(keys[0], keys[n]) ? 1 : n];
+      P3 = keys[i+1 < n ? i+2 : CG.equal(keys[0], keys[n]) ? 1 : n];
 
   let p = [];
   for (let k = 0 ; k < 3 ; k++) {
@@ -520,9 +503,9 @@ CG.extrudeToShapeImage = (profile, path) => {
 
       // COMPUTE V PERPENDICULAR TO BOTH PATH and U.
 
-      let W  = V3.normalize(j == n-1 ? V3.subtract(p, p1)
-                                     : V3.subtract(p1, p));
-      let V  = V3.normalize(V3.cross(W, U));
+      let W  = CG.normalize(j == n-1 ? CG.subtract(p, p1)
+                                     : CG.subtract(p1, p));
+      let V  = CG.normalize(CG.cross(W, U));
 
       // PLACE THE INDIVIDUAL VERTICES.
 
@@ -554,14 +537,14 @@ CG.shapeImageToTriangleMesh = si => {
       // USE DIFFERENCES BETWEEN NEIGHBORING POSITIONS
       // TO COMPUTE THE SURFACE NORMAL N
 
-      let i0 = i > 0   ? i-1 : V3.equal(si[j][i], si[j][m-1]) ? m-2 : 0;
-      let i1 = i < m-1 ? i+1 : V3.equal(si[j][i], si[j][  0]) ?   1 : m-1;
-      let j0 = j > 0   ? j-1 : V3.equal(si[j][i], si[n-1][i]) ? n-2 : 0;
-      let j1 = j < n-1 ? j+1 : V3.equal(si[j][i], si[  0][i]) ?   1 : n-1;
+      let i0 = i > 0   ? i-1 : CG.equal(si[j][i], si[j][m-1]) ? m-2 : 0;
+      let i1 = i < m-1 ? i+1 : CG.equal(si[j][i], si[j][  0]) ?   1 : m-1;
+      let j0 = j > 0   ? j-1 : CG.equal(si[j][i], si[n-1][i]) ? n-2 : 0;
+      let j1 = j < n-1 ? j+1 : CG.equal(si[j][i], si[  0][i]) ?   1 : n-1;
 
-      let N = V3.normalize(V3.cross(V3.subtract(si[j][i1], si[j][i0]),
-                                    V3.subtract(si[j1][i], si[j0][i])));
-      let T = V3.normalize(V3.cross([P[0],P[1],P[2]], N));
+      let N = CG.normalize(CG.cross(CG.subtract(si[j][i1], si[j][i0]),
+                                    CG.subtract(si[j1][i], si[j0][i])));
+      let T = CG.normalize(CG.cross([P[0],P[1],P[2]], N));
 
       mesh.push(P[0],P[1],P[2], N[0],N[1],N[2], T[0],T[1],T[2], i/(m-1),j/(n-1), 1,1,1);
    }
@@ -580,6 +563,9 @@ CG.shapeImageToTriangleMesh = si => {
    return mesh;
 }
 
+
+///////////////////// MESHES MADE FROM PARTICLES ////////////////////////
+
 // CREATE A MESH FOR RENDERING PARTICLES
 
 CG.particlesCreateMesh = N => {
@@ -587,17 +573,62 @@ CG.particlesCreateMesh = N => {
    let V = new Float32Array(vs*6*N);
    for (let n = 0 ; n < N ; n++) {
       for (let i = 0 ; i < 6 ; i++) {
-      V[vs * (6*n + i) +  5] = 1;
-      V[vs * (6*n + i) +  6] = 1;
-      V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;
-      V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;
-      V[vs * (6*n + i) + 11] = 1;
-      V[vs * (6*n + i) + 12] = 1;
-      V[vs * (6*n + i) + 13] = 1;
+         V[vs * (6*n + i) +  5] = 1;                         // Normal : 0,0,1
+         V[vs * (6*n + i) +  6] = 1;                         // Tangent: 1,0,0
+         V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;             // u
+         V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;  // v
+         V[vs * (6*n + i) + 11] = 1;                         // rgb
+         V[vs * (6*n + i) + 12] = 1;
+         V[vs * (6*n + i) + 13] = 1;
       }
    }
    return V;
 }
+
+CG.particlesSetPositions = (V, A, M) => {
+
+   if (M === undefined)
+      M = CG.matrixIdentity();
+
+   const vs = VERTEX_SIZE, skip = 6 * vs;
+   const nMax = Math.min(A.length, V.length / skip);
+   let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
+   for (let n = 0 ; n < nMax ; n++) {
+      let i0 = skip * n;
+      let i1 = i0 + vs;
+      let i2 = i1 + vs;
+      let i3 = i2 + vs;
+      let i4 = i3 + vs;
+      let i5 = i4 + vs;
+
+      let r = A[n][3];
+      for (let j = 0 ; j < 3 ; j++) {
+         let x = M[4*j], y = M[4*j+1];
+         V[i0 + j] = A[n][j] - r * x - r * y;
+         V[i1 + j] = A[n][j] + r * x - r * y;
+         V[i2 + j] = A[n][j] - r * x + r * y;
+         V[i3 + j] = A[n][j] + r * x + r * y;
+      }
+
+      if (A[n].length > 4)
+         for (let j = 0 ; j < 3 ; j++) {
+            V[i0 + 11 + j] = A[n][4 + j];
+            V[i1 + 11 + j] = A[n][4 + j];
+            V[i2 + 11 + j] = A[n][4 + j];
+            V[i3 + 11 + j] = A[n][4 + j];
+	 }
+
+      copy(i3, i4);
+      if (n > 0            ) copy(i0, i0 - vs);
+      if (n == A.length - 1) copy(i4, i5);
+   }
+
+   for (let n = nMax ; n < V.length / skip ; n++)
+      for (let i = 0 ; i < skip ; i++)
+         V[skip * n + i] = 0;
+}
+
+// TEXT IS RENDERED AS A SINGLE MESH OF PARTICLES, ONE PER CHARACTER.
 
 CG.ParticlesText = function(msg) {
    let V = CG.particlesCreateMesh(msg.length);
@@ -689,54 +720,15 @@ CG.ParticlesText = function(msg) {
    }
 }
 
-CG.particlesSetPositions = (V, A, M) => {
 
-   if (M === undefined)
-      M = CG.matrixIdentity();
+/////////////////// DEFINE ALL OF THE BASIC SHAPES /////////////////////
 
-   const vs = VERTEX_SIZE, skip = 6 * vs;
-   const nMax = Math.min(A.length, V.length / skip);
-   let copy = (i,j) => { for (let n = 0 ; n < vs ; n++) V[j+n] = V[i+n]; }
-   for (let n = 0 ; n < nMax ; n++) {
-      let i0 = skip * n;
-      let i1 = i0 + vs;
-      let i2 = i1 + vs;
-      let i3 = i2 + vs;
-      let i4 = i3 + vs;
-      let i5 = i4 + vs;
-
-      let r = A[n][3];
-      for (let j = 0 ; j < 3 ; j++) {
-         let x = M[4*j], y = M[4*j+1];
-         V[i0 + j] = A[n][j] - r * x - r * y;
-         V[i1 + j] = A[n][j] + r * x - r * y;
-         V[i2 + j] = A[n][j] - r * x + r * y;
-         V[i3 + j] = A[n][j] + r * x + r * y;
-      }
-
-      if (A[n].length > 4)
-         for (let j = 0 ; j < 3 ; j++) {
-            V[i0 + 11 + j] = A[n][4 + j];
-            V[i1 + 11 + j] = A[n][4 + j];
-            V[i2 + 11 + j] = A[n][4 + j];
-            V[i3 + 11 + j] = A[n][4 + j];
-	 }
-
-      copy(i3, i4);
-      if (n > 0            ) copy(i0, i0 - vs);
-      if (n == A.length - 1) copy(i4, i5);
-   }
-
-   for (let n = nMax ; n < V.length / skip ; n++)
-      for (let i = 0 ; i < skip ; i++)
-         V[skip * n + i] = 0;
-}
-
-// CONVENIENCE FUNCTION TO EXTRUDE A PROFILE ALONG A PATH,
-// AND RETURN A TRIANGLE MESH AS THE RESULT.
+// EXTRUSION
 
 CG.extrude = (profile, path) =>
     CG.shapeImageToTriangleMesh(CG.extrudeToShapeImage(profile, path));
+
+// SPHERE
 
 CG.uvToSphere = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
    let t = 2 * Math.PI * u,
@@ -746,10 +738,14 @@ CG.uvToSphere = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
                           Math.sin(p) ];
 });
 
+// OPEN TUBE
+
 CG.uvToTube = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
   let theta = 2 * Math.PI * u;
   return [ Math.cos(theta),Math.sin(theta),2*v - 1];
 });
+
+// OPEN CONE
 
 CG.uvToCone = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
    let t = -2 * Math.PI * u;
@@ -757,6 +753,8 @@ CG.uvToCone = (u,v) => CG.uvToVertex(u,v,null, (u,v) => {
             Math.sin(t) * v ,
             1 - 2*v ];
 });
+
+// ROUNDED CYLINDER
 
 CG.uvToRoundedCylinder = (u,v,p) => CG.uvToVertex(u,v,p, (u,v,p) => {
    let pow = Math.pow,
@@ -768,6 +766,8 @@ CG.uvToRoundedCylinder = (u,v,p) => CG.uvToVertex(u,v,p, (u,v,p) => {
        return [ Math.cos(th) * c / t, Math.sin(th) * c / t, s / t ];
 });
 
+// TORUS
+
 CG.uvToTorus = (u,v,r) => CG.uvToVertex(u,v,r, (u,v,r) => {
    let t = 2 * Math.PI * u,
        p = 2 * Math.PI * v;
@@ -775,6 +775,8 @@ CG.uvToTorus = (u,v,r) => CG.uvToVertex(u,v,r, (u,v,r) => {
             Math.sin(t) * (1 + r * Math.cos(p)),
             r * Math.sin(p) ];
 });
+
+// DISK
 
 CG.uvToDisk = (u,v,s) => CG.uvToVertex(u,v,s, (u,v,s) => {
   let theta = -2 * Math.PI * u,
@@ -789,6 +791,8 @@ CG.uvToDisk = (u,v,s) => CG.uvToVertex(u,v,s, (u,v,s) => {
   return [ v*x*s,v*y,z];
 });
 
+// SURFACE OF REVOLUTION
+
 CG.uvToLathe = (u,v,C) => CG.uvToVertex(u,v,C, (u,v,C) => {
   if (! Array.isArray(C)) {
      r = CG.evalCubicSpline(C, v),
@@ -799,6 +803,8 @@ CG.uvToLathe = (u,v,C) => CG.uvToVertex(u,v,C, (u,v,C) => {
    return [ r * Math.cos(2*Math.PI*u), r * Math.sin(2*Math.PI*u), z ];
 });
 
+// DEFAULT VERSIONS OF MESHES BUILT FROM BASIC SHAPES
+
 CG.cube            = CG.createCubeVertices();
 CG.quad            = CG.createQuadVertices();
 CG.sphere          = CG.createMeshVertices(32, 16, CG.uvToSphere);
@@ -807,7 +813,6 @@ CG.roundedCylinder = CG.createMeshVertices(32, 16, CG.uvToRoundedCylinder, 8);
 CG.torus           = CG.createMeshVertices(32, 16, CG.uvToTorus, 0.5);
 CG.torus1          = CG.createMeshVertices(32, 16, CG.uvToTorus, 0.1);
 CG.disk            = CG.createMeshVertices(32, 16, CG.uvToDisk, 1);
-//CG.cone            = CG.createMeshVertices(32, 16, CG.uvToCone);
 CG.cone            = CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToCone),
                                    CG.createMeshVertices(32, 16, CG.uvToDisk, -1));
 CG.tube            = CG.createMeshVertices(32, 16, CG.uvToTube);
@@ -815,3 +820,4 @@ CG.tube3           = CG.createMeshVertices( 4,  3, CG.uvToTube);
 CG.gluedCylinder   = CG.glueMeshes(CG.tube,
                      CG.glueMeshes(CG.createMeshVertices(32, 16, CG.uvToDisk, -1),
                                    CG.createMeshVertices(32, 16, CG.uvToDisk, 1)));
+
