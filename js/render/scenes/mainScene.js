@@ -41,6 +41,31 @@ export let mainScene = () => {
     loadGLTF = true;
   }
   //window.scene.addNode(new Gltf2Node({ url: tableUrl}));
+  console.log(window.avatars)
+  for (let key in window.avatars) {
+    if(window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.position.x != undefined && window.avatars[key].headset.orientation.x != undefined) {
+      m.save();
+        let msg =  window.avatars[key].name;
+        let PT = new CG.ParticlesText(msg);
+        PT.layout();
+
+        m.translate(window.avatars[key].headset.position.x, window.avatars[key].headset.position.y, window.avatars[key].headset.position.z);
+        m.rotateX(2 * window.avatars[key].headset.orientation.x)
+        m.rotateY(2 * window.avatars[key].headset.orientation.y)
+        m.rotateZ(2 * window.avatars[key].headset.orientation.z)
+
+        m.save();
+          m.rotateY(Math.PI)
+          m.translate(-0.12,0.1,0)
+          m.scale(0.05);
+          
+          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
+        m.restore();
+      m.restore();
+    }
+    
+    
+  }
 
   // add the procedural objects you wish to have all the time here
 
