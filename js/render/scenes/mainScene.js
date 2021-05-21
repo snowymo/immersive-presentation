@@ -41,34 +41,9 @@ export let mainScene = () => {
     loadGLTF = true;
   }
   //window.scene.addNode(new Gltf2Node({ url: tableUrl}));
-  console.log(window.avatars)
-  for (let key in window.avatars) {
-    if(window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.position.x != undefined && window.avatars[key].headset.orientation.x != undefined) {
-      m.save();
-        let msg =  window.avatars[key].name;
-        let PT = new CG.ParticlesText(msg);
-        PT.layout();
-
-        m.translate(window.avatars[key].headset.position.x, window.avatars[key].headset.position.y, window.avatars[key].headset.position.z);
-        m.rotateX(2 * window.avatars[key].headset.orientation.x)
-        m.rotateY(2 * window.avatars[key].headset.orientation.y)
-        m.rotateZ(2 * window.avatars[key].headset.orientation.z)
-
-        m.save();
-          m.rotateY(Math.PI)
-          m.translate(-0.12,0.1,0)
-          m.scale(0.05);
-          
-          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
-        m.restore();
-      m.restore();
-    }
-    
-    
-  }
+  showNameTag();
 
   // add the procedural objects you wish to have all the time here
-
   m.save();
       renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
       renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
@@ -140,6 +115,34 @@ function switchBackground(background) {
   // it overwrites the latest gltf env in the demo list
   if (curDemoEnv.length > 0) curDemoEnv[curDemoEnv.length - 1].loadGLTF = false;
   window.scene.addNode(new Gltf2Node({ url: background })).name = "backGround";
+}
+
+function showNameTag() {
+  for (let key in window.avatars) {
+    if( window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined ) {
+      m.save();
+        let msg =  window.avatars[key].name;
+        let PT = new CG.ParticlesText(msg);
+        PT.layout();
+        // let mat = Array.from(window.avatars[key].headset.matrix);
+        let mat = [];
+        for (let i = 0; i< 16; i ++) {
+          mat.push(window.avatars[key].headset.matrix[i])
+        }
+        m.set(mat);
+
+        m.save();
+          m.rotateY(Math.PI)
+          m.translate(-0.12,0.1,0)
+          m.scale(0.05);
+          
+          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
+        m.restore();
+      m.restore();
+    }
+    
+    
+  }
 }
 
 window.demoNames = "AirText,Chris,Ken,Mocap,NoiseGrid,Objects,Particles,Speak,Text";
