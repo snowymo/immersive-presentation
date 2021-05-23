@@ -395,6 +395,13 @@ CG.vertexSetUV = (V, i, uv) => {
    V[i + 10] = uv[1];
 }
 
+CG.vertexSetRGB = (V, i, rgb) => {
+   V[i + 11] = rgb[0];
+   V[i + 12] = rgb[1];
+   V[i + 13] = rgb[2];
+}
+
+
 CG.createPoly4Vertices = V => {
    let A = [V[0],V[1],V[2]],
        B = [V[3],V[4],V[5]],
@@ -703,13 +710,19 @@ CG.particlesSetPositions = (V, A, M) => {
          V[i3 + j] = A[n][j] + r * x + r * y;
       }
 
-      if (A[n].length > 4)
+      if (A[n].length > 4) {
+	 let rgb = A[n].slice(4, 7);
+         for (let i = 0 ; i < 4 ; i++)
+	    CG.vertexSetRGB(V, i0 + i * vs, rgb);
+      }
+/*
          for (let j = 0 ; j < 3 ; j++) {
             V[i0 + 11 + j] = A[n][4 + j];
             V[i1 + 11 + j] = A[n][4 + j];
             V[i2 + 11 + j] = A[n][4 + j];
             V[i3 + 11 + j] = A[n][4 + j];
 	 }
+*/
 
       copy(i3, i4);
       if (n > 0            ) copy(i0, i0 - vs);
