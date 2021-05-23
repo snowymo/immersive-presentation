@@ -25,6 +25,12 @@ CG.normalize = a => {
    let s = Math.sqrt(CG.dot(a,a));
    return [ a[0] / s, a[1] / s, a[2] / s ];
 }
+CG.orthogonalVector = a => {
+   let c = a[1]*a[1] > Math.max(a[0]*a[0] , a[2]*a[2]) ? [1,0,0]
+                              : a[2]*a[2] > a[0]*a[0]  ? [0,1,0]
+			                               : [0,0,1];
+   return CG.normalize(CG.cross(c, a));
+}
 CG.random = function() {
    let seed, x, y, z;
    let init = s => {
@@ -366,27 +372,97 @@ CG.evalCRSpline = (keys, t) => {
 
 export const VERTEX_SIZE = 14;
 
+CG.vertexArray = (p,n,t,uv,rgb) => {
+   if (! t)
+      t = CG.orthogonalVector(n);
+   return [
+      p[0],p[1],p[2],
+      n[0],n[1],n[2],
+      t[0],t[1],t[2],
+      uv[0],uv[1],
+      rgb[0],rgb[1],rgb[2]
+   ];
+}
+
+CG.vertexSetNormal = (V, i, n) => {
+   V[i + 3] = n[0];
+   V[i + 4] = n[1];
+   V[i + 5] = n[2];
+}
+
+CG.vertexSetUV = (V, i, uv) => {
+   V[i +  9] = uv[0];
+   V[i + 10] = uv[1];
+}
+
 CG.createPoly4Vertices = V => {
    let A = [V[0],V[1],V[2]],
        B = [V[3],V[4],V[5]],
        C = [V[6],V[7],V[8]];
    let N = CG.normalize(CG.cross(CG.subtract(B,A), CG.subtract(C,B)));
-   return [
-      V[ 0],V[ 1],V[ 2], N[0],N[1],N[2], 0,0,0, 0,0, 1,1,1,1,1,1,
+   return CG.vertexArray(V.slice(0, 3), N, null, 0,0, 1,1,1).concat(
+          CG.vertexArray(V.slice(3, 6), N, null, 1,0, 1,1,1).concat(
+          CG.vertexArray(V.slice(9,12), N, null, 1,1, 1,1,1).concat(
+          CG.vertexArray(V.slice(6, 9), N, null, 0,1, 1,1,1))));
+/*
+   [
+      V[ 0],V[ 1],V[ 2], N[0],N[1],N[2], 0,0,0, 0,0, 1,1,1,
       V[ 3],V[ 4],V[ 5], N[0],N[1],N[2], 0,0,0, 1,0, 1,1,1,
       V[ 9],V[10],V[11], N[0],N[1],N[2], 0,0,0, 1,1, 1,1,1,
       V[ 6],V[ 7],V[ 8], N[0],N[1],N[2], 0,0,0, 0,1, 1,1,1,
    ];
+*/
 }
 
-CG.createQuadVertices = () => [
+CG.createQuadVertices = () =>
+    CG.vertexArray([ 1, 1,0], [0,0,1], [1,0,0], [1,1], [1,1,1]).concat(
+    CG.vertexArray([-1, 1,0], [0,0,1], [1,0,0], [0,1], [1,1,1]).concat(
+    CG.vertexArray([ 1,-1,0], [0,0,1], [1,0,0], [1,0], [1,1,1]).concat(
+    CG.vertexArray([-1,-1,0], [0,0,1], [1,0,0], [0,0], [1,1,1]))));
+/*
+[
     1, 1,0, 0,0,1, 1,0,0, 1,1, 1,1,1,
    -1, 1,0, 0,0,1, 1,0,0, 0,1, 1,1,1,
     1,-1,0, 0,0,1, 1,0,0, 1,0, 1,1,1,
-   -1,-1,0, 0,0,1, 1,0,0, 0,0, 1,1,1,1,1,1,
+   -1,-1,0, 0,0,1, 1,0,0, 0,0, 1,1,1,
 ];
+*/
 
-CG.createCubeVertices = () => [
+CG.createCubeVertices = () =>
+   CG.vertexArray([+1,+1,-1], [ 0, 0,-1], [1,0,0], [0,1], [1,1,1]).concat(
+   CG.vertexArray([+1,-1,-1], [ 0, 0,-1], [1,0,0], [0,0], [1,1,1]).concat(
+   CG.vertexArray([-1,+1,-1], [ 0, 0,-1], [1,0,0], [1,1], [1,1,1]).concat(
+   CG.vertexArray([-1,-1,-1], [ 0, 0,-1], [1,0,0], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([-1,-1,-1], [ 0,-1, 0], [0,0,1], [0,1], [1,1,1]).concat(
+   CG.vertexArray([+1,-1,-1], [ 0,-1, 0], [0,0,1], [0,0], [1,1,1]).concat(
+   CG.vertexArray([-1,-1,+1], [ 0,-1, 0], [0,0,1], [1,1], [1,1,1]).concat(
+   CG.vertexArray([+1,-1,+1], [ 0,-1, 0], [0,0,1], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([+1,-1,+1], [+1, 0, 0], [0,1,0], [0,1], [1,1,1]).concat(
+   CG.vertexArray([+1,-1,-1], [+1, 0, 0], [0,1,0], [0,0], [1,1,1]).concat(
+   CG.vertexArray([+1,+1,+1], [+1, 0, 0], [0,0,0], [1,1], [1,1,1]).concat(
+   CG.vertexArray([+1,+1,-1], [+1, 0, 0], [0,1,0], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([+1,+1,-1], [ 0,+1, 0], [0,0,1], [0,1], [1,1,1]).concat(
+   CG.vertexArray([-1,+1,-1], [ 0,+1, 0], [0,0,1], [0,0], [1,1,1]).concat(
+   CG.vertexArray([+1,+1,+1], [ 0,+1, 0], [0,0,1], [1,1], [1,1,1]).concat(
+   CG.vertexArray([-1,+1,+1], [ 0,+1, 0], [0,0,1], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([-1,+1,+1], [-1, 0, 0], [0,1,0], [0,1], [1,1,1]).concat(
+   CG.vertexArray([-1,+1,-1], [-1, 0, 0], [0,1,0], [0,0], [1,1,1]).concat(
+   CG.vertexArray([-1,-1,+1], [-1, 0, 0], [0,1,0], [1,1], [1,1,1]).concat(
+   CG.vertexArray([-1,-1,-1], [-1, 0, 0], [0,1,0], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([-1,-1,-1], [-1, 0, 0], [0,1,0], [0,0], [1,1,1]).concat(
+   CG.vertexArray([-1,-1,+1], [-1, 0, 0], [0,1,0], [1,0], [1,1,1]).concat(
+
+   CG.vertexArray([-1,-1,+1], [ 0, 0,+1], [1,0,0], [0,1], [1,1,1]).concat(
+   CG.vertexArray([+1,-1,+1], [ 0, 0,+1], [1,0,0], [0,0], [1,1,1]).concat(
+   CG.vertexArray([-1,+1,+1], [ 0, 0,+1], [1,0,0], [1,1], [1,1,1]).concat(
+   CG.vertexArray([+1,+1,+1], [ 0, 0,+1], [1,0,0], [1,0], [1,1,1]))))))))))))))))))))))))));
+/*
+[
    +1,+1,-1,  0, 0,-1,  1,0,0, 0,1, 1,1,1,
    +1,-1,-1,  0, 0,-1,  1,0,0, 0,0, 1,1,1,
    -1,+1,-1,  0, 0,-1,  1,0,0, 1,1, 1,1,1,
@@ -420,6 +496,7 @@ CG.createCubeVertices = () => [
    -1,+1,+1,  0, 0,+1,  1,0,0, 1,1, 1,1,1,
    +1,+1,+1,  0, 0,+1,  1,0,0, 1,0, 1,1,1,
 ];
+*/
 
 CG.foo = noiseGridVertices;
 
@@ -429,9 +506,14 @@ CG.uvToCylinder = (u,v) => {
    let z = Math.max(-1, Math.min(1, 10*v - 5));
 
    switch (Math.floor(5.001 * v)) {
+   case 0: case 5: return CG.vertexArray([0,0,z], [0,0,z], [-s,c,0], [u,v], [1,1,1]); // center of back/front end cap
+   case 1: case 4: return CG.vertexArray([c,s,z], [0,0,z], [-s,c,0], [u,v], [1,1,1]); // perimeter of back/front end cap
+   case 2: case 3: return CG.vertexArray([c,s,z], [c,s,0], [-s,c,0], [u,v], [1,1,1]); // back/front of cylindrical tube
+/*
    case 0: case 5: return [ 0,0,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // center of back/front end cap
    case 1: case 4: return [ c,s,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // perimeter of back/front end cap
    case 2: case 3: return [ c,s,z, c,s,0, -s,c,0, u,v, 1,1,1]; // back/front of cylindrical tube
+*/
    }
 }
 
@@ -456,29 +538,30 @@ CG.uvToVertex = (u,v,A,f) => {
        T = CG.subtract(CG.add(Q,S), CG.add(P,R)),
        U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
        N = CG.cross(T, U);
+   return CG.vertexArray(P, CG.normalize(N), CG.normalize(T), [u,v], [1,1,1]);
+/*
    return P.concat(CG.normalize(N))
            .concat(CG.normalize(T))
            .concat([u,v, 1,1,1]);
+*/
 }
 
 CG.glueMeshes = (a,b) => {
   let mesh = [];
-   if(a === undefined) return b;
-   else if (b === undefined) return a;
+   if(! a) return b;
+   else if (! b) return a;
    else {
-     let appendVertex = p => {
-        if (p)
-           for (let n = 0 ; n < p.length ; n++)
-              mesh.push(p[n]);
-     }
-           appendVertex(a);
-           for(let i = VERTEX_SIZE; i > 0; i --){
-             mesh.push(a[a.length-i]);
-           }
-           for(let i = 0; i < VERTEX_SIZE; i ++){
-             mesh.push(b[i]);
-           }
-           appendVertex(b);
+      let appendVertex = p => {
+         if (p)
+            for (let n = 0 ; n < p.length ; n++)
+               mesh.push(p[n]);
+      }
+      appendVertex(a);
+      for (let i = VERTEX_SIZE; i > 0; i--)
+         mesh.push(a[a.length-i]);
+      for (let i = 0; i < VERTEX_SIZE; i++)
+         mesh.push(b[i]);
+      appendVertex(b);
    }
    return mesh;
 }
@@ -545,8 +628,10 @@ CG.shapeImageToTriangleMesh = si => {
       let N = CG.normalize(CG.cross(CG.subtract(si[j][i1], si[j][i0]),
                                     CG.subtract(si[j1][i], si[j0][i])));
       let T = CG.normalize(CG.cross([P[0],P[1],P[2]], N));
-
+      mesh = mesh.concat(CG.vertexArray(P, N, T, [i/(m-1),j/(n-1)], [1,1,1]));
+/*
       mesh.push(P[0],P[1],P[2], N[0],N[1],N[2], T[0],T[1],T[2], i/(m-1),j/(n-1), 1,1,1);
+*/
    }
 
    // BUILD AND RETURN A SINGLE TRIANGLE STRIP.
@@ -573,6 +658,13 @@ CG.particlesCreateMesh = N => {
    let V = new Float32Array(vs*6*N);
    for (let n = 0 ; n < N ; n++) {
       for (let i = 0 ; i < 6 ; i++) {
+         let v = CG.vertexArray([0,0,0],[0,0,1],[1,0,0],
+	                        [i<2 ? 0 : 1, i==0 || i==2 ? 0 : 1],
+				[1,1,1]);
+         let K = vs * (6*n + i);
+         for (let k = 0 ; k < vs ; k++)
+	    V[K + k] = v[k];
+/*
          V[vs * (6*n + i) +  5] = 1;                         // Normal : 0,0,1
          V[vs * (6*n + i) +  6] = 1;                         // Tangent: 1,0,0
          V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;             // u
@@ -580,6 +672,7 @@ CG.particlesCreateMesh = N => {
          V[vs * (6*n + i) + 11] = 1;                         // rgb
          V[vs * (6*n + i) + 12] = 1;
          V[vs * (6*n + i) + 13] = 1;
+*/
       }
    }
    return V;
@@ -653,6 +746,11 @@ CG.ParticlesText = function(msg) {
       if (ch < 32 || ch > 127)
          ch = 32;
 
+      CG.vertexSetUV(V, i0, [chToU0(ch), chToV0(ch)]);
+      CG.vertexSetUV(V, i1, [chToU1(ch), chToV0(ch)]);
+      CG.vertexSetUV(V, i2, [chToU0(ch), chToV1(ch)]);
+      CG.vertexSetUV(V, i3, [chToU1(ch), chToV1(ch)]);
+/*
       V[i0 +  9] = chToU0(ch);      // SET U,V RANGE
       V[i0 + 10] = chToV0(ch);      // FOR LOOK-UP INTO
                                     // FONT TEXTURE IMAGE
@@ -664,7 +762,7 @@ CG.ParticlesText = function(msg) {
 
       V[i3 +  9] = chToU1(ch);
       V[i3 + 10] = chToV1(ch);
-
+*/
       copy(i3, i4);
       if (n > 0              ) copy(i0, i0 - vs);
       if (n == msg.length - 1) copy(i4, i5);
@@ -700,7 +798,9 @@ CG.ParticlesText = function(msg) {
 	        y = j==1 ? .5 : 0;
             for (let i = 0 ; i < 4 ; i++) {
 	       V[i0 + i * vs + j] = A[n][j];
+/*
 	       V[i0 + i * vs + 3 + j] = j < 2 ? 0 : 1;
+*/
 	    }
             if (ch != 10) {
                V[i0 + j] += -x - y;       // SET POSITION
@@ -709,6 +809,9 @@ CG.ParticlesText = function(msg) {
                V[i3 + j] +=  x + y;
             }
          }
+
+         for (let i = 0 ; i < 4 ; i++)
+	    CG.vertexSetNormal(V, i0 + i * vs, [0,0,1]);
 
 	 copy(i3, i4);
          if (n > 0              ) copy(i0, i0 - vs);
