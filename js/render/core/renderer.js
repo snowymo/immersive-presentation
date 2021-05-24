@@ -82,8 +82,8 @@ precision highp float;
 
 // input vertex
 in  vec3 aPos;
-in  vec3 aNor;
-in  vec3 aTan;
+in  vec3 aRot;
+
 in  vec2 aUV;
 in  vec4 aUVOff;
 in  vec3 aRGB;
@@ -110,6 +110,12 @@ uniform mat4 uProj;
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
 
+mat4 quaternionToMatrix(vec4 Q) {
+  vec3 X = 2.*vec3(.5-Q.y*Q.y-Q.z*Q.z,   Q.z*Q.w+Q.x*Q.y, Q.x*Q.z-Q.y*Q.w);
+  vec3 Y = 2.*vec3(   Q.y*Q.x-Q.z*Q.w,.5-Q.z*Q.z-Q.x*Q.x, Q.x*Q.w+Q.y*Q.z);
+  return mat4(X,0., Y,0., cross(X,Y),0., 0.,0.,0.,1.);
+}
+
 void main(void) {
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
@@ -117,9 +123,12 @@ void main(void) {
     vPos = aPos;
     vRGB = aRGB;
     mat4 invModel = inverse(uModel);
-    vNor = (vec4(aNor, 0.) * invModel).xyz;
-    vTan = (vec4(aTan, 0.) * invModel).xyz;
-    vBin = cross(vNor, vTan);
+
+    vec4 rot = vec4(aRot, sqrt(1. - dot(aRot,aRot)));
+    mat4 rotMat = quaternionToMatrix(rot);
+    vNor = (rotMat[0] * invModel).xyz;
+    vTan = (rotMat[1] * invModel).xyz;
+    vBin = (rotMat[2] * invModel).xyz;
 
     // image_uv + mesh_uv * (image_dimensions / atlas_dimensions)
 
@@ -1297,10 +1306,10 @@ export class Renderer {
       bpe * 0
     );
 
-    let aNor = gl.getAttribLocation(pgm.program, "aNor");
-    gl.enableVertexAttribArray(aNor);
+    let aRot = gl.getAttribLocation(pgm.program, "aRot");
+    gl.enableVertexAttribArray(aRot);
     gl.vertexAttribPointer(
-      aNor,
+      aRot,
       3,
       gl.FLOAT,
       false,
@@ -1308,20 +1317,16 @@ export class Renderer {
       bpe * 3
     );
 
-    let aTan = gl.getAttribLocation(pgm.program, "aTan");
-    gl.enableVertexAttribArray(aTan);
+    let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    gl.enableVertexAttribArray(aUV);
     gl.vertexAttribPointer(
-      aTan,
-      3,
+      aUV,
+      2,
       gl.FLOAT,
       false,
       bpe * VERTEX_SIZE,
       bpe * 6
     );
-
-    let aUV = gl.getAttribLocation(pgm.program, "aUV");
-    gl.enableVertexAttribArray(aUV);
-    gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, bpe * VERTEX_SIZE, bpe * 9);
 
     let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
     gl.enableVertexAttribArray(aRGB);
@@ -1331,8 +1336,9 @@ export class Renderer {
       gl.FLOAT,
       false,
       bpe * VERTEX_SIZE,
-      bpe * 11
+      bpe * 8
     );
+
 
     renderList.bufferAux = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);

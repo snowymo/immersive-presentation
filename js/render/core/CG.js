@@ -53,6 +53,24 @@ CG.random = function() {
 CG.sCurve = (t) => t * t * (3 - 2 * t);
 CG.scale = (a,s) => [ s*a[0], s*a[1], s*a[2] ];
 CG.subtract = (a,b) => [ a[0] - b[0], a[1] - b[1], a[2] - b[2] ];
+CG.XY2Q = (X,Y) => {
+   let Z = CG.cross(X, Y), Q;
+   if (X[0] + Y[1] + Z[2] > 0) {
+      let S = 2 * Math.sqrt(1 + X[0] + Y[1] + Z[2]);
+      Q = [ (Z[1] - Y[2]) / S, (X[2] - Z[0]) / S, (Y[0] - X[1]) / S, S / 4 ];
+   } else if (X[0] > Y[1] & X[0] > Z[2]) {
+      let S = 2 * Math.sqrt(1 + X[0] - Y[1] - Z[2]);
+      Q = [ S / 4, (X[1] + Y[0]) / S, (X[2] + Z[0]) / S, (Z[1] - Y[2]) / S ];
+   } else if (Y[1] > Z[2]) {
+      let S = 2 * Math.sqrt(1 - X[0] + Y[1] - Z[2]);
+      Q = [ (X[1] + Y[0]) / S, S / 4, (Y[2] + Z[1]) / S, (X[2] - Z[0]) / S ];
+   } else {
+      let S = 2 * Math.sqrt(1 - X[0] - Y[1] + Z[2]);
+      Q = [ (X[2] + Z[0]) / S, (Y[2] + Z[1]) / S, S / 4, (Y[0] - X[1]) / S ];
+   }
+   let s = Math.sign(Q[3]);
+   return [ -s * Q[0], -s * Q[1], -s * Q[2], s * Q[3] ];
+}
 
 
 ////////////////////////////// SUPPORT FOR MATRICES
@@ -370,35 +388,37 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-export const VERTEX_SIZE = 14;
+export const VERTEX_SIZE = 11;
 
 CG.vertexArray = (p,n,t,uv,rgb) => {
    if (! t)
       t = CG.orthogonalVector(n);
+   let q = CG.XY2Q(n, t);
    return [
       p[0],p[1],p[2],
-      n[0],n[1],n[2],
-      t[0],t[1],t[2],
+      q[0],q[1],q[2],
       uv[0],uv[1],
       rgb[0],rgb[1],rgb[2]
    ];
 }
 
 CG.vertexSetNormal = (V, i, n) => {
-   V[i + 3] = n[0];
-   V[i + 4] = n[1];
-   V[i + 5] = n[2];
+   let t = CG.orthogonalVector(n);
+   let q = CG.XY2Q(n, t);
+   V[i + 3] = q[0];
+   V[i + 4] = q[1];
+   V[i + 5] = q[2];
 }
 
 CG.vertexSetUV = (V, i, uv) => {
-   V[i +  9] = uv[0];
-   V[i + 10] = uv[1];
+   V[i + 6] = uv[0];
+   V[i + 7] = uv[1];
 }
 
 CG.vertexSetRGB = (V, i, rgb) => {
-   V[i + 11] = rgb[0];
-   V[i + 12] = rgb[1];
-   V[i + 13] = rgb[2];
+   V[i +  8] = rgb[0];
+   V[i +  9] = rgb[1];
+   V[i + 10] = rgb[2];
 }
 
 
@@ -411,14 +431,6 @@ CG.createPoly4Vertices = V => {
           CG.vertexArray(V.slice(3, 6), N, null, 1,0, 1,1,1).concat(
           CG.vertexArray(V.slice(9,12), N, null, 1,1, 1,1,1).concat(
           CG.vertexArray(V.slice(6, 9), N, null, 0,1, 1,1,1))));
-/*
-   [
-      V[ 0],V[ 1],V[ 2], N[0],N[1],N[2], 0,0,0, 0,0, 1,1,1,
-      V[ 3],V[ 4],V[ 5], N[0],N[1],N[2], 0,0,0, 1,0, 1,1,1,
-      V[ 9],V[10],V[11], N[0],N[1],N[2], 0,0,0, 1,1, 1,1,1,
-      V[ 6],V[ 7],V[ 8], N[0],N[1],N[2], 0,0,0, 0,1, 1,1,1,
-   ];
-*/
 }
 
 CG.createQuadVertices = () =>
@@ -426,14 +438,6 @@ CG.createQuadVertices = () =>
     CG.vertexArray([-1, 1,0], [0,0,1], [1,0,0], [0,1], [1,1,1]).concat(
     CG.vertexArray([ 1,-1,0], [0,0,1], [1,0,0], [1,0], [1,1,1]).concat(
     CG.vertexArray([-1,-1,0], [0,0,1], [1,0,0], [0,0], [1,1,1]))));
-/*
-[
-    1, 1,0, 0,0,1, 1,0,0, 1,1, 1,1,1,
-   -1, 1,0, 0,0,1, 1,0,0, 0,1, 1,1,1,
-    1,-1,0, 0,0,1, 1,0,0, 1,0, 1,1,1,
-   -1,-1,0, 0,0,1, 1,0,0, 0,0, 1,1,1,
-];
-*/
 
 CG.createCubeVertices = () =>
    CG.vertexArray([+1,+1,-1], [ 0, 0,-1], [1,0,0], [0,1], [1,1,1]).concat(
@@ -468,42 +472,6 @@ CG.createCubeVertices = () =>
    CG.vertexArray([+1,-1,+1], [ 0, 0,+1], [1,0,0], [0,0], [1,1,1]).concat(
    CG.vertexArray([-1,+1,+1], [ 0, 0,+1], [1,0,0], [1,1], [1,1,1]).concat(
    CG.vertexArray([+1,+1,+1], [ 0, 0,+1], [1,0,0], [1,0], [1,1,1]))))))))))))))))))))))))));
-/*
-[
-   +1,+1,-1,  0, 0,-1,  1,0,0, 0,1, 1,1,1,
-   +1,-1,-1,  0, 0,-1,  1,0,0, 0,0, 1,1,1,
-   -1,+1,-1,  0, 0,-1,  1,0,0, 1,1, 1,1,1,
-   -1,-1,-1,  0, 0,-1,  1,0,0, 1,0, 1,1,1,
-
-   -1,-1,-1,  0,-1, 0,  0,0,1, 0,1, 1,1,1,
-   +1,-1,-1,  0,-1, 0,  0,0,1, 0,0, 1,1,1,
-   -1,-1,+1,  0,-1, 0,  0,0,1, 1,1, 1,1,1,
-   +1,-1,+1,  0,-1, 0,  0,0,1, 1,0, 1,1,1,
-
-   +1,-1,+1, +1, 0, 0,  0,1,0, 0,1, 1,1,1,
-   +1,-1,-1, +1, 0, 0,  0,1,0, 0,0, 1,1,1,
-   +1,+1,+1, +1, 0, 0,  0,0,0, 1,1, 1,1,1,
-   +1,+1,-1, +1, 0, 0,  0,1,0, 1,0, 1,1,1,
-
-   +1,+1,-1,  0,+1, 0,  0,0,1, 0,1, 1,1,1,
-   -1,+1,-1,  0,+1, 0,  0,0,1, 0,0, 1,1,1,
-   +1,+1,+1,  0,+1, 0,  0,0,1, 1,1, 1,1,1,
-   -1,+1,+1,  0,+1, 0,  0,0,1, 1,0, 1,1,1,
-
-   -1,+1,+1, -1, 0, 0,  0,1,0, 0,1, 1,1,1,
-   -1,+1,-1, -1, 0, 0,  0,1,0, 0,0, 1,1,1,
-   -1,-1,+1, -1, 0, 0,  0,1,0, 1,1, 1,1,1,
-   -1,-1,-1, -1, 0, 0,  0,1,0, 1,0, 1,1,1,
-
-   -1,-1,-1, -1, 0, 0,  0,1,0, 0,0, 1,1,1,
-   -1,-1,+1, -1, 0, 0,  0,1,0, 1,0, 1,1,1,
-
-   -1,-1,+1,  0, 0,+1,  1,0,0, 0,1, 1,1,1,
-   +1,-1,+1,  0, 0,+1,  1,0,0, 0,0, 1,1,1,
-   -1,+1,+1,  0, 0,+1,  1,0,0, 1,1, 1,1,1,
-   +1,+1,+1,  0, 0,+1,  1,0,0, 1,0, 1,1,1,
-];
-*/
 
 CG.foo = noiseGridVertices;
 
@@ -516,11 +484,6 @@ CG.uvToCylinder = (u,v) => {
    case 0: case 5: return CG.vertexArray([0,0,z], [0,0,z], [-s,c,0], [u,v], [1,1,1]); // center of back/front end cap
    case 1: case 4: return CG.vertexArray([c,s,z], [0,0,z], [-s,c,0], [u,v], [1,1,1]); // perimeter of back/front end cap
    case 2: case 3: return CG.vertexArray([c,s,z], [c,s,0], [-s,c,0], [u,v], [1,1,1]); // back/front of cylindrical tube
-/*
-   case 0: case 5: return [ 0,0,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // center of back/front end cap
-   case 1: case 4: return [ c,s,z, 0,0,z, -s,c,0, u,v, 1,1,1]; // perimeter of back/front end cap
-   case 2: case 3: return [ c,s,z, c,s,0, -s,c,0, u,v, 1,1,1]; // back/front of cylindrical tube
-*/
    }
 }
 
@@ -546,11 +509,6 @@ CG.uvToVertex = (u,v,A,f) => {
        U = CG.subtract(CG.add(R,S), CG.add(P,Q)),
        N = CG.cross(T, U);
    return CG.vertexArray(P, CG.normalize(N), CG.normalize(T), [u,v], [1,1,1]);
-/*
-   return P.concat(CG.normalize(N))
-           .concat(CG.normalize(T))
-           .concat([u,v, 1,1,1]);
-*/
 }
 
 CG.glueMeshes = (a,b) => {
@@ -636,9 +594,6 @@ CG.shapeImageToTriangleMesh = si => {
                                     CG.subtract(si[j1][i], si[j0][i])));
       let T = CG.normalize(CG.cross([P[0],P[1],P[2]], N));
       mesh = mesh.concat(CG.vertexArray(P, N, T, [i/(m-1),j/(n-1)], [1,1,1]));
-/*
-      mesh.push(P[0],P[1],P[2], N[0],N[1],N[2], T[0],T[1],T[2], i/(m-1),j/(n-1), 1,1,1);
-*/
    }
 
    // BUILD AND RETURN A SINGLE TRIANGLE STRIP.
@@ -671,15 +626,6 @@ CG.particlesCreateMesh = N => {
          let K = vs * (6*n + i);
          for (let k = 0 ; k < vs ; k++)
 	    V[K + k] = v[k];
-/*
-         V[vs * (6*n + i) +  5] = 1;                         // Normal : 0,0,1
-         V[vs * (6*n + i) +  6] = 1;                         // Tangent: 1,0,0
-         V[vs * (6*n + i) +  9] = i < 2 ? 0 : 1;             // u
-         V[vs * (6*n + i) + 10] = i == 0 || i == 2 ? 0 : 1;  // v
-         V[vs * (6*n + i) + 11] = 1;                         // rgb
-         V[vs * (6*n + i) + 12] = 1;
-         V[vs * (6*n + i) + 13] = 1;
-*/
       }
    }
    return V;
@@ -715,14 +661,6 @@ CG.particlesSetPositions = (V, A, M) => {
          for (let i = 0 ; i < 4 ; i++)
 	    CG.vertexSetRGB(V, i0 + i * vs, rgb);
       }
-/*
-         for (let j = 0 ; j < 3 ; j++) {
-            V[i0 + 11 + j] = A[n][4 + j];
-            V[i1 + 11 + j] = A[n][4 + j];
-            V[i2 + 11 + j] = A[n][4 + j];
-            V[i3 + 11 + j] = A[n][4 + j];
-	 }
-*/
 
       copy(i3, i4);
       if (n > 0            ) copy(i0, i0 - vs);
@@ -763,19 +701,7 @@ CG.ParticlesText = function(msg) {
       CG.vertexSetUV(V, i1, [chToU1(ch), chToV0(ch)]);
       CG.vertexSetUV(V, i2, [chToU0(ch), chToV1(ch)]);
       CG.vertexSetUV(V, i3, [chToU1(ch), chToV1(ch)]);
-/*
-      V[i0 +  9] = chToU0(ch);      // SET U,V RANGE
-      V[i0 + 10] = chToV0(ch);      // FOR LOOK-UP INTO
-                                    // FONT TEXTURE IMAGE
-      V[i1 +  9] = chToU1(ch);
-      V[i1 + 10] = chToV0(ch);
 
-      V[i2 +  9] = chToU0(ch);
-      V[i2 + 10] = chToV1(ch);
-
-      V[i3 +  9] = chToU1(ch);
-      V[i3 + 10] = chToV1(ch);
-*/
       copy(i3, i4);
       if (n > 0              ) copy(i0, i0 - vs);
       if (n == msg.length - 1) copy(i4, i5);
@@ -809,12 +735,8 @@ CG.ParticlesText = function(msg) {
          for (let j = 0 ; j < 3 ; j++) {
             let x = j==0 ? .5 : 0,
 	        y = j==1 ? .5 : 0;
-            for (let i = 0 ; i < 4 ; i++) {
+            for (let i = 0 ; i < 4 ; i++)
 	       V[i0 + i * vs + j] = A[n][j];
-/*
-	       V[i0 + i * vs + 3 + j] = j < 2 ? 0 : 1;
-*/
-	    }
             if (ch != 10) {
                V[i0 + j] += -x - y;       // SET POSITION
                V[i1 + j] +=  x - y;       // WITHIN TILE
