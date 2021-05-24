@@ -81,12 +81,12 @@ const RenderList_VERTEX_SOURCE = `#version 300 es
 precision highp float;
 
 // input vertex
-in  vec3 aPos;
-in  vec3 aRot;
+in  vec3  aPos;
+in  vec3  aRot;
 
-in  vec2 aUV;
-in  vec4 aUVOff;
-in  vec3 aRGB;
+in  vec2  aUV;
+in  vec4  aUVOff;
+in  float aRGB;
 
 // interpolated vertex
 out vec3 vP;
@@ -116,12 +116,16 @@ mat4 quaternionToMatrix(vec4 Q) {
   return mat4(X,0., Y,0., cross(X,Y),0., 0.,0.,0.,1.);
 }
 
+vec3 unpackRGB(float rgb) {
+   return mod(vec3(rgb, rgb / 256., rgb / 65536.), 1.);
+}
+
 void main(void) {
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
     vPos = aPos;
-    vRGB = aRGB;
+    vRGB = unpackRGB(aRGB);
     mat4 invModel = inverse(uModel);
 
     vec4 rot = vec4(aRot, sqrt(1. - dot(aRot,aRot)));
@@ -1332,7 +1336,7 @@ export class Renderer {
     gl.enableVertexAttribArray(aRGB);
     gl.vertexAttribPointer(
       aRGB,
-      3,
+      1,
       gl.FLOAT,
       false,
       bpe * VERTEX_SIZE,

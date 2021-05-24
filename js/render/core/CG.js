@@ -31,6 +31,10 @@ CG.orthogonalVector = a => {
 			                               : [0,0,1];
    return CG.normalize(CG.cross(c, a));
 }
+CG.packRGB = rgb => {
+   let C = i => Math.floor(256 * Math.max(0, Math.min(.9999, rgb[i]))) / 256;
+   return C(0) + 256 * C(1) + 256 * 256 * C(2);
+}
 CG.random = function() {
    let seed, x, y, z;
    let init = s => {
@@ -388,7 +392,7 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-export const VERTEX_SIZE = 11;
+export const VERTEX_SIZE = 9;
 
 CG.vertexArray = (p,n,t,uv,rgb) => {
    if (! t)
@@ -398,7 +402,7 @@ CG.vertexArray = (p,n,t,uv,rgb) => {
       p[0],p[1],p[2],
       q[0],q[1],q[2],
       uv[0],uv[1],
-      rgb[0],rgb[1],rgb[2]
+      CG.packRGB(rgb)
    ];
 }
 
@@ -416,9 +420,7 @@ CG.vertexSetUV = (V, i, uv) => {
 }
 
 CG.vertexSetRGB = (V, i, rgb) => {
-   V[i +  8] = rgb[0];
-   V[i +  9] = rgb[1];
-   V[i + 10] = rgb[2];
+   V[i + 8] = CG.packRGB(rgb);
 }
 
 
