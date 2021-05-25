@@ -14,14 +14,13 @@ let DemoText = function () {
        m.translate(0, 1.5, 0);
        m.scale(0.1);
 
-       renderList.mSquare().move(1.5, 4.5, 0)
+       renderList.mSquare().move(0, 4.5, 0)
                            .turnY(time).color([10, 0, 0])
                            .setBaseTexture("font.png");
 
        m.save();
-          m.translate(0,0,3);
-          m.rotateY(Math.sin(2*time));
-          m.translate(-2,1,0);
+          m.rotateY(time);
+          m.translate(-2,0,0);
           m.scale(.3,.6,.6);
 
           let t = Math.max(0, Math.min(1, .5 + Math.sin(time)));
