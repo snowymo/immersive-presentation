@@ -110,10 +110,10 @@ uniform mat4 uProj;
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
 
-mat4 quaternionToMatrix(vec4 Q) {
+mat2x3 quaternionToXY(vec4 Q) {
   vec3 X = 2.*vec3(.5-Q.y*Q.y-Q.z*Q.z,   Q.z*Q.w+Q.x*Q.y, Q.x*Q.z-Q.y*Q.w);
   vec3 Y = 2.*vec3(   Q.y*Q.x-Q.z*Q.w,.5-Q.z*Q.z-Q.x*Q.x, Q.x*Q.w+Q.y*Q.z);
-  return mat4(X,0., Y,0., cross(X,Y),0., 0.,0.,0.,1.);
+  return mat2x3(X, Y);
 }
 
 vec3 unpackRGB(float rgb) {
@@ -128,11 +128,10 @@ void main(void) {
     vRGB = unpackRGB(aRGB);
     mat4 invModel = inverse(uModel);
 
-    vec4 rot = vec4(aRot, sqrt(1. - dot(aRot,aRot)));
-    mat4 rotMat = quaternionToMatrix(rot);
-    vNor = (rotMat[0] * invModel).xyz;
-    vTan = (rotMat[1] * invModel).xyz;
-    vBin = (rotMat[2] * invModel).xyz;
+    mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
+    vNor = (vec4(rotXY[0],0.) * invModel).xyz;
+    vTan = (vec4(rotXY[1],0.) * invModel).xyz;
+    vBin = cross(vNor, vTan);
 
     // image_uv + mesh_uv * (image_dimensions / atlas_dimensions)
 
