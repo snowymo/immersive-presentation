@@ -711,8 +711,8 @@ CG.ParticlesText = function(msg) {
 
    this.mesh = () => V;
 
-   this.layout = A => {
-      let isDefaultLayout = A === undefined;
+   this.layout = (A, ax, ay) => {
+      let isDefaultLayout = ! A;
       if (isDefaultLayout)
          A = [];
 
@@ -756,6 +756,33 @@ CG.ParticlesText = function(msg) {
 
          col++;
       }
+
+      // DO OPTIONAL HORIZONTAL POSITION ADJUSTMENT
+
+      if (ax !== undefined) {
+         let xlo = 10000, xhi = -xlo;
+         for (let i = 0 ; i < V.length ; i += vs) {
+	    xlo = Math.min(xlo, V[i]);
+	    xhi = Math.max(xhi, V[i]);
+	 }
+	 let dx = ax * (xlo - xhi) - xlo;
+         for (let i = 0 ; i < V.length ; i += vs)
+	    V[i] += dx;
+      }
+
+      // DO OPTIONAL VERTICAL POSITION ADJUSTMENT
+
+      if (ay !== undefined) {
+         let ylo = 10000, yhi = -ylo;
+         for (let i = 0 ; i < V.length ; i += vs) {
+	    ylo = Math.min(ylo, V[i+1]);
+	    yhi = Math.max(yhi, V[i+1]);
+	 }
+	 let dy = ay * (ylo - yhi) - ylo;
+         for (let i = 0 ; i < V.length ; i += vs)
+	    V[i+1] += dy;
+      }
+
       return A;
    }
 }
