@@ -31,8 +31,8 @@ export class Avatar {
     this.localUuid = this.createUUID();
     this.localStream = null;
     this.name = "user" + id;
-    this.nameTagColor = [1.5 + 2 * Math.random(),1.2 * Math.random(),1.2 * Math.random()];
-    this.vr = false;
+    this.nameTagColor = window.vr? [1.2 + 2 * Math.random(),Math.random(),Math.random()] : [Math.random(),Math.random(),1.2 + 2 * Math.random()];
+    this.vr = window.vr;
 
     this.audioContext = null;
     // toJson will be called in corelink_sender.js for generating the msg to be sent over corelink server

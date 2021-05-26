@@ -26,6 +26,7 @@ import { corelink_message } from "./util/corelink_sender.js"
 import { metaroomSyncSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
+window.vr = false;
 
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
@@ -69,6 +70,8 @@ export function initXR() {
     if (navigator.xr) {
         navigator.xr.isSessionSupported("immersive-vr").then((supported) => {
             xrButton.enabled = supported;
+            window.vr = supported;
+            // console.log("Found VR: " + window.vr);
         });
 
         // Load multiple audio sources.
