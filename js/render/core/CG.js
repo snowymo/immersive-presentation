@@ -785,6 +785,17 @@ CG.ParticlesText = function(msg) {
 
       return A;
    }
+
+   this.render = (renderList, m, color) => {
+      m.save();
+         m.scale(.5,1,1);
+         renderList.mMesh(this.mesh()).color(color).setBaseTexture('font.png');
+         m.rotateY(Math.PI);
+         renderList.mMesh(this.mesh()).color(color).setBaseTexture('font.png');
+      m.restore();
+   }
+
+   this.layout(null, .5, .5);
 }
 
 
