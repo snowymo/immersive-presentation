@@ -135,8 +135,7 @@ function showNameTag() {
           m.rotateY(Math.PI)
           m.translate(-0.12,0.1,0)
           m.scale(0.05);
-          
-          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
+          renderList.mMesh(PT.mesh()).color(window.avatars[key].vr? [10.,0.,0.]:window.avatars[key].nameTagColor).setBaseTexture('font.png');
         m.restore();
       m.restore();
     }

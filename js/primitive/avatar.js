@@ -30,7 +30,9 @@ export class Avatar {
     this.roomID = "chalktalk";
     this.localUuid = this.createUUID();
     this.localStream = null;
-    this.name = id;
+    this.name = "user" + id;
+    this.nameTagColor = [1.5 + 2 * Math.random(),1.2 * Math.random(),1.2 * Math.random()];
+    this.vr = false;
 
     this.audioContext = null;
     // toJson will be called in corelink_sender.js for generating the msg to be sent over corelink server
@@ -40,6 +42,8 @@ export class Avatar {
         mtx: this.headset.matrix,
         pos: this.headset.position,
         rot: this.headset.orientation,
+        color: this.nameTagColor,
+        device: this.device,
         controllers: {
           left: {
             mtx: this.leftController.matrix,
@@ -71,6 +75,8 @@ export class Avatar {
       this.leftController.model.visible = true;
       this.rightController.model.visible = true;
       this.name = payload["state"]["name"];
+      this.nameTagColor = payload["state"]["color"];
+      this.device = payload["state"]["device"];
     }
   }
 
