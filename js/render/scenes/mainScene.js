@@ -134,8 +134,8 @@ function showNameTag() {
         m.set(mat);
 
         m.save();
-          m.rotateY(Math.PI)
-          m.translate(0,0.15,0)
+          m.rotateY(Math.PI);
+          m.translate(0,0.15,0.1);
           m.scale(0.05);
           renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
         m.restore();
