@@ -125,7 +125,7 @@ function showNameTag() {
       m.save();
         let msg =  window.avatars[key].name;
         let PT = new CG.ParticlesText(msg);
-        PT.layout();
+        PT.layout(null, .5,.5);
         // let mat = Array.from(window.avatars[key].headset.matrix);
         let mat = [];
         for (let i = 0; i< 16; i ++) {
@@ -135,7 +135,7 @@ function showNameTag() {
 
         m.save();
           m.rotateY(Math.PI)
-          m.translate(-0.12,0.1,0)
+          m.translate(0,0.15,0)
           m.scale(0.05);
           renderList.mMesh(PT.mesh()).color(window.avatars[key].vr? [10.,0.,0.]:window.avatars[key].nameTagColor).setBaseTexture('font.png');
         m.restore();
