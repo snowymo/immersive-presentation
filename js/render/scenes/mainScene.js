@@ -20,6 +20,7 @@ import { rokokoData } from "../../data/RokokoData.js";
 
 import { demoText } from "./demoText.js";
 import { demoAirText } from "./demoAirText.js";
+import { demoBill } from "./demoBill.js";
 import { demoChris } from "./demoChris.js";
 import { demoHands } from "./demoHands.js";
 import { demoKen } from "./demoKen.js";
@@ -53,6 +54,7 @@ export let mainScene = () => {
   m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
+  if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
   if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);
   if (demoHandsState % 2) loadScene(demoHands); else stopScene(demoHands);
   if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
@@ -150,6 +152,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text";
 addDemoButtons(window.demoNames);
 window.addNameField();
