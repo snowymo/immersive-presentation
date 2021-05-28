@@ -120,6 +120,7 @@ function switchBackground(background) {
 }
 
 function showNameTag() {
+  console.log(window.vr)
   for (let key in window.avatars) {
     if( window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined ) {
       m.save();
@@ -137,7 +138,8 @@ function showNameTag() {
           m.rotateY(Math.PI);
           m.translate(0,0.15,0.1);
           m.scale(0.05);
-          renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
+          // renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
+          PT.render(renderList, m, window.avatars[key].nameTagColor);
         m.restore();
       m.restore();
     }
