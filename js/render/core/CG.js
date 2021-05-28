@@ -392,7 +392,7 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
-export const VERTEX_SIZE = 9;
+export const VERTEX_SIZE = 12;
 
 CG.vertexArray = (p,n,t,uv,rgb) => {
    if (! t)
@@ -402,7 +402,8 @@ CG.vertexArray = (p,n,t,uv,rgb) => {
       p[0],p[1],p[2],
       q[0],q[1],q[2],
       uv[0],uv[1],
-      CG.packRGB(rgb)
+      CG.packRGB(rgb),
+      0,0,0
    ];
 }
 

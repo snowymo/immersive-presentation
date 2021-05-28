@@ -87,6 +87,7 @@ in  vec3  aRot;
 in  vec2  aUV;
 in  vec4  aUVOff;
 in  float aRGB;
+in  vec3  aWts0, aWts1;
 
 // interpolated vertex
 out vec3 vP;
@@ -101,11 +102,16 @@ out vec3 vRGB;
 out vec3 vCursor;
 
 out vec2 vXY;
+out mat4 vBlobPhong;
+out float vWeights[6];
 
 // matrices
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform   float uBlobby;
+uniform   mat4  uMatrices[64], uInvMatrices[64];
+uniform   mat4  uBlobPhong[64]; 
 
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
@@ -121,6 +127,11 @@ vec3 unpackRGB(float rgb) {
 }
 
 void main(void) {
+  for (int i = 0 ; i < 3 ; i++) {
+         vWeights[i  ] = aWts0[i];
+         vWeights[3+i] = aWts1[i];
+  }
+
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
@@ -138,6 +149,29 @@ void main(void) {
     // formula for atlas
     //vUV = (aUVOff.xy + (aUV.xy * aUVOff.zw)) * vec2(1.,-1.) + vec2(0.,1.);
     vUV = (aUV) * vec2(1.,-1.) + vec2(0.,1.);
+
+    vec4 apos = vec4(aPos, 1.);
+    vec4 anor = vec4(vNor, 0.);
+    vec4 pos = apos;
+    vec4 nor = anor;
+
+    // IF THIS IS A BLOBBY OBJECT
+    if (uBlobby > 0.) {
+      // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
+      // AND COLORS FROM COMPONENT OBJECTS
+      pos = vec4(0.);
+      nor = vec4(0.);
+      vBlobPhong = mat4(0.);
+      for (int i = 0 ; i < 6 ; i++) {
+        if (vWeights[i] > 0.) {
+          int   n = int(vWeights[i]);
+          float t = mod(vWeights[i], 1.);
+          pos += t * (uMatrices[n] * apos);
+          nor += t * (anor * uInvMatrices[n]);
+          vBlobPhong += t * uBlobPhong[n];
+        }
+      }
+    }
     
     gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
 }
@@ -149,6 +183,10 @@ precision highp float; // HIGH PRECISION FLOATS
 uniform vec4 uColor;
 uniform vec3 uCursor; // CURSOR: xy=pos, z=mouse up/down
 uniform float uTime; // TIME, IN SECONDS
+uniform float uBlobby;
+uniform float uOpacity;
+uniform mat4  uPhong; // MATERIAL
+
 
 in vec2 vXY; // POSITION ON IMAGE
 in vec3 vP;
@@ -158,7 +196,8 @@ in vec3 vTan; // TANGENT
 in vec3 vBin; // BINORMAL
 in vec2 vUV ; // U,V
 in vec3 vRGB; // R,G,B
-
+in float vWeights[6]; // BLOBBY WEIGHTS
+in mat4  vBlobPhong; // BLOBBY MATERIAL
 
 #define LDIR_MAX_COUNT (1)
 
