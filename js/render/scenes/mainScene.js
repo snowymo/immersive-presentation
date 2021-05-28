@@ -28,6 +28,7 @@ import { demoNoiseGrid } from "./demoNoiseGrid.js";
 import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoRohail } from "./demoRohail.js";
+import { demoSyncTest } from "./demoSyncTest.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -62,6 +63,7 @@ export let mainScene = () => {
   if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
   if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
   if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
+  if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
 };
 
 function loadScene(demo) {
@@ -149,6 +151,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text";
+window.demoNames = "AirText,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text,SyncTest";
 addDemoButtons(window.demoNames);
 window.addNameField();
