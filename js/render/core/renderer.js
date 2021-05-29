@@ -152,10 +152,10 @@ void main(void) {
 
     vec4 apos = vec4(aPos, 1.);
     vec4 anor = vec4(vNor, 0.);
-    vec4 pos = apos;
+    // vec4 pos = apos; // !!!!!!!!!!!!!!!!!!!!!!!!! might cause potential problem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     vec4 nor = anor;
 
-    // IF THIS IS A BLOBBY OBJECT
+    // // IF THIS IS A BLOBBY OBJECT
     if (uBlobby > 0.) {
       // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
       // AND COLORS FROM COMPONENT OBJECTS
@@ -172,7 +172,8 @@ void main(void) {
         }
       }
     }
-    
+    nor = nor * invModel;
+    vNor = nor.xyz;
     gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
 }
 `;
