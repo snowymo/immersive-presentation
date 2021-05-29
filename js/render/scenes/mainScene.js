@@ -20,6 +20,7 @@ import { rokokoData } from "../../data/RokokoData.js";
 
 import { demoText } from "./demoText.js";
 import { demoAirText } from "./demoAirText.js";
+import { demoBill } from "./demoBill.js";
 import { demoChris } from "./demoChris.js";
 import { demoHands } from "./demoHands.js";
 import { demoKen } from "./demoKen.js";
@@ -53,6 +54,7 @@ export let mainScene = () => {
   m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
+  if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
   if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);
   if (demoHandsState % 2) loadScene(demoHands); else stopScene(demoHands);
   if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
@@ -127,7 +129,7 @@ function showNameTag() {
       m.save();
         let msg =  window.avatars[key].name;
         let PT = new CG.ParticlesText(msg);
-        PT.layout();
+        PT.layout(null, .5,.5);
         // let mat = Array.from(window.avatars[key].headset.matrix);
         let mat = [];
         for (let i = 0; i< 16; i ++) {
@@ -136,11 +138,11 @@ function showNameTag() {
         m.set(mat);
 
         m.save();
-          m.rotateY(Math.PI)
-          m.translate(-0.12,0.1,0)
+          m.rotateY(Math.PI);
+          m.translate(0,0.15,0.1);
           m.scale(0.05);
-          
-          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
+          // renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
+          PT.render(renderList, m, window.avatars[key].nameTagColor);
         m.restore();
       m.restore();
     }
@@ -149,6 +151,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text";
 addDemoButtons(window.demoNames);
 window.addNameField();
