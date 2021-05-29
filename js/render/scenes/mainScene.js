@@ -124,7 +124,6 @@ function switchBackground(background) {
 }
 
 function showNameTag() {
-  console.log(window.vr)
   for (let key in window.avatars) {
     if( window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined ) {
       m.save();
