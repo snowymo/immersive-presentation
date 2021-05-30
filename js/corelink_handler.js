@@ -5,10 +5,11 @@ import { initAvatar } from "../js/primitive/avatar.js"
 
 const workspace = 'Chalktalk'
 const protocol = 'ws'
-const datatype = ['sync', 'webrtc']
+const datatype = ['sync', 'webrtc', 'event'];
 var receiverdata = 0.0
 export var metaroomSyncSender = ""
 export var metaroomWebrtcSender = "";
+export var metaroomEventSender = "";
 export var metaroomReceiver = "";
 
 const run = async () => {
@@ -64,7 +65,7 @@ const run = async () => {
             // initialize
             initSelfAvatar(metaroomSyncSender);
             // start webrtc signalling
-            window.webrtc_start();
+            // window.webrtc_start();
         }
 
         if (metaroomWebrtcSender = await corelink.createSender({
@@ -73,6 +74,14 @@ const run = async () => {
             console.log("ZH: metaroomWebrtcSender", metaroomWebrtcSender);
             // start webrtc signalling
             window.webrtc_start();
+        }
+
+        if (metaroomEventSender = await corelink.createSender({
+            workspace, protocol, type: 'event', echo: true, alert: true,
+        }).catch((err) => { console.log(err) })) {
+            console.log("ZH: metaroomEventSender", metaroomEventSender);
+            // start webrtc signalling
+            // window.webrtc_start();
         }
 
         metaroomReceiver = await corelink.createReceiver({
@@ -110,6 +119,7 @@ const run = async () => {
         }).catch((err) => { console.log(err) })
 
         // Start the XR application.
+        window.initxr = true;
         initXR();
     }
 }

@@ -1,5 +1,6 @@
 "use strict";
 import { mainScene } from "../scenes/mainScene.js";
+import { corelink_event } from "../../util/corelink_sender.js";
 
 export let viewMatrix = [], time = 0, isPressed = false, isDragged = false, isReleased = true;
 
@@ -8,6 +9,7 @@ export let buttonState = { left: [], right: [] };
 for (let i = 0; i < 7; i++) buttonState.left[i] = buttonState.right[i] = false;
 
 const validHandedness = ["left", "right"];
+window.initxr = false;
 
 export let updateController = (avatar, buttonInfo) => {
   controllerMatrix.left = avatar.leftController.matrix;
@@ -18,12 +20,12 @@ export let updateController = (avatar, buttonInfo) => {
     const b = buttonInfo.buttons;
 
     for (let i = 0; i < 7; i++) {
-       if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
-       else if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
-       else if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
+      if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
+      else if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
+      else if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
 
-       // Update
-       buttonState[h][i] = b[i].pressed;
+      // Update
+      buttonState[h][i] = b[i].pressed;
     }
   }
 };
@@ -33,6 +35,9 @@ let onPress = (hand, button) => {
   isPressed = true;
   isReleased = false;
   isDragged = false;
+  //ZH
+  console.log("handleSelect");
+  corelink_event({ it: "lt", op: "press" });
 };
 
 let onDrag = (hand, button) => {
@@ -46,6 +51,9 @@ let onRelease = (hand, button) => {
   isReleased = true;
   isPressed = false;
   isDragged = false;
+  //ZH
+  console.log("handleSelect");
+  corelink_event({ it: "lt", op: "release" });
 };
 
 export let getViews = (views) => {

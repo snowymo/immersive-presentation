@@ -101,10 +101,11 @@ export class Headset {
 export class Controller {
   constructor(handedness) {
     // this.vertices = verts;
+    this.handedness = handedness;
     this.position = vec3.fromValues(0, 0, 0);
     this.orientation = [0, 0, 0, 1];
-    // this.analog = new Button();
-    // this.trigger = new Button();
+    this.analog = new Button();
+    this.trigger = new Button();
     // this.side = new Button();
     // this.x = new Button();
     // this.y = new Button();
@@ -118,6 +119,21 @@ export class Controller {
     this.model.scale = vec3.fromValues(1, 1, 1);
     this.model.name = "ctrl";
     this.model.visible = false;
+
+    this.toJson = function () {
+      var jsonObj = {
+        analog: this.analog.pressed,
+        trigger: this.trigger.pressed,
+        handedness: this.handedness,
+      }
+      // console.log("this.name", this.name, "jsonObj.name", jsonObj.name);
+      return jsonObj;
+    }
+    // fromJson will be called in event.js for unpacking the msg from the server
+    this.fromJson = function (payload) {
+      this.analog.pressed = payload["state"]["analog"];
+      this.trigger.pressed = payload["state"]["trigger"];
+    }
   }
 }
 

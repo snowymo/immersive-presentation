@@ -23,7 +23,7 @@ import * as keyboardInput from "./util/input_keyboard.js";
 import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
-import { metaroomSyncSender } from "./corelink_handler.js"
+import { metaroomSyncSender, metaroomEventSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
 window.vr = false;
@@ -156,6 +156,7 @@ function onRequestSession() {
 async function onSessionStarted(session) {
     session.addEventListener("end", onSessionEnded);
 
+    //Each input source should define a primary action. A primary action (which will sometimes be shortened to "select action") is a platform-specific action which responds to the user manipulating it by delivering, in order, the events selectstart, select, and selectend. Each of these events is of type XRInputSourceEvent.
     session.addEventListener("selectstart", onSelectStart);
     session.addEventListener("selectend", onSelectEnd);
     session.addEventListener("select", (ev) => {

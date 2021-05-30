@@ -8,6 +8,7 @@ window.localUuid = "";
 // window.localStream;
 window.peerConnections = {}; // key is uuid, values are peer connection object and user defined display name string
 window.remoteIDs = [];
+window.webrtcInit = false;
 // const AudioContext = window.AudioContext || window.webkitAudioContext;
 var peerConnectionConfig = {
   iceServers: [
@@ -53,6 +54,10 @@ function setUserMediaVariable() {
 }
 
 window.webrtc_start = function () {
+  if (window.webrtcInit)
+    console.log("window.webrtcInit", window.webrtcInit);
+
+  window.webrtcInit = true;
   window.localUuid = window.avatars[window.playerid].localUuid;
   // specify audio for user media
   // window.maxVideoWidth = 320;
