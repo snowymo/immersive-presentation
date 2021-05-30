@@ -11,7 +11,26 @@ export var metaroomSyncSender = ""
 export var metaroomWebrtcSender = "";
 export var metaroomReceiver = "";
 
+window.offlineMode = false;
+function checkInternet() {
+    var ifConnected = window.navigator.onLine;
+    if (ifConnected) {
+        console.log('Connection available');
+    } else {
+        window.offlineMode = true;
+        console.log('Connection not available');
+    }
+}
+
 const run = async () => {
+    checkInternet();
+
+    if (window.offlineMode) {
+        // Start the XR application.
+        initSelfAvatar(0);
+        initXR();
+        return;
+    }
 
     var config = {}
     config.username = 'Testuser'
@@ -22,7 +41,9 @@ const run = async () => {
     corelink.debug = false;
 
 
-    if (await corelink.connect({ username: config.username, password: config.password }, { ControlIP: config.host, ControlPort: config.port }).catch((err) => { console.log(err) })) {
+    if (await corelink.connect({ username: config.username, password: config.password }, { ControlIP: config.host, ControlPort: config.port }).catch((err) => {
+        console.log(err);
+    })) {
         //const btn = document.createElement('button')
         //btn.innerHTML = "Hey there we have a new stream"
         //console.log("butttttonnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",btn)
