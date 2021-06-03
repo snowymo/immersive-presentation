@@ -3,8 +3,25 @@ import { m } from "../core/renderList.js";
 import { is_gl, is_pgm } from "../core/renderer.js";
 import { time } from "../core/renderListScene.js";
 const N = 10;
+let implicitSurface = null;
+
+let ImplicitSurfacesPgm = function () {
+    this.program = null;
+    this.vao = null;
+    this.buffer = null;
+
+    this.initBuffer = (gl) => {
+    this.buffer = gl.createBuffer();
+    };
+    this.initVAO = (gl) => {
+    this.vao = gl.createVertexArray();
+    };
+};
+
+export let implicitSurfacesPgm = new ImplicitSurfacesPgm();
+
 export function drawImplicitSurfaceObj() {
-    let implicitSurface = new ImplicitSurface(is_gl, m, is_pgm);
+    if(!implicitSurface) implicitSurface = new ImplicitSurface(is_gl, m, is_pgm);
     implicitSurface.setBlobby(1); 
     implicitSurface.setDivs(50);
     implicitSurface.setFaceted(0);

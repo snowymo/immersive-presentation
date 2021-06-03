@@ -1,5 +1,5 @@
 import { materials } from "./materials.js";
-import { matrix_inverse } from "./implicitSurface.js";
+import { matrix_inverse, matrix_perspective } from "./implicitSurface.js";
 import { VERTEX_SIZE } from "../../core/CG.js";
 
 export function setUniform(gl, pgm, type, name, a, b, c, d, e, f) {
@@ -8,7 +8,9 @@ export function setUniform(gl, pgm, type, name, a, b, c, d, e, f) {
 }
 
 export let drawMesh = (m, gl, pgm, mesh, materialId, isTriangleMesh) => {
-   setUniform(gl, pgm, 'Matrix4fv', 'uMatrix', false, m);
+   setUniform(gl, pgm, '1f', 'uOpacity', 1);
+   // setUniform(gl, pgm, 'Matrix4fv', 'uView', false, matrix_perspective(3)); // SET GPU CAMERA
+   setUniform(gl, pgm, 'Matrix4fv', 'uModel', false, m);
    setUniform(gl, pgm, 'Matrix4fv', 'uInvMatrix', false, matrix_inverse(m));
 
    let material = materials[materialId];

@@ -28,7 +28,7 @@ import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
 import * as Img from "../../util/image.js";
 import * as Tex from "../../util/webgl_texture_util.js";
-import { drawImplicitSurfaceObj } from "../core/implicitSurfaceObj.js";
+import { drawImplicitSurfaceObj, implicitSurfacesPgm } from "../core/implicitSurfaceObj.js";
 // import { loadImage } from "../../immersive-pre.js"
 
 export let is_gl = null; // implicit surface's gl
@@ -116,7 +116,8 @@ uniform mat4 uView;
 uniform mat4 uProj;
 uniform   float uBlobby;
 uniform   mat4  uMatrices[64], uInvMatrices[64];
-uniform   mat4  uBlobPhong[64]; 
+uniform   mat4  uBlobPhong[64];
+
 
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
@@ -1524,32 +1525,33 @@ export class Renderer {
   _drawImplicitSurfaceObj(views,renderList) {
     let gl = this._gl;
     is_gl = gl;
-    if (!renderList.program) {
-      renderList.program = new Program(
+    if (!implicitSurfacesPgm.program) {
+      implicitSurfacesPgm.program = new Program(
         gl,
         RenderList_VERTEX_SOURCE,
         RenderList_FRAG_SOURCE
       );
     }
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LEQUAL);
-    gl.enable(gl.CULL_FACE);
-    gl.clearDepth(-1);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    renderList.program.use();
-    let pgm = renderList.program;
+    implicitSurfacesPgm.program.use();
+    let pgm = implicitSurfacesPgm.program;
     is_pgm = pgm;
 
-    if (!renderList.vao) {
-      renderList.initVAO(gl);
-      gl.bindVertexArray(renderList.vao);
-      gl.useProgram(pgm.program);
-      renderList.buffer = gl.createBuffer();
-    }
+    // if (!renderList.vao) {
+    //   renderList.initVAO(gl);
+    //   gl.bindVertexArray(renderList.vao);
+    //   gl.useProgram(pgm.program);
+    //   renderList.buffer = gl.createBuffer();
+    // }
 
-    renderList.buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+    // renderList.buffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); 
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    // gl.clearDepth(-1);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); 
 
     let bpe = Float32Array.BYTES_PER_ELEMENT;
 
@@ -1575,28 +1577,6 @@ export class Renderer {
       bpe * 3
     );
 
-    // let aUV = gl.getAttribLocation(pgm.program, "aUV");
-    // gl.enableVertexAttribArray(aUV);
-    // gl.vertexAttribPointer(
-    //   aUV,
-    //   2,
-    //   gl.FLOAT,
-    //   false,
-    //   bpe * VERTEX_SIZE,
-    //   bpe * 6
-    // );
-
-    // let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
-    // gl.enableVertexAttribArray(aRGB);
-    // gl.vertexAttribPointer(
-    //   aRGB,
-    //   1,
-    //   gl.FLOAT,
-    //   false,
-    //   bpe * VERTEX_SIZE,
-    //   bpe * 8
-    // );
-
     let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
     gl.enableVertexAttribArray(aWts0);
     gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
@@ -1605,8 +1585,8 @@ export class Renderer {
     gl.enableVertexAttribArray(aWts1);
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
-    renderList.bufferAux = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
+    // renderList.bufferAux = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
 
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
    
@@ -1627,6 +1607,7 @@ export class Renderer {
         views[0].viewMatrix
       );
       // drawArrays();
+      drawImplicitSurfaceObj();
     }
 
     for (let i = 0; i < views.length; ++i) {
@@ -1655,9 +1636,10 @@ export class Renderer {
       //   gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
       // }
       // if (isMirror) gl.cullFace(gl.FRONT);
+      drawImplicitSurfaceObj();
     }
-    gl.cullFace(gl.BACK);
-    drawImplicitSurfaceObj();
+    // gl.cullFace(gl.BACK);
+    
   }
 
   _getRenderTexture(texture) {

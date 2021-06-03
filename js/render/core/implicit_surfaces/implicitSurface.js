@@ -584,9 +584,7 @@ export function ImplicitSurface(gl, M, program) {
        }
  
        if (! mesh) {
-          console.log("generate mesh here")
           mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
- 
           blobInverseMatrices = [];
           for (let b = 0 ; b < blobMatrices.length ; b++)
              blobInverseMatrices.push(matrix_inverse(blobMatrices[b]));
