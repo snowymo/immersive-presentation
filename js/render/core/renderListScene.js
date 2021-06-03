@@ -30,30 +30,30 @@ export let updateController = (avatar, buttonInfo) => {
   }
 };
 
-let onPress = (hand, button) => {
+export let onPress = (hand, button) => {
   console.log("pressed", hand, "button", button);
   isPressed = true;
   isReleased = false;
   isDragged = false;
   //ZH
-  console.log("handleSelect");
-  corelink_event({ it: "lt", op: "press" });
+  // console.log("handleSelect");
+  // corelink_event({ it: "lefttrigger", op: "press" });
 };
 
-let onDrag = (hand, button) => {
+export let onDrag = (hand, button) => {
   isDragged = true;
   isReleased = false;
   isPressed = false;
 };
 
-let onRelease = (hand, button) => {
+export let onRelease = (hand, button) => {
   console.log("released", hand, "button", button);
   isReleased = true;
   isPressed = false;
   isDragged = false;
   //ZH
-  console.log("handleSelect");
-  corelink_event({ it: "lt", op: "release" });
+  // console.log("handleSelect");
+  // corelink_event({ it: "lefttrigger", op: "release" });
 };
 
 export let getViews = (views) => {

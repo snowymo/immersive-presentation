@@ -2,6 +2,7 @@
 
 import { Gltf2Node } from "../render/nodes/gltf2.js";
 import { mat4, vec3 } from "../render/math/gl-matrix.js";
+import { corelink_event } from "../util/corelink_sender.js";
 
 export function initAvatar(id) {
   let headset = new Headset();
@@ -106,6 +107,8 @@ export class Controller {
     this.orientation = [0, 0, 0, 1];
     this.analog = new Button();
     this.trigger = new Button();
+    this.buttons = null;
+    this.prevbuttons = null;
     // this.side = new Button();
     // this.x = new Button();
     // this.y = new Button();
@@ -120,11 +123,49 @@ export class Controller {
     this.model.name = "ctrl";
     this.model.visible = false;
 
+    this.updateButtons = function (newBtns) {
+      // send corelink msg if changed
+      if (this.prevbuttons)
+        console.log("updateButtons", this.prevbuttons[3].pressed, this.buttons[3].pressed);
+      for (let i = 0; i < 7; i++) {
+        if ((this.buttons && !this.prevbuttons && this.buttons[i].pressed)
+          || (this.prevbuttons && this.buttons[i].pressed && !this.prevbuttons[i].pressed)) {
+          corelink_event({ it: this.handedness + "trigger", op: "press" });
+        }
+        else if ((this.buttons && !this.prevbuttons && this.buttons[i].pressed)
+          || (this.prevbuttons && this.buttons[i].pressed && this.prevbuttons[i].pressed))
+          corelink_event({ it: this.handedness + "trigger", op: "drag" });
+        else if ((this.buttons && !this.prevbuttons && !this.buttons[i].pressed)
+          || (this.prevbuttons && !this.buttons[i].pressed && this.prevbuttons[i].pressed))
+          corelink_event({ it: this.handedness + "trigger", op: "release" });
+      }
+      if (this.buttons) {
+        if (!this.prevbuttons) {
+          this.prevbuttons = Array.from({ length: 7 }, (v, i) => i);
+          for (let i = 0; i < 7; i++) {
+            this.prevbuttons[i] = {
+              pressed: false,
+              touched: false,
+            };
+          }
+        }
+
+        // this.prevbuttons = Array.from(this.buttons);
+        for (let i = 0; i < 7; i++) {
+          this.prevbuttons[i].pressed = this.buttons[i].pressed;//JSON.parse(JSON.stringify(this.buttons[i]));
+          this.prevbuttons[i].touched = this.buttons[i].touched;
+        }
+      }
+
+      this.buttons = newBtns;
+    }
+
     this.toJson = function () {
       var jsonObj = {
         analog: this.analog.pressed,
         trigger: this.trigger.pressed,
         handedness: this.handedness,
+        buttons: this.buttons,
       }
       // console.log("this.name", this.name, "jsonObj.name", jsonObj.name);
       return jsonObj;
@@ -133,6 +174,7 @@ export class Controller {
     this.fromJson = function (payload) {
       this.analog.pressed = payload["state"]["analog"];
       this.trigger.pressed = payload["state"]["trigger"];
+      this.buttons = payload["state"]["buttons"];
     }
   }
 }

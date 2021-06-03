@@ -23,7 +23,7 @@ import * as keyboardInput from "./util/input_keyboard.js";
 import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
-import { metaroomSyncSender, metaroomEventSender } from "./corelink_handler.js"
+import { metaroomSyncSender } from "./corelink_handler.js"
 
 window.wsport = 8447;
 window.vr = false;
@@ -270,6 +270,20 @@ function updateInputSources(session, frame, refSpace) {
                 headPose.transform.orientation;
             window.avatars[window.playerid].headset.matrix =
                 headPose.transform.matrix;
+
+            for (let source of session.inputSources) {
+                if (source.handedness && source.gamepad) {
+                    if (source.gamepad.buttons[3].pressed) {
+                        console.log("source.gamepad.buttons[3].pressed", source.gamepad.buttons[3].pressed);
+                    }
+                    if (source.handedness == "left")
+                        window.avatars[window.playerid].leftController.updateButtons(source.gamepad.buttons);
+                    if (source.handedness == "right")
+                        window.avatars[window.playerid].rightController.updateButtons(source.gamepad.buttons);
+                    // console.log("leftController", window.avatars[window.playerid].leftController);
+                    // console.log("rightController", window.avatars[window.playerid].rightController)
+                }
+            }
         }
     }
 }
@@ -386,6 +400,9 @@ function onXRFrame(t, frame) {
 
     updateObjects();
 
+    // ZH: save previous "source.gamepad.buttons" for two controllers,
+    // check if changes per frame
+    // send to the server if changes
     if (window.playerid) {
         const thisAvatar = window.avatars[window.playerid];
         for (let source of session.inputSources) {
