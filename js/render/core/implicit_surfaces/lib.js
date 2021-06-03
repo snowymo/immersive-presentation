@@ -16,7 +16,7 @@ export let drawMesh = (m, gl, pgm, mesh, materialId, isTriangleMesh) => {
    setUniform(gl, pgm, 'Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
 
    gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
-   console.log("is draw " + mesh.length / VERTEX_SIZE)
+   // console.log("is draw " + mesh.length / VERTEX_SIZE)
    gl.drawArrays(isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, mesh.length / VERTEX_SIZE);
 }
 

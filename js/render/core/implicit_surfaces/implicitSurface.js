@@ -15,10 +15,10 @@ export let matrix_inverse = src => {
    return dst;
  }
 
- let matrix_transpose = m =>
+ export let matrix_transpose = m =>
   [ m[0],m[4],m[8],m[12], m[1],m[5],m[9],m[13], m[2],m[6],m[10],m[14], m[3],m[7],m[11],m[15] ];
 
- let matrix_multiply = (a,b)   => {
+ export let matrix_multiply = (a,b)   => {
    let m = [];
    for (let col = 0 ; col < 4 ; col++)
    for (let row = 0 ; row < 4 ; row++) {
@@ -29,6 +29,10 @@ export let matrix_inverse = src => {
    }
    return m;
 }
+
+export let matrix_perspective = fl => {
+   return [ 1,0,0,0, 0,1,0,0, 0,0,-1,-1/fl, 0,0,0,1 ];
+ }
 
 function Blobs() {
 

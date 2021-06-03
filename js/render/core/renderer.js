@@ -91,6 +91,7 @@ in  vec3  aRot;
 in  vec2  aUV;
 in  vec4  aUVOff;
 in  float aRGB;
+in vec3 aNor;
 in  vec3  aWts0, aWts1;
 
 // interpolated vertex
@@ -161,6 +162,8 @@ void main(void) {
 
     // // IF THIS IS A BLOBBY OBJECT
     if (uBlobby > 0.) {
+      anor = vec4(aNor, 0.);
+      nor = anor;
       // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
       // AND COLORS FROM COMPONENT OBJECTS
       pos = vec4(0.);
@@ -1138,6 +1141,7 @@ export class Renderer {
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
+    this._drawImplicitSurfaceObj(views, renderList);
     if (renderList.num > 0) {
       // console.log('-------------------');
       for (let i = 0; i < renderList.num; i++) {
@@ -1145,7 +1149,7 @@ export class Renderer {
         // console.log(...renderList.endFrame(i));
       }
     }
-    this._drawImplicitSurfaceObj(views, renderList);
+    // this._drawImplicitSurfaceObj(views, renderList);
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1560,10 +1564,10 @@ export class Renderer {
       bpe * 0
     );
 
-    let aRot = gl.getAttribLocation(pgm.program, "aRot");
-    gl.enableVertexAttribArray(aRot);
+    let aNor = gl.getAttribLocation(pgm.program, "aNor");
+    gl.enableVertexAttribArray(aNor);
     gl.vertexAttribPointer(
-      aRot,
+      aNor,
       3,
       gl.FLOAT,
       false,
@@ -1571,27 +1575,27 @@ export class Renderer {
       bpe * 3
     );
 
-    let aUV = gl.getAttribLocation(pgm.program, "aUV");
-    gl.enableVertexAttribArray(aUV);
-    gl.vertexAttribPointer(
-      aUV,
-      2,
-      gl.FLOAT,
-      false,
-      bpe * VERTEX_SIZE,
-      bpe * 6
-    );
+    // let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    // gl.enableVertexAttribArray(aUV);
+    // gl.vertexAttribPointer(
+    //   aUV,
+    //   2,
+    //   gl.FLOAT,
+    //   false,
+    //   bpe * VERTEX_SIZE,
+    //   bpe * 6
+    // );
 
-    let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
-    gl.enableVertexAttribArray(aRGB);
-    gl.vertexAttribPointer(
-      aRGB,
-      1,
-      gl.FLOAT,
-      false,
-      bpe * VERTEX_SIZE,
-      bpe * 8
-    );
+    // let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
+    // gl.enableVertexAttribArray(aRGB);
+    // gl.vertexAttribPointer(
+    //   aRGB,
+    //   1,
+    //   gl.FLOAT,
+    //   false,
+    //   bpe * VERTEX_SIZE,
+    //   bpe * 8
+    // );
 
     let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
     gl.enableVertexAttribArray(aWts0);
@@ -1600,7 +1604,6 @@ export class Renderer {
     let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
     gl.enableVertexAttribArray(aWts1);
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
-
 
     renderList.bufferAux = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
