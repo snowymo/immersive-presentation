@@ -1,5 +1,36 @@
+import { setUniform, drawMesh } from "./lib.js";
+import { CG, Matrix } from "../CG.js";
+import { materials } from "./materials.js";
 
-export function Blobs() {
+export let matrix_inverse = src => {
+   let dst = [], det = 0, cofactor = (c, r) => {
+      let s = (i, j) => src[c+i & 3 | (r+j & 3) << 2];
+      return (c+r & 1 ? -1 : 1) * ( (s(1,1) * (s(2,2) * s(3,3) - s(3,2) * s(2,3)))
+                                  - (s(2,1) * (s(1,2) * s(3,3) - s(3,2) * s(1,3)))
+                                  + (s(3,1) * (s(1,2) * s(2,3) - s(2,2) * s(1,3))) );
+   }
+   for (let n = 0 ; n < 16 ; n++) dst.push(cofactor(n >> 2, n & 3));
+   for (let n = 0 ; n <  4 ; n++) det += src[n] * dst[n << 2];
+   for (let n = 0 ; n < 16 ; n++) dst[n] /= det;
+   return dst;
+ }
+
+ let matrix_transpose = m =>
+  [ m[0],m[4],m[8],m[12], m[1],m[5],m[9],m[13], m[2],m[6],m[10],m[14], m[3],m[7],m[11],m[15] ];
+
+ let matrix_multiply = (a,b)   => {
+   let m = [];
+   for (let col = 0 ; col < 4 ; col++)
+   for (let row = 0 ; row < 4 ; row++) {
+      let value = 0;
+      for (let i = 0 ; i < 4 ; i++)
+         value += a[4*i + row] * b[4*col + i];
+      m.push(value);
+   }
+   return m;
+}
+
+function Blobs() {
 
     this.SPHERE = 0;
     this.CYLINDER = 1;
@@ -240,9 +271,9 @@ export function Blobs() {
              N[a+2] = N[b+2] = N[c+2] = normal[2];
           }
     
-          mesh.push( V[a],V[a+1],V[a+2] , N[a],N[a+1],N[a+2] , 1,0,0,0,0,0 ,
-                     V[b],V[b+1],V[b+2] , N[b],N[b+1],N[b+2] , 1,0,0,0,0,0 ,
-                     V[c],V[c+1],V[c+2] , N[c],N[c+1],N[c+2] , 1,0,0,0,0,0 );
+          mesh.push( V[a],V[a+1],V[a+2] , N[a],N[a+1],N[a+2] , 0,0,0, 1,0,0,0,0,0 ,
+                     V[b],V[b+1],V[b+2] , N[b],N[b+1],N[b+2] , 0,0,0, 1,0,0,0,0,0 ,
+                     V[c],V[c+1],V[c+2] , N[c],N[c+1],N[c+2] , 0,0,0, 1,0,0,0,0,0 );
  
           let n = mesh.length;
           computeWeights(mesh, n - 3 * 12 + 6, V[a],V[a+1],V[a+2]);
@@ -350,9 +381,9 @@ export function Blobs() {
            B1 = m.slice(4,  8),
            C1 = m.slice(8, 12),
  
-           da = 1 + ad * norm([A1[0],A1[1],A1[2]]),
-           db = 1 + ad * norm([B1[0],B1[1],B1[2]]),
-           dc = 1 + ad * norm([C1[0],C1[1],C1[2]]),
+           da = 1 + ad * CG.norm([A1[0],A1[1],A1[2]]),
+           db = 1 + ad * CG.norm([B1[0],B1[1],B1[2]]),
+           dc = 1 + ad * CG.norm([C1[0],C1[1],C1[2]]),
  
            A0 = [A1[0]/da,A1[1]/da,A1[2]/da,A1[3]/da],
            B0 = [B1[0]/db,B1[1]/db,B1[2]/db,B1[3]/db],
@@ -362,7 +393,7 @@ export function Blobs() {
           type: type,
           ABC : [A1,A0,B1,B0,C1,C0],
           sign: Math.sign(d),
-      M   : M,
+          M   : M,
        });
     }
  
@@ -393,7 +424,7 @@ export function Blobs() {
     }
  
     this.eval = (x,y,z) => {
-       value = -1;
+       let value = -1;
        for (let b = 0 ; b < data.length ; b++)
           value += blob(data[b], x,y,z);
        return value;
@@ -489,7 +520,7 @@ export function Blobs() {
  
  // CREATE SETS OF BLOBS THAT CAN THEN TURN INTO FLEXIBLE RUBBER SHEET SURFACES
  
- export function ImplicitSurface() {
+export function ImplicitSurface(gl, M, program) {
     let blobType, blobMaterialName, blobInverseMatrices, blobMatrices, blobs = new Blobs(), divs, blur, mesh;
     let isSoftMin = false, isFaceted = false, isBlobby = false;
  
@@ -530,8 +561,8 @@ export function Blobs() {
        if (! isBlobby) {
           let draw = (b, m) => {
              M.save();
-                M.setValue(matrix_multiply(M.value(), m));
-                drawMesh(blobType[b] == this.CUBE     ? cubeMesh :
+                M.set(matrix_multiply(M.value(), m));
+                drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
                          blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
                          blobMaterialName[b]);
              M.restore();
@@ -540,15 +571,16 @@ export function Blobs() {
           for (let b = 0 ; b < blobType.length ; b++)
              draw(b, blobMatrices[b]);
  
-          setUniform('1f', 'uOpacity', .25);
+          setUniform(gl, program, '1f', 'uOpacity', .25);
           for (let b = 0 ; b < blobType.length ; b++)
              draw(b, growMatrix(blobMatrices[b], blur/2));
-          setUniform('1f', 'uOpacity', 1);
+          setUniform(gl, program, '1f', 'uOpacity', 1);
  
           return;
        }
  
        if (! mesh) {
+          console.log("generate mesh here")
           mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
  
           blobInverseMatrices = [];
@@ -569,20 +601,20 @@ export function Blobs() {
           invMatrixData = invMatrixData.concat(matrix_inverse(matrix));
        }
  
-       setUniform('Matrix4fv', 'uBlobPhong'  , false, phongData);
-       setUniform('Matrix4fv', 'uMatrices'   , false, matrixData);
-       setUniform('Matrix4fv', 'uInvMatrices', false, invMatrixData);
+       setUniform(gl, program, 'Matrix4fv', 'uBlobPhong'  , false, phongData);
+       setUniform(gl, program, 'Matrix4fv', 'uMatrices'   , false, matrixData);
+       setUniform(gl, program, 'Matrix4fv', 'uInvMatrices', false, invMatrixData);
  
-       setUniform('1f', 'uBlobby', 1);
-       drawMesh(mesh, 'white', true);
-       setUniform('1f', 'uBlobby', 0);
+       setUniform(gl, program, '1f', 'uBlobby', 1);
+       drawMesh(M.value(), gl, program, mesh, 'white', true);
+       setUniform(gl, program, '1f', 'uBlobby', 0);
     }
  
     let growMatrix = (M, blur) => {
        M = M.slice();
        for (let col = 0 ; col <= 2 ; col++) {
           let v = M.slice(4*col, 4*col + 3);
-          let scale = 1 + blur / norm(v);
+          let scale = 1 + blur / CG.norm(v);
           for (let row = 0 ; row < 3 ; row++)
              M[4*col + row] *= scale;
        }

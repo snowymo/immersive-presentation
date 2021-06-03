@@ -31,7 +31,7 @@ export class Avatar {
     this.localUuid = this.createUUID();
     this.localStream = null;
     this.name = "user" + id;
-    this.nameTagColor = [Math.random(),Math.random(),1.2 + 2 * Math.random()];
+    this.nameTagColor = [0.5 + Math.random(),0.5 + Math.random(),1.2 + 2 * Math.random()];
     this.vr = false;
 
     this.audioContext = null;

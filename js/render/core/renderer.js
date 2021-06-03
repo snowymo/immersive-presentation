@@ -28,7 +28,11 @@ import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
 import * as Img from "../../util/image.js";
 import * as Tex from "../../util/webgl_texture_util.js";
+import { drawImplicitSurfaceObj } from "../core/implicitSurfaceObj.js";
 // import { loadImage } from "../../immersive-pre.js"
+
+export let is_gl = null; // implicit surface's gl
+export let is_pgm = null; // implicit surface's program
 
 export const ATTRIB = {
   POSITION: 1,
@@ -152,7 +156,7 @@ void main(void) {
 
     vec4 apos = vec4(aPos, 1.);
     vec4 anor = vec4(vNor, 0.);
-    // vec4 pos = apos; // !!!!!!!!!!!!!!!!!!!!!!!!! might cause potential problem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // vec4 pos = apos; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! might cause potential problem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     vec4 nor = anor;
 
     // // IF THIS IS A BLOBBY OBJECT
@@ -273,7 +277,7 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
     color += .2 * specular;
   return color;
 }
-
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Currently leave the color shading part for implicit surface !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void main() {
   vec4 texture0 = texture(uTex0, vUV * uTexScale);
   vec4 texture1 = texture(uTex1, vUV * uTexScale);
@@ -371,7 +375,6 @@ function loadTexture(gl, url) {
   const image = new Image();
   image.src = basePath.concat(url);
   image.addEventListener("load", function () {
-    console.log("loaded")
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, image);
@@ -1142,6 +1145,7 @@ export class Renderer {
         // console.log(...renderList.endFrame(i));
       }
     }
+    this._drawImplicitSurfaceObj(views, renderList);
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1285,21 +1289,24 @@ export class Renderer {
     isParticles
   ) {
     let gl = this._gl;
+    is_gl = gl;
     if (!renderList.program) {
       renderList.program = new Program(
         gl,
         RenderList_VERTEX_SOURCE,
         RenderList_FRAG_SOURCE
       );
-      // await loadImages(gl);
     }
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
+    // gl.clearDepth(-1);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // for normal renderList obj
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     renderList.program.use();
     let pgm = renderList.program;
-
+    is_pgm = pgm;
     let drawArrays = () => {
       gl.drawArrays(
         triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
@@ -1381,6 +1388,14 @@ export class Renderer {
       bpe * VERTEX_SIZE,
       bpe * 8
     );
+
+    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    gl.enableVertexAttribArray(aWts0);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+
+    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    gl.enableVertexAttribArray(aWts1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
 
     renderList.bufferAux = gl.createBuffer();
@@ -1500,6 +1515,146 @@ export class Renderer {
     }
     gl.cullFace(gl.BACK);
     renderList.prev_shape = shape;
+  }
+
+  _drawImplicitSurfaceObj(views,renderList) {
+    let gl = this._gl;
+    is_gl = gl;
+    if (!renderList.program) {
+      renderList.program = new Program(
+        gl,
+        RenderList_VERTEX_SOURCE,
+        RenderList_FRAG_SOURCE
+      );
+    }
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.CULL_FACE);
+    gl.clearDepth(-1);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    renderList.program.use();
+    let pgm = renderList.program;
+    is_pgm = pgm;
+
+    if (!renderList.vao) {
+      renderList.initVAO(gl);
+      gl.bindVertexArray(renderList.vao);
+      gl.useProgram(pgm.program);
+      renderList.buffer = gl.createBuffer();
+    }
+
+    renderList.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
+
+    let bpe = Float32Array.BYTES_PER_ELEMENT;
+
+    let aPos = gl.getAttribLocation(pgm.program, "aPos");
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(
+      aPos,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 0
+    );
+
+    let aRot = gl.getAttribLocation(pgm.program, "aRot");
+    gl.enableVertexAttribArray(aRot);
+    gl.vertexAttribPointer(
+      aRot,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 3
+    );
+
+    let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    gl.enableVertexAttribArray(aUV);
+    gl.vertexAttribPointer(
+      aUV,
+      2,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 6
+    );
+
+    let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
+    gl.enableVertexAttribArray(aRGB);
+    gl.vertexAttribPointer(
+      aRGB,
+      1,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 8
+    );
+
+    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    gl.enableVertexAttribArray(aWts0);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+
+    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    gl.enableVertexAttribArray(aWts1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
+
+
+    renderList.bufferAux = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
+
+    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
+   
+    gl.uniform3fv(
+      gl.getUniformLocation(pgm.program, "uWindowDir"),
+      this._globalLightDir1
+    );
+
+    if (views.length == 1) {
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(pgm.program, "uProj"),
+        false,
+        views[0].projectionMatrix
+      );
+      gl.uniformMatrix4fv(
+        gl.getUniformLocation(pgm.program, "uView"),
+        false,
+        views[0].viewMatrix
+      );
+      // drawArrays();
+    }
+
+    for (let i = 0; i < views.length; ++i) {
+      let view = views[i];
+      if (views.length > 1) {
+        let vp = view.viewport;
+        gl.viewport(vp.x, vp.y, vp.width, vp.height);
+        gl.uniformMatrix4fv(
+          gl.getUniformLocation(pgm.program, "uView"),
+          false,
+          view.viewMatrix
+        );
+        gl.uniformMatrix4fv(
+          gl.getUniformLocation(pgm.program, "uProj"),
+          false,
+          view.projectionMatrix
+        );
+      }
+      // if (isToon) {
+      //   gl.uniform1f(
+      //     gl.getUniformLocation(pgm.program, "uToon"),
+      //     0.005 * CG.norm(m.value().slice(0, 3))
+      //   );
+      //   gl.cullFace(gl.FRONT);
+      //   gl.cullFace(gl.BACK);
+      //   gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
+      // }
+      // if (isMirror) gl.cullFace(gl.FRONT);
+    }
+    gl.cullFace(gl.BACK);
+    drawImplicitSurfaceObj();
   }
 
   _getRenderTexture(texture) {
