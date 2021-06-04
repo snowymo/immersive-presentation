@@ -608,8 +608,13 @@ export function ImplicitSurface(gl, M, program) {
        setUniform(gl, program, 'Matrix4fv', 'uInvMatrices', false, invMatrixData);
  
        setUniform(gl, program, '1f', 'uBlobby', 1);
-       drawMesh(M.value(), gl, program, mesh, 'white', true);
-      //  setUniform(gl, program, '1f', 'uBlobby', 1);
+       let iden = [1,0,0,0,
+                  0,1,0,0,
+                  0,0,1,0,
+                  0,0,0,1];
+       console.log("MMMMMMMMM" + M.value());
+       drawMesh(M.value(), gl, program, mesh, 'red', true);
+      //  setUniform(gl, program, '1f', 'uBlobby', 0);
     }
  
     let growMatrix = (M, blur) => {
