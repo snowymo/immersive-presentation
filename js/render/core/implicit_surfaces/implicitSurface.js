@@ -609,7 +609,7 @@ export function ImplicitSurface(gl, M, program) {
  
        setUniform(gl, program, '1f', 'uBlobby', 1);
        drawMesh(M.value(), gl, program, mesh, 'white', true);
-       setUniform(gl, program, '1f', 'uBlobby', 0);
+      //  setUniform(gl, program, '1f', 'uBlobby', 1);
     }
  
     let growMatrix = (M, blur) => {

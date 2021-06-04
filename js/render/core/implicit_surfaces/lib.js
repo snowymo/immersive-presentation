@@ -11,7 +11,7 @@ export let drawMesh = (m, gl, pgm, mesh, materialId, isTriangleMesh) => {
    setUniform(gl, pgm, '1f', 'uOpacity', 1);
    // setUniform(gl, pgm, 'Matrix4fv', 'uView', false, matrix_perspective(3)); // SET GPU CAMERA
    setUniform(gl, pgm, 'Matrix4fv', 'uModel', false, m);
-   setUniform(gl, pgm, 'Matrix4fv', 'uInvMatrix', false, matrix_inverse(m));
+   // setUniform(gl, pgm, 'Matrix4fv', 'uInvMatrix', false, matrix_inverse(m));
 
    let material = materials[materialId];
    let a = material.ambient, d = material.diffuse, s = material.specular;

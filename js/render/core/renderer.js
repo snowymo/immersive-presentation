@@ -87,7 +87,6 @@ precision highp float;
 // input vertex
 in  vec3  aPos;
 in  vec3  aRot;
-
 in  vec2  aUV;
 in  vec4  aUVOff;
 in  float aRGB;
@@ -114,9 +113,9 @@ out float vWeights[6];
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
-uniform   float uBlobby;
-uniform   mat4  uMatrices[64], uInvMatrices[64];
-uniform   mat4  uBlobPhong[64];
+uniform float uBlobby;
+uniform mat4  uMatrices[64], uInvMatrices[64];
+uniform mat4  uBlobPhong[64];
 
 
 uniform float uTime;     // time in seconds
@@ -133,17 +132,14 @@ vec3 unpackRGB(float rgb) {
 }
 
 void main(void) {
-  for (int i = 0 ; i < 3 ; i++) {
-         vWeights[i  ] = aWts0[i];
-         vWeights[3+i] = aWts1[i];
-  }
-
-    vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
+  vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
+  mat4 invModel = inverse(uModel);
+  if(uBlobby < 0.) {
+    
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
     vPos = aPos;
     vRGB = unpackRGB(aRGB);
-    mat4 invModel = inverse(uModel);
 
     mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
     vNor = (vec4(rotXY[0],0.) * invModel).xyz;
@@ -156,33 +152,36 @@ void main(void) {
     //vUV = (aUVOff.xy + (aUV.xy * aUVOff.zw)) * vec2(1.,-1.) + vec2(0.,1.);
     vUV = (aUV) * vec2(1.,-1.) + vec2(0.,1.);
 
+    gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
+    // gl_Position = pos;
+  } else {
+    for (int i = 0 ; i < 3 ; i++) {
+      vWeights[i  ] = aWts0[i];
+      vWeights[3+i] = aWts1[i];
+    }
     vec4 apos = vec4(aPos, 1.);
-    vec4 anor = vec4(vNor, 0.);
-    // vec4 pos = apos; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! might cause potential problem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    vec4 anor = vec4(aNor, 0.);
     vec4 nor = anor;
-
-    // // IF THIS IS A BLOBBY OBJECT
-    if (uBlobby > 0.) {
-      anor = vec4(aNor, 0.);
-      nor = anor;
-      // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
-      // AND COLORS FROM COMPONENT OBJECTS
-      pos = vec4(0.);
-      nor = vec4(0.);
-      vBlobPhong = mat4(0.);
-      for (int i = 0 ; i < 6 ; i++) {
-        if (vWeights[i] > 0.) {
-          int   n = int(vWeights[i]);
-          float t = mod(vWeights[i], 1.);
-          pos += t * (uMatrices[n] * apos);
-          nor += t * (anor * uInvMatrices[n]);
-          vBlobPhong += t * uBlobPhong[n];
-        }
+    // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
+    // AND COLORS FROM COMPONENT OBJECTS
+    pos = vec4(0.);
+    nor = vec4(0.);
+    vBlobPhong = mat4(0.);
+    for (int i = 0 ; i < 6 ; i++) {
+      if (vWeights[i] > 0.) {
+        int   n = int(vWeights[i]);
+        float t = mod(vWeights[i], 1.);
+        pos += t * (uMatrices[n] * apos);
+        nor += t * (anor * uInvMatrices[n]);
+        vBlobPhong += t * uBlobPhong[n];
       }
     }
+    pos = uProj * uView * uModel * pos;
     nor = nor * invModel;
     vNor = nor.xyz;
-    gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
+    vPos = pos.xyz;
+    gl_Position = pos;
+  }
 }
 `;
 
@@ -283,75 +282,90 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
 }
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Currently leave the color shading part for implicit surface !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void main() {
-  vec4 texture0 = texture(uTex0, vUV * uTexScale);
-  vec4 texture1 = texture(uTex1, vUV * uTexScale);
-  vec4 texture2 = texture(uTex2, vUV * uTexScale);
-  vec3 ambient = .1 * uColor.rgb;
-  vec3 diffuse = .5 * uColor.rgb;
-  vec3 specular = vec3(.4, .4, .4);
-  float p = 30.;
-  float pMet = 40.;
-
   Ldir[0] = -1. * normalize(uWindowDir);
-//  Ldir[1] = normalize(vec3(-1., -.5, -2.));
-//  Ldir[2] = normalize(vec3(-1., 0, 0.5));
-  Lrgb[0] = vec3(0.85, .75, .7);
-//  Lrgb[1] = vec3(.8, .75, .7);
-//  Lrgb[2] = vec3(.1, .15, .2);
+  //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
+  //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
+    Lrgb[0] = vec3(0.85, .75, .7);
+  //  Lrgb[1] = vec3(.8, .75, .7);
+  //  Lrgb[2] = vec3(.1, .15, .2);
 
-  vec3 normal = normalize(vNor);
-  vec3 color = ambient;
+  if(uBlobby > 0.) {
+    mat4 phong = vBlobPhong;
+    vec3 ambient  = phong[0].rgb;
+    vec3 diffuse  = phong[1].rgb;
+    vec4 specular = phong[2].rgba;
 
-  float alpha = uColor.a;
-/*
-  {
-     float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
-     float t = max(0., 1. - u*u - v*v);
-     alpha *= mix(1., t, uParticles);
-  }
-*/
-
-  if (uTexIndex < 0) {
-    if (uFxMode == 0) {      //default
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 1) {      // plaster
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-    } else if (uFxMode == 2) {      // metallic
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-    } else if (uFxMode == 3) {      // glossy rubber
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 4) {      // 2D
-        color += uColor.rgb;
+    vec3 color = ambient;
+    vec3 N = normalize(vNor);
+    for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
+      vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
+      color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
     }
-    color.rgb *= vRGB;
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+    fragColor = vec4(sqrt(color), 1.0);
   } else {
-    normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
-
-    if (uFxMode == 0) {      //default
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 1) {      // plaster
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-    } else if (uFxMode == 2) {      // metallic
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-    } else if (uFxMode == 3) {      // glossy rubber
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 4) {      // 2D
-        color += uColor.rgb;
+    vec4 texture0 = texture(uTex0, vUV * uTexScale);
+    vec4 texture1 = texture(uTex1, vUV * uTexScale);
+    vec4 texture2 = texture(uTex2, vUV * uTexScale);
+    vec3 ambient = .1 * uColor.rgb;
+    vec3 diffuse = .5 * uColor.rgb;
+    vec3 specular = vec3(.4, .4, .4);
+    float p = 30.;
+    float pMet = 40.;
+  
+    vec3 normal = normalize(vNor);
+    vec3 color = ambient;
+  
+    float alpha = uColor.a;
+  /*
+    {
+        float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
+        float t = max(0., 1. - u*u - v*v);
+        alpha *= mix(1., t, uParticles);
     }
-
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
-
-    fragColor *= texture(uTex0, vUV);
-  }
+  */
+  
+    if (uTexIndex < 0) {
+      if (uFxMode == 0) {      //default
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 1) {      // plaster
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+      } else if (uFxMode == 2) {      // metallic
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+      } else if (uFxMode == 3) {      // glossy rubber
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 4) {      // 2D
+          color += uColor.rgb;
+      }
+      color.rgb *= vRGB;
+      fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+    } else {
+      normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
+  
+      if (uFxMode == 0) {      //default
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 1) {      // plaster
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+      } else if (uFxMode == 2) {      // metallic
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+      } else if (uFxMode == 3) {      // glossy rubber
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 4) {      // 2D
+          color += uColor.rgb;
+      }
+  
+      fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+  
+      fragColor *= texture(uTex0, vUV);
+    }
+  } 
 }
 `; 
 
@@ -1408,6 +1422,7 @@ export class Renderer {
     // }
 
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
+    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBlobby"), -1.0);
     gl.uniform4fv(
       gl.getUniformLocation(pgm.program, "uColor"),
       color.length == 4
@@ -1549,7 +1564,6 @@ export class Renderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); 
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
-    // gl.clearDepth(-1);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); 
 
@@ -1576,6 +1590,40 @@ export class Renderer {
       bpe * VERTEX_SIZE,
       bpe * 3
     );
+
+    let aRot = gl.getAttribLocation(pgm.program, "aRot");
+    gl.enableVertexAttribArray(aRot);
+    gl.vertexAttribPointer(
+      aRot,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 3
+    );
+
+    let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    gl.enableVertexAttribArray(aUV);
+    gl.vertexAttribPointer(
+      aUV,
+      2,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 6
+    );
+
+    let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
+    gl.enableVertexAttribArray(aRGB);
+    gl.vertexAttribPointer(
+      aRGB,
+      1,
+      gl.FLOAT,
+      false,
+      bpe * VERTEX_SIZE,
+      bpe * 8
+    );
+
 
     let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
     gl.enableVertexAttribArray(aWts0);
