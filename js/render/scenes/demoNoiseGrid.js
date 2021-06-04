@@ -237,12 +237,14 @@ let DemoNoiseGrid = function () {
 
   this.display = () => {
     if (isPressed) {
+      // console.log("pressed")
       justReleased = true;
       if (buttonState.left[0] && tMode == 0) {
         zScale = 1;
         cursorPath.push([]);
       }
     } else if (isDragged && tMode == 0) {
+      // console.log("dragged")
       if (buttonState.left[0])
         if (controllerMatrix.left) {
           let P = controllerMatrix.left.slice(12, 15);

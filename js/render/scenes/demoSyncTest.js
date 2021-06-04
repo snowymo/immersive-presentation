@@ -1,6 +1,14 @@
 import { m, renderList } from "../core/renderList.js";
 import { time } from "../core/renderListScene.js";
 import * as keyboardInput from "../../util/input_keyboard.js";
+import {
+  viewMatrix,
+  controllerMatrix,
+  buttonState,
+  isReleased,
+  isDragged,
+  isPressed,
+} from "../core/renderListScene.js";
 let posY = 1.5;
 document.addEventListener("keydown", (event) => {
     if (keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
@@ -13,7 +21,9 @@ let DemoSyncTest = function () {
   this.loadGLTF = false;
   this.envInd = null;
   this.display = () => {
-    
+    if (isPressed && buttonState.left[0]) {
+      posY += 0.01;
+    }
      m.save();
         m.translate(0, posY, 0);
         renderList.mCube().size(0.2).turnY(time).color([1,0,0]);
