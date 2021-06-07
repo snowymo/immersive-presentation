@@ -6,9 +6,9 @@ Prototype SIG21
 
 install python3 if you haven't
 
-`python -m http.server`
+`python3 -m http.server`
 
-go to https://lcoalhost:8000/sig21.html
+go to [http://localhost:8000/sig21.html](http://localhost:8000/sig21.html)
 
 # How to access in public
 
