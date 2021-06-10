@@ -275,14 +275,14 @@ function Blobs() {
              N[a+2] = N[b+2] = N[c+2] = normal[2];
           }
     
-          mesh.push( V[a],V[a+1],V[a+2] , N[a],N[a+1],N[a+2] , 0,0,0, 1,0,0,0,0,0 ,
-                     V[b],V[b+1],V[b+2] , N[b],N[b+1],N[b+2] , 0,0,0, 1,0,0,0,0,0 ,
-                     V[c],V[c+1],V[c+2] , N[c],N[c+1],N[c+2] , 0,0,0, 1,0,0,0,0,0 );
+          mesh.push( V[a],V[a+1],V[a+2] , N[a],N[a+1],N[a+2] , 0,0,0, 1,0,0, 0,0,0 ,
+                     V[b],V[b+1],V[b+2] , N[b],N[b+1],N[b+2] , 0,0,0, 1,0,0, 0,0,0 ,
+                     V[c],V[c+1],V[c+2] , N[c],N[c+1],N[c+2] , 0,0,0, 1,0,0, 0,0,0 );
  
           let n = mesh.length;
-          computeWeights(mesh, n - 3 * 12 + 6, V[a],V[a+1],V[a+2]);
-          computeWeights(mesh, n - 2 * 12 + 6, V[b],V[b+1],V[b+2]);
-          computeWeights(mesh, n - 1 * 12 + 6, V[c],V[c+1],V[c+2]);
+          computeWeights(mesh, n - 3 * 15 + 9, V[a],V[a+1],V[a+2]);
+          computeWeights(mesh, n - 2 * 15 + 9, V[b],V[b+1],V[b+2]);
+          computeWeights(mesh, n - 1 * 15 + 9, V[c],V[c+1],V[c+2]);
        }
        return new Float32Array(mesh);
     }
@@ -524,7 +524,7 @@ function Blobs() {
  
  // CREATE SETS OF BLOBS THAT CAN THEN TURN INTO FLEXIBLE RUBBER SHEET SURFACES
  
-export function ImplicitSurface(gl, M, program) {
+export function ImplicitSurface(M) {
     let blobType, blobMaterialName, blobInverseMatrices, blobMatrices, blobs = new Blobs(), divs, blur, mesh;
     let isSoftMin = false, isFaceted = false, isBlobby = false;
  
@@ -563,24 +563,25 @@ export function ImplicitSurface(gl, M, program) {
  
     this.endBlobs = () => {
        if (! isBlobby) {
-          let draw = (b, m) => {
-             M.save();
-                M.set(matrix_multiply(M.value(), m));
-                drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
-                         blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
-                         blobMaterialName[b]);
-             M.restore();
-          }
+          console.log("how possible")
+         //  let draw = (b, m) => {
+         //     M.save();
+         //        M.set(matrix_multiply(M.value(), m));
+         //        drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
+         //                 blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
+         //                 blobMaterialName[b]);
+         //     M.restore();
+         //  }
  
-          for (let b = 0 ; b < blobType.length ; b++)
-             draw(b, blobMatrices[b]);
+         //  for (let b = 0 ; b < blobType.length ; b++)
+         //     draw(b, blobMatrices[b]);
  
-          setUniform(gl, program, '1f', 'uOpacity', .25);
-          for (let b = 0 ; b < blobType.length ; b++)
-             draw(b, growMatrix(blobMatrices[b], blur/2));
-          setUniform(gl, program, '1f', 'uOpacity', 1);
+         //  setUniform(gl, program, '1f', 'uOpacity', .25);
+         //  for (let b = 0 ; b < blobType.length ; b++)
+         //     draw(b, growMatrix(blobMatrices[b], blur/2));
+         //  setUniform(gl, program, '1f', 'uOpacity', 1);
  
-          return;
+         //  return;
        }
  
        if (! mesh) {
@@ -602,18 +603,15 @@ export function ImplicitSurface(gl, M, program) {
           matrixData = matrixData.concat(matrix);
           invMatrixData = invMatrixData.concat(matrix_inverse(matrix));
        }
+
+       return [phongData, matrixData, invMatrixData, mesh, "red", M.value()];
+
+      //  setUniform(gl, program, 'Matrix4fv', 'uBlobPhong'  , false, phongData);
+      //  setUniform(gl, program, 'Matrix4fv', 'uMatrices'   , false, matrixData);
+      //  setUniform(gl, program, 'Matrix4fv', 'uInvMatrices', false, invMatrixData);
  
-       setUniform(gl, program, 'Matrix4fv', 'uBlobPhong'  , false, phongData);
-       setUniform(gl, program, 'Matrix4fv', 'uMatrices'   , false, matrixData);
-       setUniform(gl, program, 'Matrix4fv', 'uInvMatrices', false, invMatrixData);
- 
-       setUniform(gl, program, '1f', 'uBlobby', 1);
-       let iden = [1,0,0,0,
-                  0,1,0,0,
-                  0,0,1,0,
-                  0,0,0,1];
-       console.log("MMMMMMMMM" + M.value());
-       drawMesh(M.value(), gl, program, mesh, 'red', true);
+      //  setUniform(gl, program, '1f', 'uBlobby', 1);
+      //  drawMesh(M.value(), gl, program, mesh, 'red', true);
       //  setUniform(gl, program, '1f', 'uBlobby', 0);
     }
  

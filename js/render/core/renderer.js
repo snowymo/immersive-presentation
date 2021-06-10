@@ -28,11 +28,9 @@ import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
 import * as Img from "../../util/image.js";
 import * as Tex from "../../util/webgl_texture_util.js";
-import { drawImplicitSurfaceObj, implicitSurfacesPgm } from "../core/implicitSurfaceObj.js";
+import { drawImplicitSurfaceObj, implicitSurfacesPgm} from "../core/implicitSurfaceObj.js";
+import { materials } from "../core/implicit_surfaces/materials.js";
 // import { loadImage } from "../../immersive-pre.js"
-
-export let is_gl = null; // implicit surface's gl
-export let is_pgm = null; // implicit surface's program
 
 export const ATTRIB = {
   POSITION: 1,
@@ -132,10 +130,10 @@ vec3 unpackRGB(float rgb) {
 }
 
 void main(void) {
-  vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
+  
   mat4 invModel = inverse(uModel);
   if(uBlobby < 0.) {
-    
+    vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
     vPos = aPos;
@@ -161,11 +159,12 @@ void main(void) {
     }
     vec4 apos = vec4(aPos, 1.);
     vec4 anor = vec4(aNor, 0.);
-    vec4 nor = anor;
+    // vec4 nor = anor;
+    // vec4 pos = apos;
     // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
     // AND COLORS FROM COMPONENT OBJECTS
-    pos = vec4(0.);
-    nor = vec4(0.);
+    vec4 pos = vec4(0.);
+    vec4 nor = vec4(0.);
     vBlobPhong = mat4(0.);
     for (int i = 0 ; i < 6 ; i++) {
       if (vWeights[i] > 0.) {
@@ -280,7 +279,7 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
     color += .2 * specular;
   return color;
 }
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Currently leave the color shading part for implicit surface !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 void main() {
   Ldir[0] = -1. * normalize(uWindowDir);
   //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
@@ -475,31 +474,6 @@ async function loadImages(gl) {
       ["stones_bump", "tiles", "wood", "brick_bump"],
       0
     );
-
-    // INSTRUCTIONS
-    //
-    // Just to show that this works, I attach a temporary canvas to the document,
-    // and this canvas has the texture images drawn to it (not WebGL).
-    // zoom out with command - since the images are large
-    //
-    // lookup texture atlas (one-to-many individual images):
-    //
-    // w.textureCatalogue.lookupByName("atlas1");
-
-    //
-    // it's faster if you know the direct ID
-    // w.textureCatalogue.lookupByID(1)
-
-    //
-    // lookup image stored in a texture atlas
-    // const texAtlas = ... some atlas
-    // const image = atlas.lookupImageByName('wood');
-
-    //
-    // direct access by ID is faster
-    //
-    // index of first image in this atlas
-    // const image = texAtlas.lookupImageByID(1)
   } catch (e) {
     console.error(e);
   }
@@ -1156,7 +1130,6 @@ export class Renderer {
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
-    this._drawImplicitSurfaceObj(views, renderList);
     if (renderList.num > 0) {
       // console.log('-------------------');
       for (let i = 0; i < renderList.num; i++) {
@@ -1164,7 +1137,7 @@ export class Renderer {
         // console.log(...renderList.endFrame(i));
       }
     }
-    // this._drawImplicitSurfaceObj(views, renderList);
+    this._drawImplicitSurfaceObj(views);
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1308,7 +1281,6 @@ export class Renderer {
     isParticles
   ) {
     let gl = this._gl;
-    is_gl = gl;
     if (!renderList.program) {
       renderList.program = new Program(
         gl,
@@ -1325,7 +1297,6 @@ export class Renderer {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     renderList.program.use();
     let pgm = renderList.program;
-    is_pgm = pgm;
     let drawArrays = () => {
       gl.drawArrays(
         triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
@@ -1333,20 +1304,6 @@ export class Renderer {
         shape.length / VERTEX_SIZE
       );
     };
-    if (false) {
-      console.log("1", views);
-      console.log("2", renderList);
-      console.log("3", shape);
-      console.log("4", matrix);
-      console.log("5", color);
-      console.log("6", opacity);
-      console.log("7", textureInfo);
-      console.log("8", fxMode);
-      console.log("9", triangleMode);
-      console.log("10", isToon);
-      console.log("11", isMirror);
-      console.log("12", isParticles);
-    }
     gl.uniform1f(
       gl.getUniformLocation(pgm.program, "uParticles"),
       isParticles ? 1 : 0
@@ -1356,7 +1313,7 @@ export class Renderer {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
-      renderList.buffer = gl.createBuffer();
+      // renderList.buffer = gl.createBuffer();
     }
     // if (shape != renderList.prev_shape) {
     renderList.buffer = gl.createBuffer();
@@ -1408,13 +1365,13 @@ export class Renderer {
       bpe * 8
     );
 
-    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
-    gl.enableVertexAttribArray(aWts0);
-    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+    // let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    // gl.enableVertexAttribArray(aWts0);
+    // gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
 
-    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
-    gl.enableVertexAttribArray(aWts1);
-    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
+    // let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    // gl.enableVertexAttribArray(aWts1);
+    // gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
 
     renderList.bufferAux = gl.createBuffer();
@@ -1537,9 +1494,8 @@ export class Renderer {
     renderList.prev_shape = shape;
   }
 
-  _drawImplicitSurfaceObj(views,renderList) {
+  _drawImplicitSurfaceObj(views,isTriangleMesh) {
     let gl = this._gl;
-    is_gl = gl;
     if (!implicitSurfacesPgm.program) {
       implicitSurfacesPgm.program = new Program(
         gl,
@@ -1549,19 +1505,27 @@ export class Renderer {
     }
     implicitSurfacesPgm.program.use();
     let pgm = implicitSurfacesPgm.program;
-    is_pgm = pgm;
+    if (!implicitSurfacesPgm.vao) {
+      implicitSurfacesPgm.initVAO(gl);
+      gl.bindVertexArray(implicitSurfacesPgm.vao);
+      gl.useProgram(pgm.program);
+      implicitSurfacesPgm.initBuffer(gl);
+    }
+    let setUniform = (type, name, a, b, c, d, e, f) => {
+      let loc = gl.getUniformLocation(pgm.program, name);
+      (gl['uniform' + type])(loc, a, b, c, d, e, f);
+   }
+   
+   let drawArrays = () => {
+    //  console.log("mesh length" + implicitSurfacesPgm.mesh.length)
+      gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
+   }
+   
 
-    // if (!renderList.vao) {
-    //   renderList.initVAO(gl);
-    //   gl.bindVertexArray(renderList.vao);
-    //   gl.useProgram(pgm.program);
-    //   renderList.buffer = gl.createBuffer();
-    // }
-
-    // renderList.buffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.buffer);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); 
+    drawImplicitSurfaceObj();
+    gl.bindBuffer(gl.ARRAY_BUFFER, implicitSurfacesPgm.buffer); 
+    // console.log("mesh " + implicitSurfacesPgm.mesh)
+    gl.bufferData(gl.ARRAY_BUFFER, implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.BLEND);
@@ -1633,8 +1597,25 @@ export class Renderer {
     gl.enableVertexAttribArray(aWts1);
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
-    // renderList.bufferAux = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
+    setUniform('1f', 'uOpacity', 1);
+      // setUniform(gl, pgm, 'Matrix4fv', 'uView', false, matrix_perspective(3)); // SET GPU CAMERA
+    // console.log("implicitSurfacesPgm.M " + implicitSurfacesPgm.M)
+    setUniform('Matrix4fv', 'uModel', false, implicitSurfacesPgm.M);
+      // setUniform(gl, pgm, 'Matrix4fv', 'uInvMatrix', false, matrix_inverse(m));
+  //  console.log(implicitSurfacesPgm.color)
+    let material = materials[implicitSurfacesPgm.color];
+    let a = material.ambient, d = material.diffuse, s = material.specular;
+    // console.log("material " + material);
+    setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
+      // gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+    // console.log("phongData " + implicitSurfacesPgm.phongData)
+    // console.log("matrixData " + implicitSurfacesPgm.matrixData)
+    // console.log("invMatrixData " + implicitSurfacesPgm.invMatrixData)
+    setUniform('Matrix4fv', 'uBlobPhong'  , false, implicitSurfacesPgm.phongData);
+    setUniform('Matrix4fv', 'uMatrices'   , false, implicitSurfacesPgm.matrixData);
+    setUniform('Matrix4fv', 'uInvMatrices', false, implicitSurfacesPgm.invMatrixData);
+    setUniform('1f', 'uBlobby', 1);
+    // setUniform('1f', 'uBlobby', 0);
 
     gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
    
@@ -1654,38 +1635,40 @@ export class Renderer {
         false,
         views[0].viewMatrix
       );
-      // drawArrays();
-      drawImplicitSurfaceObj();
+      drawArrays();
+      // drawImplicitSurfaceObj();
+    } else {
+      for (let i = 0; i < views.length; ++i) {
+        let view = views[i];
+        if (views.length > 1) {
+          let vp = view.viewport;
+          gl.viewport(vp.x, vp.y, vp.width, vp.height);
+          gl.uniformMatrix4fv(
+            gl.getUniformLocation(pgm.program, "uView"),
+            false,
+            view.viewMatrix
+          );
+          gl.uniformMatrix4fv(
+            gl.getUniformLocation(pgm.program, "uProj"),
+            false,
+            view.projectionMatrix
+          );
+        }
+        // if (isToon) {
+        //   gl.uniform1f(
+        //     gl.getUniformLocation(pgm.program, "uToon"),
+        //     0.005 * CG.norm(m.value().slice(0, 3))
+        //   );
+        //   gl.cullFace(gl.FRONT);
+        //   gl.cullFace(gl.BACK);
+        //   gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
+        // }
+        // if (isMirror) gl.cullFace(gl.FRONT);
+        drawArrays();
+      }
     }
 
-    for (let i = 0; i < views.length; ++i) {
-      let view = views[i];
-      if (views.length > 1) {
-        let vp = view.viewport;
-        gl.viewport(vp.x, vp.y, vp.width, vp.height);
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uView"),
-          false,
-          view.viewMatrix
-        );
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uProj"),
-          false,
-          view.projectionMatrix
-        );
-      }
-      // if (isToon) {
-      //   gl.uniform1f(
-      //     gl.getUniformLocation(pgm.program, "uToon"),
-      //     0.005 * CG.norm(m.value().slice(0, 3))
-      //   );
-      //   gl.cullFace(gl.FRONT);
-      //   gl.cullFace(gl.BACK);
-      //   gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
-      // }
-      // if (isMirror) gl.cullFace(gl.FRONT);
-      drawImplicitSurfaceObj();
-    }
+  
     // gl.cullFace(gl.BACK);
     
   }

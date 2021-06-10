@@ -38,20 +38,20 @@ let defaultBackground = "./media/gltf/60_fifth_ave/60_fifth_ave.gltf";
 const FEET_TO_METERS = 0.3048;
 
 export let mainScene = () => {
-  // if (!loadGLTF) {
-  //   window.scene.addNode(new Gltf2Node({ url: defaultBackground })).name =
-  //     "backGround";
-  //   loadGLTF = true;
-  // }
+  if (!loadGLTF) {
+    window.scene.addNode(new Gltf2Node({ url: defaultBackground })).name =
+      "backGround";
+    loadGLTF = true;
+  }
   //window.scene.addNode(new Gltf2Node({ url: tableUrl}));
   showNameTag();
 
   // add the procedural objects you wish to have all the time here
-  // m.save();
-  //     renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
-  //     renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
-  //     renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
-  // m.restore();
+  m.save();
+      renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
+      renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
+      renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
+  m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
   if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
