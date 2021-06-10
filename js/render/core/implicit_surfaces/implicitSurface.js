@@ -1,4 +1,3 @@
-import { setUniform, drawMesh } from "./lib.js";
 import { CG, Matrix } from "../CG.js";
 import { materials } from "./materials.js";
 

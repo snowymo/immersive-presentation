@@ -1291,9 +1291,7 @@ export class Renderer {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
-    // gl.clearDepth(-1);
     gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // for normal renderList obj
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     renderList.program.use();
     let pgm = renderList.program;
@@ -1304,10 +1302,14 @@ export class Renderer {
         shape.length / VERTEX_SIZE
       );
     };
-    gl.uniform1f(
-      gl.getUniformLocation(pgm.program, "uParticles"),
-      isParticles ? 1 : 0
-    );
+    let setUniform = (type, name, a, b, c, d, e, f) => {
+      let loc = gl.getUniformLocation(pgm.program, name);
+      (gl['uniform' + type])(loc, a, b, c, d, e, f);
+   }
+    // gl.uniform1f(
+    //   gl.getUniformLocation(pgm.program, "uParticles"),
+    //   isParticles ? 1 : 0
+    // );
 
     if (!renderList.vao) {
       renderList.initVAO(gl);
@@ -1377,25 +1379,13 @@ export class Renderer {
     renderList.bufferAux = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
     // }
-
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBlobby"), -1.0);
-    gl.uniform4fv(
-      gl.getUniformLocation(pgm.program, "uColor"),
-      color.length == 4
-        ? color
-        : color.concat([opacity === undefined ? 1 : opacity])
-    );
-    gl.uniformMatrix4fv(
-      gl.getUniformLocation(pgm.program, "uModel"),
-      false,
-      matrix
-    );
-    gl.uniform1i(gl.getUniformLocation(pgm.program, "uFxMode"), fxMode);
-    gl.uniform3fv(
-      gl.getUniformLocation(pgm.program, "uWindowDir"),
-      this._globalLightDir1
-    );
+    setUniform('1f', 'uParticles', isParticles ? 1 : 0);
+    setUniform('1f', 'uBrightness', 1);
+    setUniform('1f', 'uBlobby', -1);
+    setUniform('4fv', 'uColor', color.length == 4 ? color: color.concat([opacity === undefined ? 1 : opacity]));
+    setUniform('Matrix4fv', 'uModel', false, matrix);
+    setUniform('1i', 'uFxMode', fxMode);
+    setUniform('3fv', 'uWindowDir', this._globalLightDir1);
 
     let uTex = [];
     for (let n = 0; n < gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS); n++) {
@@ -1415,49 +1405,32 @@ export class Renderer {
       // this.gl.bindTexture(this.gl.TEXTURE_2D, txtr);
       // renderList.textureCatalogue.setSlotByTextureInfo(txtr,2);
       gl.activeTexture(gl.TEXTURE0 + 2);
-      gl.uniform1f(
-        gl.getUniformLocation(pgm.program, "uTexScale"),
-        1
-      );
+      setUniform('1f', 'uTexScale', 1);
       gl.bindTexture(gl.TEXTURE_2D, txtr);
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+      setUniform('1i', 'uTexIndex', 2);
     } else if (textureInfo.isValid) {
       gl.activeTexture(gl.TEXTURE0 + 2);
 
       for (let i = 0; i < textureInfo.textures.length; i += 1) {
-        gl.uniform1f(
-          gl.getUniformLocation(pgm.program, "uTexScale"),
-          textureInfo.scale
-        );
+        setUniform('1f', 'uTexScale', textureInfo.scale);
 
         // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
         renderList.textureCatalogue.setSlotByTextureInfo(
           textureInfo.textures[i],
           i + 2
         );
-        gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+        setUniform('1i', 'uTexIndex', 2);
         //  }
       }
-      gl.uniform1i(
-        gl.getUniformLocation(pgm.program, "uBumpIndex"),
-        textureInfo.textures.length > 1 ? 0 : -1
-      );
+      setUniform('1i', 'uBumpIndex', textureInfo.textures.length > 1 ? 0 : -1);
     } else {
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
+      setUniform('1i', 'uBumpIndex', -1);
+      setUniform('1i', 'uTexIndex', -1);
     }
 
     if (views.length == 1) {
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uProj"),
-        false,
-        views[0].projectionMatrix
-      );
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uView"),
-        false,
-        views[0].viewMatrix
-      );
+      setUniform('Matrix4fv', 'uProj', false, views[0].projectionMatrix);
+      setUniform('Matrix4fv', 'uView', false, views[0].viewMatrix);
       drawArrays();
     }
 
@@ -1466,26 +1439,15 @@ export class Renderer {
       if (views.length > 1) {
         let vp = view.viewport;
         gl.viewport(vp.x, vp.y, vp.width, vp.height);
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uView"),
-          false,
-          view.viewMatrix
-        );
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uProj"),
-          false,
-          view.projectionMatrix
-        );
+        setUniform('Matrix4fv', 'uProj', false, view.projectionMatrix);
+        setUniform('Matrix4fv', 'uView', false, view.viewMatrix);
       }
       if (isToon) {
-        gl.uniform1f(
-          gl.getUniformLocation(pgm.program, "uToon"),
-          0.005 * CG.norm(m.value().slice(0, 3))
-        );
+        setUniform('1f', 'uToon',  0.005 * CG.norm(m.value().slice(0, 3)));
         gl.cullFace(gl.FRONT);
         drawArrays();
         gl.cullFace(gl.BACK);
-        gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
+        setUniform('1f', 'uToon',  0);
       }
       if (isMirror) gl.cullFace(gl.FRONT);
       drawArrays();
@@ -1517,14 +1479,12 @@ export class Renderer {
    }
    
    let drawArrays = () => {
-    //  console.log("mesh length" + implicitSurfacesPgm.mesh.length)
       gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
    }
    
 
     drawImplicitSurfaceObj();
     gl.bindBuffer(gl.ARRAY_BUFFER, implicitSurfacesPgm.buffer); 
-    // console.log("mesh " + implicitSurfacesPgm.mesh)
     gl.bufferData(gl.ARRAY_BUFFER, implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -1598,61 +1558,29 @@ export class Renderer {
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
     setUniform('1f', 'uOpacity', 1);
-      // setUniform(gl, pgm, 'Matrix4fv', 'uView', false, matrix_perspective(3)); // SET GPU CAMERA
-    // console.log("implicitSurfacesPgm.M " + implicitSurfacesPgm.M)
     setUniform('Matrix4fv', 'uModel', false, implicitSurfacesPgm.M);
-      // setUniform(gl, pgm, 'Matrix4fv', 'uInvMatrix', false, matrix_inverse(m));
-  //  console.log(implicitSurfacesPgm.color)
     let material = materials[implicitSurfacesPgm.color];
     let a = material.ambient, d = material.diffuse, s = material.specular;
-    // console.log("material " + material);
     setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
-      // gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
-    // console.log("phongData " + implicitSurfacesPgm.phongData)
-    // console.log("matrixData " + implicitSurfacesPgm.matrixData)
-    // console.log("invMatrixData " + implicitSurfacesPgm.invMatrixData)
     setUniform('Matrix4fv', 'uBlobPhong'  , false, implicitSurfacesPgm.phongData);
     setUniform('Matrix4fv', 'uMatrices'   , false, implicitSurfacesPgm.matrixData);
     setUniform('Matrix4fv', 'uInvMatrices', false, implicitSurfacesPgm.invMatrixData);
     setUniform('1f', 'uBlobby', 1);
-    // setUniform('1f', 'uBlobby', 0);
-
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
-   
-    gl.uniform3fv(
-      gl.getUniformLocation(pgm.program, "uWindowDir"),
-      this._globalLightDir1
-    );
+    setUniform('1f', 'uBrightness', 1);
+    setUniform('3fv', 'uWindowDir', this._globalLightDir1);
 
     if (views.length == 1) {
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uProj"),
-        false,
-        views[0].projectionMatrix
-      );
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uView"),
-        false,
-        views[0].viewMatrix
-      );
+      setUniform('Matrix4fv', 'uProj',  false, views[0].projectionMatrix);
+      setUniform('Matrix4fv', 'uView',  false, views[0].viewMatrix);
       drawArrays();
-      // drawImplicitSurfaceObj();
     } else {
       for (let i = 0; i < views.length; ++i) {
         let view = views[i];
         if (views.length > 1) {
           let vp = view.viewport;
           gl.viewport(vp.x, vp.y, vp.width, vp.height);
-          gl.uniformMatrix4fv(
-            gl.getUniformLocation(pgm.program, "uView"),
-            false,
-            view.viewMatrix
-          );
-          gl.uniformMatrix4fv(
-            gl.getUniformLocation(pgm.program, "uProj"),
-            false,
-            view.projectionMatrix
-          );
+          setUniform('Matrix4fv', 'uProj',  false, view.projectionMatrix);
+          setUniform('Matrix4fv', 'uView',  false, view.viewMatrix);
         }
         // if (isToon) {
         //   gl.uniform1f(
@@ -1667,10 +1595,7 @@ export class Renderer {
         drawArrays();
       }
     }
-
-  
     // gl.cullFace(gl.BACK);
-    
   }
 
   _getRenderTexture(texture) {
