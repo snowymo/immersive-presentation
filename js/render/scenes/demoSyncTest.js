@@ -6,6 +6,15 @@ import * as keyboardInput from "../../util/input_keyboard.js";
 // import { metaroomEventSender } from "../../corelink_handler.js"
 
 window.posY = 1.5;
+
+import {
+  viewMatrix,
+  controllerMatrix,
+  buttonState,
+  isReleased,
+  isDragged,
+  isPressed,
+} from "../core/renderListScene.js";
 document.addEventListener("keydown", (event) => {
   if (keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
     // To Keru: what we have to implement in the code is input handler, such as processing controller information
@@ -24,11 +33,14 @@ let DemoSyncTest = function () {
   this.loadGLTF = false;
   this.envInd = null;
   this.display = () => {
-
+    if (isPressed && buttonState.left[0]) {
+      window.posY += 0.01;
+    }
     m.save();
     m.translate(0, window.posY, 0);
     renderList.mCube().size(0.2).turnY(time).color([1, 0, 0]);
     m.restore();
+
   };
 };
 
