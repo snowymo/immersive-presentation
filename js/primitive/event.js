@@ -123,6 +123,10 @@ export function init() {
     // }
   });
 
+  window.EventBus.subscribe("3d", (json) => {
+    window.pointCloudData = json["frame"];
+  });
+
   window.EventBus.subscribe("mute", (json) => {
     // a client wants to mute self
     console.log("receive webrtc", json["ts"], Date.now());

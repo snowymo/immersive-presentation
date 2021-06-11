@@ -30,6 +30,7 @@ import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoPrajval } from "./demoPrajval.js";
 import { demoRohail } from "./demoRohail.js";
+import { demoRealSense } from "./demoRealSense.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -65,6 +66,7 @@ export let mainScene = () => {
   if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
   if (demoPrajvalState % 2) loadScene(demoPrajval); else stopScene(demoPrajval);
   if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
+  if (demoRealSenseState % 2) loadScene(demoRealSense); else stopScene(demoRealSense);
   if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
 };
 
@@ -153,6 +155,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,RealSense,Speak,Text";
 addDemoButtons(window.demoNames);
 window.addNameField();
