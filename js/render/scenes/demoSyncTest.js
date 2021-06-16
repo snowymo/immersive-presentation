@@ -11,9 +11,6 @@ import {
   viewMatrix,
   controllerMatrix,
   buttonState,
-  isReleased,
-  isDragged,
-  isPressed,
 } from "../core/renderListScene.js";
 document.addEventListener("keydown", (event) => {
   if (keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
@@ -33,7 +30,7 @@ let DemoSyncTest = function () {
   this.loadGLTF = false;
   this.envInd = null;
   this.display = () => {
-    if (isPressed && buttonState.left[0]) {
+    if (window.isPressed && buttonState.left[0]) {
       window.posY += 0.01;
     }
     m.save();

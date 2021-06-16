@@ -1,6 +1,6 @@
 "use strict";
 
-import { metaroomEventSender } from "../corelink_handler.js"
+import { metaroomEventSender, metaroomSyncSender } from "../corelink_handler.js"
 
 export function ab2str(buf) {
     var rawBuf = String.fromCharCode.apply(null, new Uint16Array(buf));
@@ -22,6 +22,7 @@ export function corelink_event(data) {
     if (window.initxr) {
         var msg = corelink_message("event", data);
         corelink.send(metaroomEventSender, msg);
+
     }
 }
 
@@ -103,7 +104,7 @@ export function corelink_message(type, data) {
             console.log("demo", message);
             break;
         case "event":
-            console.log(data);
+            // console.log(data);
             message = {
                 type: "event",
                 uid: window.playerid,
@@ -115,7 +116,7 @@ export function corelink_message(type, data) {
                     operation: data["op"],
                 }
             };
-            console.log("event", message);
+            // console.log("event", message);
             break;
         default:
             break;

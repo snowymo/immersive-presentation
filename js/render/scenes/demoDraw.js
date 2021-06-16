@@ -12,9 +12,6 @@ import {
   viewMatrix,
   controllerMatrix,
   buttonState,
-  isReleased,
-  isDragged,
-  isPressed,
 } from "../core/renderListScene.js";
 
 const FEET_TO_METERS = 0.3048;
@@ -69,19 +66,28 @@ let DemoDraw = function () {
   this.envInd = null;
 
   this.display = () => {
-    if (isPressed) {
+    if (window.isPressed) {
+      if (window.eventOwner == -1)
+        return;
+      console.log("display-isPressed", tMode, justReleased);
       justReleased = true;
-      if (buttonState.left[0] && tMode == 0) {
+      if (tMode == 0) {
         zScale = 1;
         cursorPath.push([]);
       }
     } else if (isDragged && tMode == 0) {
-      if (buttonState.left[0])
-        if (controllerMatrix.left) {
-          let P = controllerMatrix.left.slice(12, 15);
-          cursorPath[cursorPath.length - 1].push(P);
-        }
+      if (window.eventOwner == -1)
+        return;
+      console.log("display-isDragged", tMode, justReleased);
+      // if (window.avatars[window.eventOwner].leftController.buttons[0].pressed)
+      if (window.avatars[window.eventOwner].leftController.matrix) {
+        let P = Object.values(window.avatars[window.eventOwner].leftController.matrix).slice(12, 15);
+        cursorPath[cursorPath.length - 1].push(P);
+      }
     } else if (isReleased) {
+      // if (window.eventOwner == -1)
+      //   return;
+      console.log("display-isReleased", tMode, justReleased);
       if (justReleased) {
         justReleased = false;
         tMode = (tMode + 1) % 2;

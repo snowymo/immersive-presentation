@@ -46,11 +46,13 @@ export class Avatar {
             mtx: this.leftController.matrix,
             pos: this.leftController.position,
             rot: this.leftController.orientation,
+            btn: this.leftController.toJson(),
           },
           right: {
             mtx: this.rightController.matrix,
             pos: this.rightController.position,
             rot: this.rightController.orientation,
+            btn: this.rightController.toJson(),
           },
         },
       }
@@ -65,9 +67,11 @@ export class Avatar {
       this.leftController.matrix = payload["state"]["controllers"]["left"]["mtx"];
       this.leftController.position = payload["state"]["controllers"]["left"]["pos"];
       this.leftController.orientation = payload["state"]["controllers"]["left"]["rot"];
+      this.leftController.fromJson(payload["state"]["controllers"]["left"]["btn"]);
       this.rightController.matrix = payload["state"]["controllers"]["right"]["mtx"];
       this.rightController.position = payload["state"]["controllers"]["right"]["pos"];
       this.rightController.orientation = payload["state"]["controllers"]["right"]["rot"];
+      this.rightController.fromJson(payload["state"]["controllers"]["right"]["btn"]);
       this.headset.model.visible = true;
       this.leftController.model.visible = true;
       this.rightController.model.visible = true;
@@ -125,8 +129,8 @@ export class Controller {
 
     this.updateButtons = function (newBtns) {
       // send corelink msg if changed
-      if (this.prevbuttons)
-        console.log("updateButtons", this.prevbuttons[3].pressed, this.buttons[3].pressed);
+      // if (this.prevbuttons)
+      // console.log("updateButtons", this.prevbuttons[3].pressed, this.buttons[3].pressed);
       for (let i = 0; i < 7; i++) {
         if ((this.buttons && !this.prevbuttons && this.buttons[i].pressed)
           || (this.prevbuttons && this.buttons[i].pressed && !this.prevbuttons[i].pressed)) {
@@ -172,9 +176,9 @@ export class Controller {
     }
     // fromJson will be called in event.js for unpacking the msg from the server
     this.fromJson = function (payload) {
-      this.analog.pressed = payload["state"]["analog"];
-      this.trigger.pressed = payload["state"]["trigger"];
-      this.buttons = payload["state"]["buttons"];
+      this.analog.pressed = payload["analog"];
+      this.trigger.pressed = payload["trigger"];
+      this.buttons = payload["buttons"];
     }
   }
 }

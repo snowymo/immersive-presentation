@@ -340,12 +340,15 @@ export function init() {
     // flags[temp] = window[temp];
   });
 
+  window.eventOwner = -1;
   window.EventBus.subscribe("event", (json) => {
-    console.log("window.EventBus.subscribe('event'", json);
+    window.eventOwner = json["uid"];
+    // console.log("window.EventBus.subscribe('event'", json["state"], json);
     // for (const [item, operation] of Object.entries(json["state"])) {
     switch (json["state"]["item"]) {
       case "lefttrigger":
         //left trigger
+        // console.log("call left_controller_trigger", json["state"]['operation']);
         left_controller_trigger(json["state"]['operation']);
         break;
       case "righttrigger":

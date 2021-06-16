@@ -17,8 +17,8 @@ const run = async () => {
     var config = {}
     config.username = 'Testuser'
     config.password = 'Testpassword'
-    // config.host = 'corelink.hpc.nyu.edu'
-    config.host = 'localhost'
+    config.host = 'corelink.hpc.nyu.edu'
+    // config.host = 'localhost'
     config.port = 20012
     corelink.debug = false;
 
@@ -113,8 +113,8 @@ const run = async () => {
             receiverdata = ab2str(data)
             window[streamID + '_data'] = ab2str(data)
             window.EventBus.publish(receiverdata["type"], receiverdata);
-            if (receiverdata["type"] != "avatar")
-                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
+            // if (receiverdata["type"] != "avatar")
+            //     console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
 
         }).catch((err) => { console.log(err) })
 

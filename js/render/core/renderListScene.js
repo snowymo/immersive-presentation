@@ -2,7 +2,10 @@
 import { mainScene } from "../scenes/mainScene.js";
 import { corelink_event } from "../../util/corelink_sender.js";
 
-export let viewMatrix = [], time = 0, isPressed = false, isDragged = false, isReleased = true;
+export let viewMatrix = [], time = 0;
+window.isPressed = false;
+window.isDragged = false;
+window.isReleased = true;
 
 export let controllerMatrix = { left: [], right: [] };
 export let buttonState = { left: [], right: [] };
@@ -20,9 +23,11 @@ export let updateController = (avatar, buttonInfo) => {
     const b = buttonInfo.buttons;
 
     for (let i = 0; i < 7; i++) {
-      if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
-      else if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
-      else if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
+      // if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
+      // else
+      //   if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
+      //   else
+      //     if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
 
       // Update
       buttonState[h][i] = b[i].pressed;
@@ -31,26 +36,30 @@ export let updateController = (avatar, buttonInfo) => {
 };
 
 export let onPress = (hand, button) => {
-  console.log("pressed", hand, "button", button);
-  isPressed = true;
-  isReleased = false;
-  isDragged = false;
+
+  window.isPressed = true;
+  window.isReleased = false;
+  window.isDragged = false;
+  console.log("onPress", hand, "button", button,
+    window.isPressed, window.isReleased, window.isDragged);
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "press" });
 };
 
 export let onDrag = (hand, button) => {
-  isDragged = true;
-  isReleased = false;
-  isPressed = false;
+  // console.log("onDrag", hand, "button", button, isPressed, isReleased, isDragged);
+  window.isDragged = true;
+  window.isReleased = false;
+  window.isPressed = false;
 };
 
 export let onRelease = (hand, button) => {
-  console.log("released", hand, "button", button);
-  isReleased = true;
-  isPressed = false;
-  isDragged = false;
+  window.isReleased = true;
+  window.isPressed = false;
+  window.isDragged = false;
+  console.log("onRelease", hand, "button", button,
+    window.isPressed, window.isReleased, window.isDragged);
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "release" });
