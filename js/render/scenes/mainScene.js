@@ -20,6 +20,7 @@ import { rokokoData } from "../../data/RokokoData.js";
 
 import { demoText } from "./demoText.js";
 import { demoAirText } from "./demoAirText.js";
+import { demoBill } from "./demoBill.js";
 import { demoChris } from "./demoChris.js";
 import { demoHands } from "./demoHands.js";
 import { demoKen } from "./demoKen.js";
@@ -27,6 +28,7 @@ import { demoMocap } from "./demoMocap.js";
 import { demoNoiseGrid } from "./demoNoiseGrid.js";
 import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
+import { demoPrajval } from "./demoPrajval.js";
 import { demoRohail } from "./demoRohail.js";
 import { demoSyncTest } from "./demoSyncTest.js";
 import { demoDraw } from "./demoDraw.js";
@@ -49,12 +51,13 @@ export let mainScene = () => {
 
   // add the procedural objects you wish to have all the time here
   m.save();
-      renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
-      renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
-      renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .74, 0).turnX(Math.PI / 2).size(.8, .8, .01).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .37, 0).turnX(Math.PI / 2).size(.07, .07, .37).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .005, 0).turnX(Math.PI / 2).size(.25, .25, .005).color([.25, .15, .05]);
   m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
+  if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
   if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);
   if (demoHandsState % 2) loadScene(demoHands); else stopScene(demoHands);
   if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
@@ -62,6 +65,7 @@ export let mainScene = () => {
   if (demoNoiseGridState % 2) loadScene(demoNoiseGrid); else stopScene(demoNoiseGrid);
   if (demoObjectsState % 2) loadScene(demoObjects); else stopScene(demoObjects);
   if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
+  if (demoPrajvalState % 2) loadScene(demoPrajval); else stopScene(demoPrajval);
   if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
   if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
   if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
@@ -127,32 +131,32 @@ function switchBackground(background) {
 
 function showNameTag() {
   for (let key in window.avatars) {
-    if( window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined ) {
+    if (window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined) {
       m.save();
-        let msg =  window.avatars[key].name;
-        let PT = new CG.ParticlesText(msg);
-        PT.layout();
-        // let mat = Array.from(window.avatars[key].headset.matrix);
-        let mat = [];
-        for (let i = 0; i< 16; i ++) {
-          mat.push(window.avatars[key].headset.matrix[i])
-        }
-        m.set(mat);
+      let msg = window.avatars[key].name;
+      let PT = new CG.ParticlesText(msg);
+      PT.layout(null, .5, .5);
+      // let mat = Array.from(window.avatars[key].headset.matrix);
+      let mat = [];
+      for (let i = 0; i < 16; i++) {
+        mat.push(window.avatars[key].headset.matrix[i])
+      }
+      m.set(mat);
 
-        m.save();
-          m.rotateY(Math.PI)
-          m.translate(-0.12,0.1,0)
-          m.scale(0.05);
-          
-          renderList.mMesh(PT.mesh()).color([0, 0, 10]).setBaseTexture('font.png');
-        m.restore();
+      m.save();
+      m.rotateY(Math.PI);
+      m.translate(0, 0.15, 0.1);
+      m.scale(0.05);
+      // renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
+      PT.render(renderList, m, window.avatars[key].nameTagColor);
+      m.restore();
       m.restore();
     }
-    
-    
+
+
   }
 }
 
-window.demoNames = "AirText,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Rohail,Speak,Text,SyncTest,Draw";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text";
 addDemoButtons(window.demoNames);
 window.addNameField();
