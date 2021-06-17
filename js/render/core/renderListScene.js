@@ -49,17 +49,22 @@ export let onPress = (hand, button) => {
 
 export let onDrag = (hand, button) => {
   // console.log("onDrag", hand, "button", button, isPressed, isReleased, isDragged);
-  window.isDragged = true;
-  window.isReleased = false;
-  window.isPressed = false;
+  if (window.isPressed && window.justReleased) {
+    window.isDragged = true;
+    window.isReleased = false;
+    window.isPressed = false;
+  }
 };
 
 export let onRelease = (hand, button) => {
-  window.isReleased = true;
-  window.isPressed = false;
-  window.isDragged = false;
-  console.log("onRelease", hand, "button", button,
-    window.isPressed, window.isReleased, window.isDragged);
+  if (window.isDragged) {
+    window.isReleased = true;
+    window.isPressed = false;
+    window.isDragged = false;
+    console.log("onRelease", hand, "button", button,
+      window.isPressed, window.isReleased, window.isDragged);
+  }
+
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "release" });

@@ -20,7 +20,7 @@ let flatten = 0,
   zScale = 1;
 let cursorPath = [];
 let tMode = 0;
-let justReleased = true;
+window.justReleased = true;
 
 
 let multiline = (path, rgb, width) => {
@@ -69,7 +69,7 @@ let DemoDraw = function () {
     if (window.isPressed) {
       if (window.eventOwner == -1)
         return;
-      console.log("display-isPressed", tMode, justReleased);
+      console.log("display-isPressed", tMode, window.justReleased);
       justReleased = true;
       if (tMode == 0) {
         zScale = 1;
@@ -78,7 +78,7 @@ let DemoDraw = function () {
     } else if (isDragged && tMode == 0) {
       if (window.eventOwner == -1)
         return;
-      console.log("display-isDragged", tMode, justReleased);
+      console.log("display-isDragged", tMode, window.justReleased);
       // if (window.avatars[window.eventOwner].leftController.buttons[0].pressed)
       if (window.avatars[window.eventOwner].leftController.matrix) {
         let P = Object.values(window.avatars[window.eventOwner].leftController.matrix).slice(12, 15);
@@ -87,9 +87,9 @@ let DemoDraw = function () {
     } else if (isReleased) {
       // if (window.eventOwner == -1)
       //   return;
-      console.log("display-isReleased", tMode, justReleased);
-      if (justReleased) {
-        justReleased = false;
+      console.log("display-isReleased", tMode, window.justReleased);
+      if (window.justReleased) {
+        window.justReleased = false;
         tMode = (tMode + 1) % 2;
         switch (tMode) {
           case 0:
