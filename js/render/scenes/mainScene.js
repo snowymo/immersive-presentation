@@ -157,6 +157,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,SyncTest,Draw";
 addDemoButtons(window.demoNames);
 window.addNameField();
