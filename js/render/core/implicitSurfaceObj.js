@@ -38,9 +38,9 @@ let colorID = ['red','white','yellow','blue','brass'];
 export function drawImplicitSurfaceObj() {
     if(!implicitSurface) implicitSurface = new ImplicitSurface(m);
     implicitSurface.setBlobby(1); 
+    implicitSurface.setBlur(0.2);
     implicitSurface.setDivs(50);
     implicitSurface.setFaceted(0);
-    implicitSurface.setBlur(1); 
 
     m.save();
         m.translate(0,0.6,0);
@@ -50,7 +50,7 @@ export function drawImplicitSurfaceObj() {
             m.save();
                 m.translate(T(14,.035,1), T(24,.024,2), T(34, .014, 3));
                 m.scale(0.1);
-                implicitSurface.addBlob(implicitSurface.SPHERE, colorID[n]);
+                implicitSurface.addBlob(implicitSurface.SPHERE, true, m.value(), colorID[n], false, false);
             m.restore();
         }
         m.rotateY(time / 4);

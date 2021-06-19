@@ -1,5 +1,6 @@
 import { CG, Matrix } from "../CG.js";
 import { materials } from "./materials.js";
+import { VERTEX_SIZE, VERTEX_WTS } from "../CG.js";
 
 export let matrix_inverse = src => {
    let dst = [], det = 0, cofactor = (c, r) => {
@@ -35,9 +36,11 @@ export let matrix_perspective = fl => {
 
 function Blobs() {
 
-    this.SPHERE = 0;
-    this.CYLINDER = 1;
-    this.CUBE = 2;
+   this.SPHERE    = 0;
+   this.CYLINDERX = 1;
+   this.CYLINDERY = 2;
+   this.CYLINDERZ = 3;
+   this.CUBE      = 4;
  
     // DEFINE SOME USEFUL FUNCTIONS
     
@@ -187,28 +190,37 @@ function Blobs() {
           return [P, T];
        }
     
-       // SAMPLE THE VOLUME
-    
-       let X = [];
-       for (let i = 0 ; i < n ; i++)
-          X.push((i - n/2) / (n/2));
-    
        // FILL THE VOLUME WITH VALUES FROM THE IMPLICIT FUNCTION
     
        let A = [0,0,0,0,0,0], B = [0,0,0,0,0,0], C = [0,0,0,0,0,0];
-       let volume = new Array(n*n*n), m = 0;
+       let volume = new Array(n*n*n);
        volume.fill(-1);
  
-       for (let k = 0 ; k < n ; k++) {
-          let z = X[k];
-          for (let j = 0 ; j < n ; j++, m += n) {
-             let y = X[j];
-             for (let b = 0 ; b < data.length ; b++) {
-                let xBounds = blobXBounds(b, y,z);
-                if (xBounds.length > 0) {
-                   let i0 = Math.max(0, Math.floor(n/2 * xBounds[0] + n/2));
-                   let i1 = Math.min(n, Math.floor(n/2 * xBounds[1] + n/2));
+       let t2i = t => Math.floor(n * (t + 1) / 2);
+       let i2t = i => 2 * i / n - 1;
+ 
+       // COMPUTE THE BOUNDS AROUND ALL BLOBS
+    
+       this.innerBounds = computeBounds(0,2,4);
+       this.outerBounds = computeBounds(1,3,5);
+ 
+       for (let b = 0 ; b < data.length ; b++) {
+          let blobBounds = this.outerBounds[b];
+          if (blobBounds) {
+             let k0 = t2i(blobBounds[2][0]),
+                 k1 = t2i(blobBounds[2][1]);
+             for (let k = k0 ; k < k1 ; k++) {
+                let z = i2t(k);
+                let j0 = t2i(blobBounds[1][0]),
+                    j1 = t2i(blobBounds[1][1]);
+                for (let j = j0 ; j < j1 ; j++) {
+                   let y = i2t(j);
+                   let i0 = t2i(blobBounds[0][0]),
+                       i1 = t2i(blobBounds[0][1]);
                    if (i0 < i1) {
+                      let type = data[b].type, rounded = data[b].rounded, sign = data[b].sign,
+                m = k*n*n + j*n, U, V, W;
+ 
                       for (let c = 0 ; c < 6 ; c++) {
                          let U = data[b].ABC[c], u = U[0], v = U[1]*y + U[2]*z + U[3];
                          A[c] = -u * u;
@@ -216,26 +228,54 @@ function Blobs() {
                          C[c] = -v * v;
                       }
  
-                      data[b].XC =
-                         data[b].type == this.SPHERE ?
-                         [
-                            [ A[0] + A[2] + A[4] , B[0] + B[2] + B[4] , 1 + C[0] + C[2] + C[4] ,
-                              A[1] + A[3] + A[5] , B[1] + B[3] + B[5] , 1 + C[1] + C[3] + C[5] , ],
-                         ] :
-                         data[b].type == this.CYLINDER ?
-                         [
-                            [ A[0] + A[2] , B[0] + B[2] , 1 + C[0] + C[2] ,
-                              A[1] + A[3] , B[1] + B[3] , 1 + C[1] + C[3] , ],
-                            [ A[4] , B[4] , 1 + C[4] , A[5] , B[5] , 1 + C[5] , ],
-                         ] :
-                         [
-                            [ A[0] , B[0] , 1 + C[0] , A[1] , B[1] , 1 + C[1] , ],
-                            [ A[2] , B[2] , 1 + C[2] , A[3] , B[3] , 1 + C[3] , ],
-                            [ A[4] , B[4] , 1 + C[4] , A[5] , B[5] , 1 + C[5] , ],
-                         ] ;
+                      switch (type) {
+                      case this.SPHERE:
+                         U = [ A[0] + A[2] + A[4] , B[0] + B[2] + B[4] , 1 + C[0] + C[2] + C[4] ,
+                               A[1] + A[3] + A[5] , B[1] + B[3] + B[5] , 1 + C[1] + C[3] + C[5] ];
+                         break;
+                      case this.CYLINDERX:
+                         U = [ A[2] + A[4] , B[2] + B[4] , 1 + C[2] + C[4] ,
+                               A[3] + A[5] , B[3] + B[5] , 1 + C[3] + C[5] ];
+                         V = [ A[0] , B[0] , 1 + C[0] ,
+                A[1] , B[1] , 1 + C[1] ];
+                         break;
+                      case this.CYLINDERY:
+                         U = [ A[4] + A[0] , B[4] + B[0] , 1 + C[4] + C[0] ,
+                               A[5] + A[1] , B[5] + B[1] , 1 + C[5] + C[1] ];
+                         V = [ A[2] , B[2] , 1 + C[2] ,
+                A[3] , B[3] , 1 + C[3] ];
+                         break;
+                      case this.CYLINDERZ:
+                         U = [ A[0] + A[2] , B[0] + B[2] , 1 + C[0] + C[2] ,
+                               A[1] + A[3] , B[1] + B[3] , 1 + C[1] + C[3] ];
+                         V = [ A[4] , B[4] , 1 + C[4] ,
+                A[5] , B[5] , 1 + C[5] ];
+                         break;
+                      case this.CUBE:
+                         U = [ A[0] , B[0] , 1 + C[0] ,
+                A[1] , B[1] , 1 + C[1] ];
+                         V = [ A[2] , B[2] , 1 + C[2] ,
+                A[3] , B[3] , 1 + C[3] ];
+                         W = [ A[4] , B[4] , 1 + C[4] ,
+                A[5] , B[5] , 1 + C[5] ];
+                         break;
+                      }
  
-                      for (let i = i0 ; i < i1 ; i++)
-                         volume[m+i] += blobx(data[b], X[i]);
+                      for (let i = i0 ; i < i1 ; i++) {
+                         let x = i2t(i);
+                         let T = U => {
+                            let t1 = x * (x * U[0] + U[1]) + U[2];
+                            let t0 = x * (x * U[3] + U[4]) + U[5];
+                            return t0 / (t0 - t1);
+                         }
+                         let t = type == this.SPHERE    ? T(U)
+                               : type == this.CYLINDERX ||
+                  type == this.CYLINDERY ||
+             type == this.CYLINDERZ ? minfunc(rounded, T(U), T(V))
+                                                        : minfunc(rounded, T(U), T(V), T(W));
+                         if (t > 0)
+                            volume[m+i] += massage(t, sign);
+                      }
                    }
                 }
              }
@@ -265,30 +305,27 @@ function Blobs() {
               b = 3 * T[i + 1],
               c = 3 * T[i + 2];
     
-          if (isFaceted) {
-             let normal = normalize([N[a  ]+N[b  ]+N[c  ],
-                                     N[a+1]+N[b+1]+N[c+1],
-                                     N[a+2]+N[b+2]+N[c+2]]);
-             N[a  ] = N[b  ] = N[c  ] = normal[0];
-             N[a+1] = N[b+1] = N[c+1] = normal[1];
-             N[a+2] = N[b+2] = N[c+2] = normal[2];
-          }
-    
-          mesh.push( V[a],V[a+1],V[a+2] , N[a],N[a+1],N[a+2] , 0,0,0, 1,0,0, 0,0,0 ,
-                     V[b],V[b+1],V[b+2] , N[b],N[b+1],N[b+2] , 0,0,0, 1,0,0, 0,0,0 ,
-                     V[c],V[c+1],V[c+2] , N[c],N[c+1],N[c+2] , 0,0,0, 1,0,0, 0,0,0 );
- 
-          let n = mesh.length;
-          computeWeights(mesh, n - 3 * 15 + 9, V[a],V[a+1],V[a+2]);
-          computeWeights(mesh, n - 2 * 15 + 9, V[b],V[b+1],V[b+2]);
-          computeWeights(mesh, n - 1 * 15 + 9, V[c],V[c+1],V[c+2]);
+         if (isFaceted) {
+            let normal = normalize([N[a  ]+N[b  ]+N[c  ],
+                                    N[a+1]+N[b+1]+N[c+1],
+                                    N[a+2]+N[b+2]+N[c+2]]);
+            for (let j = 0 ; j < 3 ; j++)
+               N[a+j] = N[b+j] = N[c+j] = normal[j];
+         }
+         
+         let addVertex = a => {
+            let v = CG.vertexArray(V.slice(a,a+3), N.slice(a,a+3), [1,0,0], [0,0], [1,1,1], [1,0,0,0,0,0]);
+	         for (let j = 0 ; j < VERTEX_SIZE ; j++)
+	            mesh.push(v[j]);
+            computeWeights(mesh, mesh.length - VERTEX_SIZE + VERTEX_WTS, V[a],V[a+1],V[a+2]);
+         }
+
+         addVertex(a);
+         addVertex(b);
+         addVertex(c);
        }
        return new Float32Array(mesh);
     }
- 
-    this.useSoftMin = state => isSoftMin = state;
- 
-    let isSoftMin = false;
  
     let minfunc = (a,b,c) => {
        if (isSoftMin) {
@@ -301,137 +338,121 @@ function Blobs() {
           return c === undefined ? Math.min(a, b) : Math.min(a, b, c);
     }
  
-    let massaged = (t, sgn) => t <= 0 ? 0 : (t > 1 ? 2 - 1/t/t : t*t) * sgn;
+    let massage = (t, sgn) => t <= 0 ? 0 : (t > 1 ? 2 - 1/t/t : t*t) * sgn;
  
     let data;
  
-    let blobx = (data, x) => {
-       let XC = data.XC;
-       let T = n => {
-          let C = XC[n], t1 = x * (x * C[0] + C[1]) + C[2],
-                         t0 = x * (x * C[3] + C[4]) + C[5];
-          return t0 / (t0 - t1);
-       }
-       let t = data.type == this.SPHERE   ? T(0)
-             : data.type == this.CYLINDER ? minfunc(T(0), T(1))
-                                          : minfunc(T(0), T(1), T(2));
-       return massaged(t, data.sign);
-    }
- 
     let blob = (data, x, y, z) => {
-       let t;
-       let A1 = data.ABC[0], a1 = A1[0]*x + A1[1]*y + A1[2]*z + A1[3],
-           A0 = data.ABC[1], a0 = A0[0]*x + A0[1]*y + A0[2]*z + A0[3],
- 
-           B1 = data.ABC[2], b1 = B1[0]*x + B1[1]*y + B1[2]*z + B1[3],
-           B0 = data.ABC[3], b0 = B0[0]*x + B0[1]*y + B0[2]*z + B0[3],
- 
-           C1 = data.ABC[4], c1 = C1[0]*x + C1[1]*y + C1[2]*z + C1[3],
-           C0 = data.ABC[5], c0 = C0[0]*x + C0[1]*y + C0[2]*z + C0[3];
- 
-       let aa1 = a1*a1, aa0 = a0*a0,
-           bb1 = b1*b1, bb0 = b0*b0,
-           cc1 = c1*c1, cc0 = c0*c0;
- 
-       switch (data.type) {
-       case this.SPHERE:
-          {
-             let t1 = 1 - (aa1 + bb1 + cc1);
-             let t0 = 1 - (aa0 + bb0 + cc0);
-             t = t0 / (t0 - t1);
-          }
-          break;
- 
-       case this.CYLINDER:
-          {
-             let tab1 = 1 - (aa1 + bb1),
-                 tab0 = 1 - (aa0 + bb0),
-                 tc1  = 1 - cc1,
-                 tc0  = 1 - cc0,
-                 tab  = Math.max(0, tab0 / (tab0 - tab1)),
-                 tc   = Math.max(0, tc0  / (tc0  - tc1 ));
-             t = minfunc(tab, tc);
-          }
-          break;
- 
-       case this.CUBE:
-          {
-             let ta1 = 1 - aa1, ta0 = 1 - aa0,
-                 tb1 = 1 - bb1, tb0 = 1 - bb0,
-                 tc1 = 1 - cc1, tc0 = 1 - cc0,
-                 ta  = ta0 / (ta0 - ta1),
-                 tb  = tb0 / (tb0 - tb1),
-                 tc  = tc0 / (tc0 - tc1);
-             t = minfunc(ta, tb, tc);
-          }
-          break;
-       }
-       return massaged(t, data.sign);
-    }
+      let t;
+      let A1 = data.ABC[0], a1 = A1[0]*x + A1[1]*y + A1[2]*z + A1[3],
+          A0 = data.ABC[1], a0 = A0[0]*x + A0[1]*y + A0[2]*z + A0[3],
+
+          B1 = data.ABC[2], b1 = B1[0]*x + B1[1]*y + B1[2]*z + B1[3],
+          B0 = data.ABC[3], b0 = B0[0]*x + B0[1]*y + B0[2]*z + B0[3],
+
+          C1 = data.ABC[4], c1 = C1[0]*x + C1[1]*y + C1[2]*z + C1[3],
+          C0 = data.ABC[5], c0 = C0[0]*x + C0[1]*y + C0[2]*z + C0[3];
+
+      let aa1 = a1*a1, aa0 = a0*a0,
+          bb1 = b1*b1, bb0 = b0*b0,
+          cc1 = c1*c1, cc0 = c0*c0;
+
+      switch (data.type) {
+      case this.SPHERE:
+         {
+            let t1 = 1 - (aa1 + bb1 + cc1);
+            let t0 = 1 - (aa0 + bb0 + cc0);
+            t = t0 / (t0 - t1);
+         }
+         break;
+
+      case this.CYLINDERX:
+         {
+            let tab1 = 1 - (bb1 + cc1), tc1 = 1 - aa1,
+                tab0 = 1 - (bb0 + cc0), tc0 = 1 - aa0,
+                tab  = Math.max(0, tab0 / (tab0 - tab1)),
+                tc   = Math.max(0, tc0  / (tc0  - tc1 ));
+            t = minfunc(data.rounded, tab, tc);
+         }
+         break;
+
+      case this.CYLINDERY:
+         {
+            let tab1 = 1 - (cc1 + aa1), tc1 = 1 - bb1,
+                tab0 = 1 - (cc0 + aa0), tc0 = 1 - bb0,
+                tab  = Math.max(0, tab0 / (tab0 - tab1)),
+                tc   = Math.max(0, tc0  / (tc0  - tc1 ));
+            t = minfunc(data.rounded, tab, tc);
+         }
+         break;
+
+      case this.CYLINDERZ:
+         {
+            let tab1 = 1 - (aa1 + bb1), tc1 = 1 - cc1,
+                tab0 = 1 - (aa0 + bb0), tc0 = 1 - cc0,
+                tab  = Math.max(0, tab0 / (tab0 - tab1)),
+                tc   = Math.max(0, tc0  / (tc0  - tc1 ));
+            t = minfunc(data.rounded, tab, tc);
+         }
+         break;
+
+      case this.CUBE:
+         {
+            let ta1 = 1 - aa1, ta0 = 1 - aa0,
+                tb1 = 1 - bb1, tb0 = 1 - bb0,
+                tc1 = 1 - cc1, tc0 = 1 - cc0,
+                ta  = ta0 / (ta0 - ta1),
+                tb  = tb0 / (tb0 - tb1),
+                tc  = tc0 / (tc0 - tc1);
+            t = minfunc(data.rounded, ta, tb, tc);
+         }
+         break;
+      }
+      return massage(t, data.sign);
+   }
  
     this.clear = () => data = [];
+
+    let blurFactor = 0.5;
  
-    this.addBlob = (type, _M, d, material) => {
-       let M = _M.slice();
-       let m = matrix_transpose(matrix_inverse(M));
- 
-       if (d === undefined)
-          d = 0.5;
- 
-       let ad = Math.abs(d),
- 
-           A1 = m.slice(0,  4),
-           B1 = m.slice(4,  8),
-           C1 = m.slice(8, 12),
- 
-           da = 1 + ad * CG.norm([A1[0],A1[1],A1[2]]),
-           db = 1 + ad * CG.norm([B1[0],B1[1],B1[2]]),
-           dc = 1 + ad * CG.norm([C1[0],C1[1],C1[2]]),
- 
-           A0 = [A1[0]/da,A1[1]/da,A1[2]/da,A1[3]/da],
-           B0 = [B1[0]/db,B1[1]/db,B1[2]/db,B1[3]/db],
-           C0 = [C1[0]/dc,C1[1]/dc,C1[2]/dc,C1[3]/dc];
- 
-       data.push({
-          type: type,
-          ABC : [A1,A0,B1,B0,C1,C0],
-          sign: Math.sign(d),
-          M   : M,
-       });
-    }
- 
-    let computeXBounds = (Q, y,z) => {
-       let A = Q[0];
-       let B = Q[1]*y + Q[2]*z + Q[3];
-       let C = Q[4]*y*y + Q[5]*y*z + Q[6]*y + Q[7]*z*z + Q[8]*z + Q[9] - 1;
- 
-       let discr = B*B - 4*A*C;
-       if (discr <= 0)
-          return [];
- 
-       let d = Math.sqrt(discr);
-       return [ (-B-d) / (2*A) , (-B+d) / (2*A) ];
-    }
- 
-    let blobXBounds = (b, y,z) => {
-       let QA = computeQuadric(data[b].ABC[1]);
-       let QB = computeQuadric(data[b].ABC[3]);
-       let QC = computeQuadric(data[b].ABC[5]);
-       let Q = [];
-       for (let i = 0 ; i < QA.length ; i++)
-          Q.push(QA[i] + QB[i] + QC[i]);
-       if (data[b].type == this.CUBE)
-          for (let i = 0 ; i < Q.length ; i++)
-             Q[i] *= .7;
-       return computeXBounds(Q, y,z);
-    }
- 
-    this.eval = (x,y,z) => {
-       let value = -1;
-       for (let b = 0 ; b < data.length ; b++)
-          value += blob(data[b], x,y,z);
-       return value;
-    }
+    this.addBlob = (type, rounded, _M, d, material) => {
+      let M = _M.slice();
+      let m = matrix_transpose(matrix_inverse(M));
+
+      if (d === undefined)
+         d = 0.5;
+
+      blurFactor = d;
+
+      let ad = Math.abs(d),
+
+          A1 = m.slice(0,  4),
+          B1 = m.slice(4,  8),
+          C1 = m.slice(8, 12),
+
+          da = 1 + ad * CG.norm([A1[0],A1[1],A1[2]]),
+          db = 1 + ad * CG.norm([B1[0],B1[1],B1[2]]),
+          dc = 1 + ad * CG.norm([C1[0],C1[1],C1[2]]),
+
+          A0 = [A1[0]/da,A1[1]/da,A1[2]/da,A1[3]/da],
+          B0 = [B1[0]/db,B1[1]/db,B1[2]/db,B1[3]/db],
+          C0 = [C1[0]/dc,C1[1]/dc,C1[2]/dc,C1[3]/dc];
+
+      data.push({
+         type   : type,
+	 rounded: rounded,
+         ABC    : [A1,A0,B1,B0,C1,C0],
+         sign   : Math.sign(d),
+         M      : M.slice(),
+      });
+   }
+
+   this.eval = (x,y,z) => {
+      let value = -1;
+      for (let b = 0 ; b < data.length ; b++)
+         value += blob(data[b], x,y,z);
+      return value;
+   }
  
     let computeWeights = (dst, i, x,y,z) => {
  
@@ -458,7 +479,7 @@ function Blobs() {
           dst[i + j] = -1;
     }
  
-    // COMPUTE SURFACE NORMAL
+   //  COMPUTE SURFACE NORMAL
  
     let computeNormal = (x,y,z) => {
        let e = .001, f0 = this.eval(x  ,y  ,z  ),
@@ -484,141 +505,162 @@ function Blobs() {
        return [ (-B - d) / (2*A*C), (-B + d) / (2*A*C) ];
     }
  
-    // NEXT TO IMPLEMENT: USE computeBounds() TO MAKE THE COMPUTATION MORE EFFICIENT.
- 
-    let computeBounds = () => {
-       let bounds = [];
-       let zBounds = (P, k,l,m, Q, a,b,c,d,e,f,g,h,i,j) => {
-          a=Q[a],b=Q[b],c=Q[c],d=Q[d],e=Q[e],
-          f=Q[f],g=Q[g],h=Q[h],i=Q[i],j=Q[j];
-          let W = normalize(cross([2*a,b,c],[b,2*e,f])),
-              vx = P[k], vy = P[l], vz = P[m],
-              wx = W[0], wy = W[1], wz = W[2];
-              let A = a*wx*wx + b*wx*wy + c*wz*wx + e*wy*wy + f*wy*wz + h*wz*wz,
-                  B = 2*a*wx*vx + b*wx*vy + b*wy*vx + c*wz*vx + c*wx*vz + d*wx +
-                      2*e*wy*vy + f*wy*vz + f*wz*vy + g*wy + 2*h*wz*vz + i*wz,
-                  C = a*vx*vx + b*vx*vy + c*vz*vx + d*vx + e*vy*vy +
-                      f*vy*vz + g*vy + h*vz*vz + i*vz + j;
-          return solveQuadratic(A,B,C);
-       }
-       for (let _b = 0 ; _b < data.length ; _b++) {
-      let P = data[_b].M.slice(12,15);
- 
-          let QA = computeQuadric(data[_b].ABC[1]);
-          let QB = computeQuadric(data[_b].ABC[3]);
-          let QC = computeQuadric(data[_b].ABC[5]);
-          let Q = [];
-          for (let i = 0 ; i < QA.length ; i++)
-             Q.push(QA[i] + QB[i] + QC[i]);
-          Q[9] -= 1;
- 
-      let xb = zBounds(P, 1,2,0, Q, 4,5,1,6,7,2,8,0,3,9);
-      let yb = zBounds(P, 2,0,1, Q, 7,2,5,8,9,1,3,4,6,9);
-      let zb = zBounds(P, 0,1,2, Q, 0,1,2,3,4,5,6,7,8,9);
-      bounds.push([xb,yb,zb]);
-       }
-       return bounds;
-    }
- }
+    // USE computeBounds() TO MAKE THE COMPUTATION MORE EFFICIENT.
+
+    let computeBounds = (i0,i1,i2) => {
+      let bounds = [];
+      let zBounds = (P, k,l,m, Q, a,b,c,d,e,f,g,h,i,j) => {
+         a=Q[a],b=Q[b],c=Q[c],d=Q[d],e=Q[e],
+         f=Q[f],g=Q[g],h=Q[h],i=Q[i],j=Q[j];
+         let W = normalize(cross([2*a,b,c],[b,2*e,f])),
+             vx = P[k], vy = P[l], vz = P[m],
+             wx = W[0], wy = W[1], wz = W[2];
+             let A =   a*wx*wx + b*wx*wy + c*wz*wx + e*wy*wy +   f*wy*wz + h*wz*wz,
+                 B = 2*a*wx*vx + b*wx*vy + b*wy*vx + c*wz*vx +   c*wx*vz + d*wx +
+                     2*e*wy*vy + f*wy*vz + f*wz*vy + g*wy    + 2*h*wz*vz + i*wz,
+                 C =   a*vx*vx + b*vx*vy + c*vz*vx + d*vx    +   e*vy*vy +
+                       f*vy*vz + g*vy    + h*vz*vz + i*vz    +   j;
+         let t = solveQuadratic(A,B,C);
+         let z0 = Math.max(-1, Math.min(1, vz + t[0] * wz));
+         let z1 = Math.max(-1, Math.min(1, vz + t[1] * wz));
+         return [ Math.min(z0, z1), Math.max(z0, z1) ];
+      }
+      for (let _b = 0 ; _b < data.length ; _b++) {
+         let P = data[_b].M.slice(12,15);
+
+         let QA = computeQuadric(data[_b].ABC[i0]);
+         let QB = computeQuadric(data[_b].ABC[i1]);
+         let QC = computeQuadric(data[_b].ABC[i2]);
+         let Q = [];
+         for (let i = 0 ; i < QA.length ; i++)
+            Q.push(QA[i] + QB[i] + QC[i]);
+         Q[9] -= 1;
+
+         let xb = zBounds(P, 1,2,0, Q, 4,5,1,6,7,2,8,0,3,9);
+         let yb = zBounds(P, 2,0,1, Q, 7,2,5,8,0,1,3,4,6,9);
+         let zb = zBounds(P, 0,1,2, Q, 0,1,2,3,4,5,6,7,8,9);
+         bounds.push([xb,yb,zb]);
+      }
+      return bounds;
+   }
+}
  
  // CREATE SETS OF BLOBS THAT CAN THEN TURN INTO FLEXIBLE RUBBER SHEET SURFACES
  
 export function ImplicitSurface(M) {
-    let blobType, blobMaterialName, blobInverseMatrices, blobMatrices, blobs = new Blobs(), divs, blur, mesh;
-    let isSoftMin = false, isFaceted = false, isBlobby = false;
- 
-    this.SPHERE   = blobs.SPHERE;
-    this.CYLINDER = blobs.CYLINDER;
-    this.CUBE     = blobs.CUBE;
- 
-    this.useSoftMin = value => { if (value != isSoftMin) mesh = null; blobs.useSoftMin(isSoftMin = value); }
-    this.setDivs    = value => { if (value != divs) mesh = null; divs = value; }
-    this.setBlobby  = value => { if (value != isBlobby) mesh = null; isBlobby = value; }
-    this.setBlur    = value => { if (value != blur) mesh = null; blur = value; }
-    this.setFaceted = value => { if (value != isFaceted) mesh = null; isFaceted = value; }
-    this.mesh       = () => mesh;
-    this.remesh     = () => mesh = null;
-    this.isBlobby   = () => isBlobby;
- 
-    this.beginBlobs = () => {
-       blobs.clear();
-       blobType = [];
-       blobMaterialName = [];
-       blobMatrices = [];
-    }
- 
-    // ADD A SINGLE BLOB
- 
-    this.addBlob = (type, materialName, isNegativeShape) => {
-       blobType.push(type);
-       blobMaterialName.push(materialName);
-       let m = materials[materialName], a = m.ambient, d = m.diffuse, s = m.specular;
-       blobMatrices.push(M.value());
-       if (isBlobby)
-          blobs.addBlob(type, M.value(), isNegativeShape ? -blur : blur);
-    }
- 
-    // FINAL PREPARATION FOR BLOBBY RENDERING FOR THIS ANIMATION FRAME
- 
-    this.endBlobs = () => {
-       if (! isBlobby) {
-          console.log("how possible")
-         //  let draw = (b, m) => {
-         //     M.save();
-         //        M.set(matrix_multiply(M.value(), m));
-         //        drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
-         //                 blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
-         //                 blobMaterialName[b]);
-         //     M.restore();
-         //  }
- 
-         //  for (let b = 0 ; b < blobType.length ; b++)
-         //     draw(b, blobMatrices[b]);
- 
-         //  setUniform(gl, program, '1f', 'uOpacity', .25);
-         //  for (let b = 0 ; b < blobType.length ; b++)
-         //     draw(b, growMatrix(blobMatrices[b], blur/2));
-         //  setUniform(gl, program, '1f', 'uOpacity', 1);
- 
-         //  return;
-       }
- 
-       if (! mesh) {
-          mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
-          blobInverseMatrices = [];
-          for (let b = 0 ; b < blobMatrices.length ; b++)
-             blobInverseMatrices.push(matrix_inverse(blobMatrices[b]));
-       }
-    
-       let phongData = [],
-           matrixData = [],
-           invMatrixData = [];
- 
-       for (let b = 0 ; b < blobMaterialName.length ; b++) {
-          let m = materials[blobMaterialName[b]], a = m.ambient, d = m.diffuse, s = m.specular;
-          phongData = phongData.concat([a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
- 
-          let matrix = matrix_multiply(blobMatrices[b], blobInverseMatrices[b]);
-          matrixData = matrixData.concat(matrix);
-          invMatrixData = invMatrixData.concat(matrix_inverse(matrix));
-       }
+   let blobType, blobMaterialName, blobIsNegative, blobIsSelected,
+   blobInverseMatrices, blobMatrices, blobs = new Blobs(), divs, blur, mesh,
+   isFaceted = false, isBlobby = false;
 
-       return [phongData, matrixData, invMatrixData, mesh, "red", M.value()];
-
-      //  setUniform(gl, program, 'Matrix4fv', 'uBlobPhong'  , false, phongData);
-      //  setUniform(gl, program, 'Matrix4fv', 'uMatrices'   , false, matrixData);
-      //  setUniform(gl, program, 'Matrix4fv', 'uInvMatrices', false, invMatrixData);
+   this.SPHERE    = blobs.SPHERE;
+   this.CYLINDERX = blobs.CYLINDERX;
+   this.CYLINDERY = blobs.CYLINDERY;
+   this.CYLINDERZ = blobs.CYLINDERZ;
+   this.CUBE      = blobs.CUBE;
  
-      //  setUniform(gl, program, '1f', 'uBlobby', 1);
-      //  drawMesh(M.value(), gl, program, mesh, 'red', true);
-      //  setUniform(gl, program, '1f', 'uBlobby', 0);
+   this.setDivs    = value => { if (value != divs) mesh = null; divs = value; }
+   this.setBlobby  = value => { if (value != isBlobby) mesh = null; isBlobby = value; }
+   this.setBlur    = value => { if (value != blur) mesh = null; blur = value; }
+   this.setFaceted = value => { if (value != isFaceted) mesh = null; isFaceted = value; }
+   this.mesh       = () => mesh;
+   this.remesh     = () => mesh = null;
+   this.isBlobby   = () => isBlobby;
+   this.bounds = t => {
+      if (t === undefined)
+         t = 0;
+      let innerBounds = blobs.innerBounds;
+      let outerBounds = blobs.outerBounds;
+      let B = [];
+      for (let n = 0 ; n < innerBounds.length ; n++) {
+         let ib = innerBounds[n];
+         let ob = outerBounds[n];
+         B.push([ [ ib[0][0]*(1-t) + ob[0][0]*t, ib[0][1]*(1-t) + ob[0][1]*t ],
+                  [ ib[1][0]*(1-t) + ob[1][0]*t, ib[1][1]*(1-t) + ob[1][1]*t ],
+                  [ ib[2][0]*(1-t) + ob[2][0]*t, ib[2][1]*(1-t) + ob[2][1]*t ] ]);
+      }
+      return B;
+   }
+
+   this.beginBlobs = () => {
+      blobs.clear();
+      blobType = [];
+      blobMaterialName = [];
+      blobIsNegative = [];
+      blobIsSelected = [];
+      blobMatrices = [];
+   }
+ 
+   // ADD A SINGLE BLOB
+
+   this.addBlob = (type, rounded, matrix, materialName, isNegativeShape, isSelectedShape) => {
+      blobType.push(type);
+      blobMaterialName.push(materialName);
+      blobMatrices.push(matrix);
+      blobIsNegative.push(isNegativeShape);
+      blobIsSelected.push(isSelectedShape);
+      if (isBlobby)
+         blobs.addBlob(type, rounded, matrix, isNegativeShape ? -blur : blur);
+   }
+
+   // FINAL PREPARATION FOR BLOBBY RENDERING FOR THIS ANIMATION FRAME
+
+   this.endBlobs = () => {
+      if (! isBlobby) {
+         console.log("how possible")
+      //  let draw = (b, m) => {
+      //     M.save();
+      //        M.set(matrix_multiply(M.value(), m));
+      //        drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
+      //                 blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
+      //                 blobMaterialName[b]);
+      //     M.restore();
+      //  }
+
+      //  for (let b = 0 ; b < blobType.length ; b++)
+      //     draw(b, blobMatrices[b]);
+
+      //  setUniform(gl, program, '1f', 'uOpacity', .25);
+      //  for (let b = 0 ; b < blobType.length ; b++)
+      //     draw(b, growMatrix(blobMatrices[b], blur/2));
+      //  setUniform(gl, program, '1f', 'uOpacity', 1);
+
+      //  return;
+      }
+
+      if (! mesh) {
+         mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
+         blobInverseMatrices = [];
+         for (let b = 0 ; b < blobMatrices.length ; b++)
+            blobInverseMatrices.push(matrix_inverse(blobMatrices[b]));
+      }
+   
+      let phongData = [],
+         matrixData = [],
+         invMatrixData = [];
+
+      for (let b = 0 ; b < blobMaterialName.length ; b++) {
+         let m = materials[blobMaterialName[b]], a = m.ambient, d = m.diffuse, s = m.specular, t = m.texture;
+         if (t === undefined) t = [0,0,0,0];
+         if (blobIsSelected[b])
+            t[0] = .5;
+              phongData = phongData.concat([a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], t[0],t[1],t[2],t[3]]);
+     
+              if (blobInverseMatrices[b]) {
+                 let matrix = matrix_multiply(blobMatrices[b], blobInverseMatrices[b]);
+                 matrixData = matrixData.concat(matrix);
+                 invMatrixData = invMatrixData.concat(matrix_inverse(matrix));
+              }
+      }
+
+      return [phongData, matrixData, invMatrixData, mesh, "white", M.value()];
+
     }
  
     let growMatrix = (M, blur) => {
        M = M.slice();
        for (let col = 0 ; col <= 2 ; col++) {
           let v = M.slice(4*col, 4*col + 3);
-          let scale = 1 + blur / CG.norm(v);
+          let scale = 1 + blur / CG.CG.norm(v);
           for (let row = 0 ; row < 3 ; row++)
              M[4*col + row] *= scale;
        }

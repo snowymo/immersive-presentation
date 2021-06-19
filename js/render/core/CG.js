@@ -35,6 +35,11 @@ CG.packRGB = rgb => {
    let C = i => Math.floor(256 * Math.max(0, Math.min(.9999, rgb[i]))) / 256;
    return C(0) + 256 * C(1) + 256 * 256 * C(2);
 }
+CG.packAB = (a,b) => {
+   a = Math.max(0, Math.min(.9999, .5 * a + .5));
+   b = Math.max(0, Math.min(.9999, .5 * b + .5));
+   return Math.floor(40000 * a) + b;
+}
 CG.random = function() {
    let seed, x, y, z;
    let init = s => {
@@ -392,15 +397,29 @@ CG.evalCRSpline = (keys, t) => {
 
 ////////////////////////////// SUPPORT FOR CREATING 3D SHAPES
 
+export const VERTEX_POS  =  0;
+export const VERTEX_ROT  =  3;
+export const VERTEX_UV   =  6;
+export const VERTEX_RGB  =  8;
+export const VERTEX_WTS  =  9;
 export const VERTEX_SIZE = 15;
 
-CG.vertexArray = (p,n,t,uv,rgb) => {
+CG.vertexArray = (p,n,t,uv,rgb, wts) => {
    if (! t)
       t = CG.orthogonalVector(n);
+   if (! uv)
+      uv = [0,0];
+   if (! rgb)
+      rgb = [1,1,1];
+   if (! wts) 
+      wts = [1,0,0, 0,0,0];
    let q = CG.XY2Q(n, t);
    return [
       p[0],p[1],p[2],
-      q[0],q[1],q[2],
+      // q[0],q[1],q[2],
+      CG.packAB(n[0],t[0]),
+      CG.packAB(n[1],t[1]),
+      CG.packAB(n[2],t[2]),
       uv[0],uv[1],
       CG.packRGB(rgb),
       1,0,0,

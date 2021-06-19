@@ -88,7 +88,7 @@ in  vec3  aRot;
 in  vec2  aUV;
 in  vec4  aUVOff;
 in  float aRGB;
-in vec3 aNor;
+// in vec3 aNor;
 in  vec3  aWts0, aWts1;
 
 // interpolated vertex
@@ -114,10 +114,29 @@ uniform mat4 uProj;
 uniform float uBlobby;
 uniform mat4  uMatrices[64], uInvMatrices[64];
 uniform mat4  uBlobPhong[64];
-
+uniform float uNoisy;
 
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
+
+vec3 unpack0(vec3 ab) {
+  return ab / 40000. * 2. - 1.;
+}
+
+vec3 unpack1(vec3 ab) {
+  return mod(ab, 1.) * 2. - 1.;
+}
+
+float noise(vec3 point) { 
+  float r = 0.; for (int i=0;i<16;i++) {
+  vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+       1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+  C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+  D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+  r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+  } 
+  return .5 * sin(r); 
+}
 
 mat2x3 quaternionToXY(vec4 Q) {
   vec3 X = 2.*vec3(.5-Q.y*Q.y-Q.z*Q.z,   Q.z*Q.w+Q.x*Q.y, Q.x*Q.z-Q.y*Q.w);
@@ -139,9 +158,11 @@ void main(void) {
     vPos = aPos;
     vRGB = unpackRGB(aRGB);
 
-    mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
-    vNor = (vec4(rotXY[0],0.) * invModel).xyz;
-    vTan = (vec4(rotXY[1],0.) * invModel).xyz;
+    // mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
+    // vNor = (vec4(rotXY[0],0.) * invModel).xyz;
+    vNor = unpack0(aRot);
+    // vTan = (vec4(rotXY[1],0.) * invModel).xyz;
+    vTan = unpack1(aRot);
     vBin = cross(vNor, vTan);
 
     // image_uv + mesh_uv * (image_dimensions / atlas_dimensions)
@@ -158,6 +179,7 @@ void main(void) {
       vWeights[3+i] = aWts1[i];
     }
     vec4 apos = vec4(aPos, 1.);
+    vec3 aNor = unpack0(aRot);
     vec4 anor = vec4(aNor, 0.);
     // vec4 nor = anor;
     // vec4 pos = apos;
@@ -179,7 +201,17 @@ void main(void) {
     nor = nor * invModel;
     vNor = nor.xyz;
     vPos = pos.xyz;
-    gl_Position = pos;
+    vRGB = unpackRGB(aRGB);
+    vUV  = aUV;
+
+    if (uNoisy > 0.) {
+      float t = .5 + noise(7. * aPos);
+      t = t * t * (3. - t - t);
+      t = t * t * (3. - t - t);
+      vBlobPhong *= .8 + .2 * t;
+   }
+
+    gl_Position = pos * vec4(1.,1.,.1,1.);
   }
 }
 `;
@@ -1306,16 +1338,11 @@ export class Renderer {
       let loc = gl.getUniformLocation(pgm.program, name);
       (gl['uniform' + type])(loc, a, b, c, d, e, f);
    }
-    // gl.uniform1f(
-    //   gl.getUniformLocation(pgm.program, "uParticles"),
-    //   isParticles ? 1 : 0
-    // );
 
     if (!renderList.vao) {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
-      // renderList.buffer = gl.createBuffer();
     }
     // if (shape != renderList.prev_shape) {
     renderList.buffer = gl.createBuffer();
@@ -1504,16 +1531,16 @@ export class Renderer {
       bpe * 0
     );
 
-    let aNor = gl.getAttribLocation(pgm.program, "aNor");
-    gl.enableVertexAttribArray(aNor);
-    gl.vertexAttribPointer(
-      aNor,
-      3,
-      gl.FLOAT,
-      false,
-      bpe * VERTEX_SIZE,
-      bpe * 3
-    );
+    // let aNor = gl.getAttribLocation(pgm.program, "aNor");
+    // gl.enableVertexAttribArray(aNor);
+    // gl.vertexAttribPointer(
+    //   aNor,
+    //   3,
+    //   gl.FLOAT,
+    //   false,
+    //   bpe * VERTEX_SIZE,
+    //   bpe * 3
+    // );
 
     let aRot = gl.getAttribLocation(pgm.program, "aRot");
     gl.enableVertexAttribArray(aRot);
