@@ -168,7 +168,7 @@ CG.extractScale = a => [ norm([a[0],a[1],a[ 2]]),
                          norm([a[8],a[9],a[10]]) ];
 CG.extractRotation = a => {
  //TODO
- return [0,0,0];
+ console.log("CG.rotation is working in progress!");
 }
 CG.setTranslate = (m,t)      => {
   m[12] = t[0]; m[13] = t[1]; m[14] = t[2];

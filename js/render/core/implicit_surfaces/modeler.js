@@ -55,44 +55,7 @@ let ImplicitSurfacesPgm = function () {
    }
 };
 
-// let addEventListenersToCanvas = function(canvas) {
-//    // let r = canvas.getBoundingClientRect();
-//    let r = 1000;
-//    let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
-//        toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
-
-//    if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
-//    if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
-//    if (! canvas.onPress     ) canvas.onPress      = (x, y) => { };
-//    if (! canvas.onRelease   ) canvas.onRelease    = (x, y) => { };
-//    if (! canvas.onKeyPress  ) canvas.onKeyPress   = key => { };
-//    if (! canvas.onKeyRelease) canvas.onKeyRelease = key => { };
-
-//    canvas.addEventListener('mousemove', function(e) {
-//       this._response = this._isDown ? this.onDrag : this.onMove;
-//       this._response(toX(e.clientX), toY(e.clientY));
-//    });
-
-//    canvas.addEventListener('mousedown', function(e) {
-//       this.onPress(toX(e.clientX), toY(e.clientY));
-//       this._isDown = true ;
-//    });
-
-//    canvas.addEventListener('mouseup'  , function(e) {
-//       this.onRelease(toX(e.clientX), toY(e.clientY));
-//       this._isDown = false;
-//    });
-
-//    window.addEventListener('keydown', function(e) {
-//       canvas.onKeyPress(e.keyCode);
-//    }, true);
-
-//    window.addEventListener('keyup', function(e) {
-//       canvas.onKeyRelease(e.keyCode);
-//    }, true);
-// }
-
- function Modeler() {
+ export function Modeler(canvas) {
    let M = new Matrix();
    let S = [];
    let activeCount = -1;
@@ -125,41 +88,39 @@ let ImplicitSurfacesPgm = function () {
 
    this.implicitSurfacesPgm = new ImplicitSurfacesPgm();
 
-   // let canvas = window.canvas;
+   let r = canvas.getBoundingClientRect();
+   let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
+      toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
 
-   // let r = 1000;
-   // let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
-   //    toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
+   if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
+   if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
+   if (! canvas.onPress     ) canvas.onPress      = (x, y) => { };
+   if (! canvas.onRelease   ) canvas.onRelease    = (x, y) => { };
+   if (! canvas.onKeyPress  ) canvas.onKeyPress   = key => { };
+   if (! canvas.onKeyRelease) canvas.onKeyRelease = key => { };
 
-   // if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
-   // if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
-   // if (! canvas.onPress     ) canvas.onPress      = (x, y) => { };
-   // if (! canvas.onRelease   ) canvas.onRelease    = (x, y) => { };
-   // if (! canvas.onKeyPress  ) canvas.onKeyPress   = key => { };
-   // if (! canvas.onKeyRelease) canvas.onKeyRelease = key => { };
+   canvas.addEventListener('mousemove', function(e) {
+      this._response = this._isDown ? this.onDrag : this.onMove;
+      this._response(toX(e.clientX), toY(e.clientY));
+   });
 
-   // canvas.addEventListener('mousemove', function(e) {
-   //    this._response = this._isDown ? this.onDrag : this.onMove;
-   //    this._response(toX(e.clientX), toY(e.clientY));
-   // });
+   canvas.addEventListener('mousedown', function(e) {
+      this.onPress(toX(e.clientX), toY(e.clientY));
+      this._isDown = true ;
+   });
 
-   // canvas.addEventListener('mousedown', function(e) {
-   //    this.onPress(toX(e.clientX), toY(e.clientY));
-   //    this._isDown = true ;
-   // });
+   canvas.addEventListener('mouseup'  , function(e) {
+      this.onRelease(toX(e.clientX), toY(e.clientY));
+      this._isDown = false;
+   });
 
-   // canvas.addEventListener('mouseup'  , function(e) {
-   //    this.onRelease(toX(e.clientX), toY(e.clientY));
-   //    this._isDown = false;
-   // });
+   window.addEventListener('keydown', function(e) {
+      canvas.onKeyPress(e.keyCode);
+   }, true);
 
-   // window.addEventListener('keydown', function(e) {
-   //    canvas.onKeyPress(e.keyCode);
-   // }, true);
-
-   // window.addEventListener('keyup', function(e) {
-   //    canvas.onKeyRelease(e.keyCode);
-   // }, true);
+   window.addEventListener('keyup', function(e) {
+      canvas.onKeyRelease(e.keyCode);
+   }, true);
  
     // ANIMATE AND RENDER ONE FRAME
  
@@ -213,7 +174,7 @@ let ImplicitSurfacesPgm = function () {
 
       // // TESTING
 
-      const N = 4;
+      const N = 1;
       const colorID = ['red','white','yellow','blue','brass'];
        M.save();
        M.translate(0,0.6,0);
@@ -228,7 +189,7 @@ let ImplicitSurfacesPgm = function () {
        }
        M.rotateY(time / 4);
        implicitSurface.remesh();
-       this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
+      //  this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
       M.restore();
  
        // ADVANCE THE "ACTIVE REMESHING" TIMER
@@ -309,7 +270,7 @@ let ImplicitSurfacesPgm = function () {
                    S[n].type==1 ? implicitSurface.CYLINDERX :
                                   implicitSurface.SPHERE,
                    S[n].rounded,
-                   M,
+                   M.value(),
                    materialId,
                    S[n].sign == -1,
                    n==mn || n==sn);
@@ -343,7 +304,7 @@ let ImplicitSurfacesPgm = function () {
       //  if (isShowingJoints)
       //     setUniform('1f', 'uOpacity', 0.1);
       //  setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
-      // this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
+      this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
       //  setUniform('1f', 'uNoisy', 0);
       //  setUniform('1f', 'uOpacity', 1);
  
@@ -417,6 +378,7 @@ let ImplicitSurfacesPgm = function () {
     // INSERT A BLOB INTO THE ARRAY OF BLOBS
     
     let insertBlob = (nInsert, s) => {
+      console.log("!!!!!!!!!!!!!!!!new blob created!!!!!!!!");
        for (let n = S.length ; n > nInsert ; n--)
           S[n] = S[n-1];
        S[nInsert] = s;
@@ -713,28 +675,28 @@ let ImplicitSurfacesPgm = function () {
  
     // RESPOND TO MOUSE/CURSOR EVENTS
  
-   //  canvas.onPress = (x,y) => {
-   //     isPressed = true;
-   //     if (! isRotating && ! isScaling)
-   //        isTranslating = true;
-   //     saveForUndo();
-   //     xyTravel = 0;
-   //     sn = findBlob(x,y);
-   //     if (isRubber)
-   //        sn = sn < 0 ? ns() : sn;
+    canvas.onPress = (x,y) => {
+       isPressed = true;
+       if (! isRotating && ! isScaling)
+          isTranslating = true;
+       saveForUndo();
+       xyTravel = 0;
+       sn = findBlob(x,y);
+       if (isRubber)
+          sn = sn < 0 ? ns() : sn;
  
-   //     xPrev = x;
-   //     yPrev = y;
-   //  }
+       xPrev = x;
+       yPrev = y;
+    }
     
-   //  canvas.onDrag = (x,y) => {
-   //     if (sn >= 0)
-   //        transform(sn, x - xPrev, y - yPrev, 0);
+    canvas.onDrag = (x,y) => {
+       if (sn >= 0)
+          transform(sn, x - xPrev, y - yPrev, 0);
  
-   //     xyTravel += Math.abs(x - xPrev) + Math.abs(y - yPrev);
-   //     xPrev = x;
-   //     yPrev = y;
-   //  }
+       xyTravel += Math.abs(x - xPrev) + Math.abs(y - yPrev);
+       xPrev = x;
+       yPrev = y;
+    }
  
     let handleJoint = nn => {
        if (nn >= 0) {
@@ -795,286 +757,286 @@ let ImplicitSurfacesPgm = function () {
        }
     }
  
-   //  canvas.onRelease = (x,y) => {
-   //     handleJoint(sn); // AFTER MOVING A BLOB, ADJUST JOINT POSITION
-   //     activeSet(false);
-   //     isTranslating = isRotating = isScaling = false;
-   //     mn = sn;
-   //     sn = -1;
-   //     isPressed = false;
-   //  }
+    canvas.onRelease = (x,y) => {
+       handleJoint(sn); // AFTER MOVING A BLOB, ADJUST JOINT POSITION
+       activeSet(false);
+       isTranslating = isRotating = isScaling = false;
+       mn = sn;
+       sn = -1;
+       isPressed = false;
+    }
     
-   //  canvas.onMove = (x,y) => {
-   //     if (isCreating)
-   //        createDrag(x, y);
-   //     else if (mn >= 0 && (isTranslating || isRotating || isScaling))
-   //        transform(mn, x - xPrev, y - yPrev, 0);
-   //     else {
-   //        mn = findBlob(x, y);
-   //        if (mn != mnPrev)
-   //           activeSet(true);
-   //        mnPrev = mn;
-   //     }
-   //     xPrev = x;
-   //     yPrev = y;
-   //  }
+    canvas.onMove = (x,y) => {
+       if (isCreating)
+          createDrag(x, y);
+       else if (mn >= 0 && (isTranslating || isRotating || isScaling))
+          transform(mn, x - xPrev, y - yPrev, 0);
+       else {
+          mn = findBlob(x, y);
+          if (mn != mnPrev)
+             activeSet(true);
+          mnPrev = mn;
+       }
+       xPrev = x;
+       yPrev = y;
+    }
  
     // RESPOND TO THE KEYBOARD
  
     let kPrev = -1;
     
-   //  canvas.onKeyPress = k => {
-   //     if (k != kPrev) {
-   //        switch (k) {
-   //    case 8:
-   //       if (isRubber)
-   //          flash = true;
-   //           break;
-   //    }
-   //        let ch = String.fromCharCode(k);
-   //        switch (ch) {
-   //        case 'A':
-   //        case 'B':
-   //        case 'X':
-   //        case 'V':
-   //        case 'Z':
-   //       if (isRubber) {
-   //          flash = true;
-   //          break;
-   //           }
-   //           saveForUndo();
-   //           if (! isCreating) {
-   //              createBegin(xPrev, yPrev);
-   //              if (ch == 'X') S[sn].type = 1;
-   //              if (ch == 'V') S[sn].type = 2;
-   //              if (ch == 'Z') S[sn].type = 3;
-   //              if (ch == 'B') S[sn].type = 4;
-   //           }
-   //           isCreating = true;
-   //           break;
-   //        case 'D':
-   //       if (isRubber)
-   //          flash = true;
-   //       break;
-   //        case 'R':
-   //           saveForUndo();
-   //           isRotating = true;
-   //           break;
-   //        case 'S':
-   //           saveForUndo();
-   //           isScaling = true;
-   //           break;
-   //        case 'T':
-   //           saveForUndo();
-   //           isTranslating = true;
-   //           break;
-   //        }
-   //     }
-   //     kPrev = k;
-   //  }
+    canvas.onKeyPress = k => {
+       if (k != kPrev) {
+          switch (k) {
+      case 8:
+         if (isRubber)
+            flash = true;
+             break;
+      }
+          let ch = String.fromCharCode(k);
+          switch (ch) {
+          case 'A':
+          case 'B':
+          case 'X':
+          case 'V':
+          case 'Z':
+         if (isRubber) {
+            flash = true;
+            break;
+             }
+             saveForUndo();
+             if (! isCreating) {
+                createBegin(xPrev, yPrev);
+                if (ch == 'X') S[sn].type = 1;
+                if (ch == 'V') S[sn].type = 2;
+                if (ch == 'Z') S[sn].type = 3;
+                if (ch == 'B') S[sn].type = 4;
+             }
+             isCreating = true;
+             break;
+          case 'D':
+         if (isRubber)
+            flash = true;
+         break;
+          case 'R':
+             saveForUndo();
+             isRotating = true;
+             break;
+          case 'S':
+             saveForUndo();
+             isScaling = true;
+             break;
+          case 'T':
+             saveForUndo();
+             isTranslating = true;
+             break;
+          }
+       }
+       kPrev = k;
+    }
  
     let ns = () => mn >= 0 ? mn : S.length - 1;
  
-   //  canvas.onKeyRelease = k => {
-   //     flash = false;
-   //     kPrev = -1;
+    canvas.onKeyRelease = k => {
+       flash = false;
+       kPrev = -1;
  
-   //     isTranslating = isRotating = isScaling = false;
-   //     let ch = String.fromCharCode(k);
+       isTranslating = isRotating = isScaling = false;
+       let ch = String.fromCharCode(k);
  
-   //     // TYPE 0-9 TO SET BLOB COLOR
+       // TYPE 0-9 TO SET BLOB COLOR
  
-   //     if (S.length > 0 && ch >= '0' && ch <= '9') {
-   //        saveForUndo();
-   //        let color = 'color' + (k - 48) + (isLightColor ? 'l' : '');
+       if (S.length > 0 && ch >= '0' && ch <= '9') {
+          saveForUndo();
+          let color = 'color' + (k - 48) + (isLightColor ? 'l' : '');
  
-   //        // SET COLOR OVER BACKGROUND TO COLOR ALL UNCOLORED BLOBS.
+          // SET COLOR OVER BACKGROUND TO COLOR ALL UNCOLORED BLOBS.
  
-   //        if (mn < 0) {
-   //           for (let n = 0 ; n < S.length ; n++)
-   //              if (! S[n].isColored)
-   //                 S[n].color = color;
-   //        }
+          if (mn < 0) {
+             for (let n = 0 ; n < S.length ; n++)
+                if (! S[n].isColored)
+                   S[n].color = color;
+          }
  
-   //        // SET COLOR OVER A BLOB TO EXPLICITLY COLOR IT.
+          // SET COLOR OVER A BLOB TO EXPLICITLY COLOR IT.
  
-   //        else {
-   //           let sym = S[ns()].symmetry ? 1 : 0;
-   //           for (let i = 0 ; i <= sym ; i++) {
-   //              S[I(ns())+i].color = color;
-   //              S[I(ns())+i].isColored = true;
-   //           }
-   //        }
+          else {
+             let sym = S[ns()].symmetry ? 1 : 0;
+             for (let i = 0 ; i <= sym ; i++) {
+                S[I(ns())+i].color = color;
+                S[I(ns())+i].isColored = true;
+             }
+          }
  
-   //        isLightColor = false;
-   //        return;
-   //     }
+          isLightColor = false;
+          return;
+       }
     
-   //     switch (k) {
-   //     case 8: // DELETE
-   //        if (isRubber)
-   //       break;
-   //        saveForUndo();
-   //        deleteSelectedBlob();             // DELETE THE SELECTED BLOB
-   //        break;
-   //     case 37: // LEFT ARROW
-   //        rotationState--;                  // ROTATE LEFT
-   //        return;
-   //     case 39: // RIGHT ARROW
-   //        rotationState++;                  // ROTATE RIGHT
-   //        return;
-   //     case 189: // '-'
-   //        saveForUndo();
-   //        if (S.length > 0) {               // MAKE NEGATIVE
-   //           let sym = S[ns()].symmetry ? 1 : 0;
-   //           for (let i = 0 ; i <= sym ; i++)
-   //              S[I(ns())+i].sign = -S[I(ns())+i].sign;
-   //           activeSet(true);
-   //        }
-   //        break;
-   //     case 190: // '.'
-   //        saveForUndo();
-   //        if (S.length > 0) {               // TOGGLE IS BLOBBY
-   //           let sym = S[ns()].symmetry ? 1 : 0;
-   //           for (let i = 0 ; i <= sym ; i++)
-   //              S[I(ns())+i].isBlobby = ! S[I(ns())+i].isBlobby;
-   //           activeSet(true);
-   //        }
-   //        break;
-   //     case 191: // '/'
-   //        isRubber = ! isRubber;
-   //        break;
-   //     case 192: // '`'
-   //        isLightColor = ! isLightColor;    // LIGHT COLOR
-   //        break;
-   //     case 219: // '['
-   //        saveForUndo();
-   //        if (S.length > 0)
-   //           transform(ns(), 0,0,-.05);     // AWAY
-   //        break;
-   //     case 220: // '\'
-   //        saveForUndo();
-   //        S = [];                           // NEW: DELETE ALL BLOBS
-   //    isWiggling = false;
-   //        activeSet(true);
-   //        break;
-   //     case 221: // ']'
-   //        saveForUndo();
-   //        if (S.length > 0)
-   //           transform(ns(), 0,0,.05);      // FORWARD
-   //        break;
-   //     }
+       switch (k) {
+       case 8: // DELETE
+          if (isRubber)
+         break;
+          saveForUndo();
+          deleteSelectedBlob();             // DELETE THE SELECTED BLOB
+          break;
+       case 37: // LEFT ARROW
+          rotationState--;                  // ROTATE LEFT
+          return;
+       case 39: // RIGHT ARROW
+          rotationState++;                  // ROTATE RIGHT
+          return;
+       case 189: // '-'
+          saveForUndo();
+          if (S.length > 0) {               // MAKE NEGATIVE
+             let sym = S[ns()].symmetry ? 1 : 0;
+             for (let i = 0 ; i <= sym ; i++)
+                S[I(ns())+i].sign = -S[I(ns())+i].sign;
+             activeSet(true);
+          }
+          break;
+       case 190: // '.'
+          saveForUndo();
+          if (S.length > 0) {               // TOGGLE IS BLOBBY
+             let sym = S[ns()].symmetry ? 1 : 0;
+             for (let i = 0 ; i <= sym ; i++)
+                S[I(ns())+i].isBlobby = ! S[I(ns())+i].isBlobby;
+             activeSet(true);
+          }
+          break;
+       case 191: // '/'
+          isRubber = ! isRubber;
+          break;
+       case 192: // '`'
+          isLightColor = ! isLightColor;    // LIGHT COLOR
+          break;
+       case 219: // '['
+          saveForUndo();
+          if (S.length > 0)
+             transform(ns(), 0,0,-.05);     // AWAY
+          break;
+       case 220: // '\'
+          saveForUndo();
+          S = [];                           // NEW: DELETE ALL BLOBS
+      isWiggling = false;
+          activeSet(true);
+          break;
+       case 221: // ']'
+          saveForUndo();
+          if (S.length > 0)
+             transform(ns(), 0,0,.05);      // FORWARD
+          break;
+       }
  
-   //     switch (ch) {
-   //     case 'A':
-   //     case 'B':
-   //     case 'X':
-   //     case 'V':
-   //     case 'Z':
-   //        if (isRubber)
-   //       break;
-   //        createEnd();                      // ADD A BLOB
-   //        handleJoint(sn);
-   //        isCreating = false;
-   //        sn = -1;
-   //        break;
-   //     case 'C':
-   //        if (mn >= 0 && S[mn].M) {
-   //           saveForUndo();
-   //           S[mn].M[12] = 0;               // CENTER BLOB AT CURSOR
-   //           computeQuadric(S[mn]);
-   //        }
-   //        else                              // BUT IF OVER BACKGROUND
-   //           isCentering = ! isCentering;   // TOGGLE CENTERING MODE
-   //        break;
-   //     case 'D':
-   //        if (isRubber)
-   //       break;
-   //        saveForUndo();
-   //        deleteSelectedBlob();
-   //        break;
-   //     case 'E':
-   //        if (S.length > 0) {               // BLUR EDGES
-   //           saveForUndo();
-   //           S[ns()].rounded = ! S[ns()].rounded;
-   //           activeSet(true);
-   //        }
-   //        break;
-   //     case 'F':
-   //        isFaceted = ! isFaceted;
-   //        break;
-   //     case 'I':
-   //        redo();
-   //        break;
-   //     case 'J':
-   //        isShowingJoints = ! isShowingJoints;
-   //        break;
-   //     case 'K':
-   //        isShowingBounds = ! isShowingBounds;
-   //        break;
-   //     case 'M':
-   //        if (S.length > 0) {               // CHANGE MIRROR SYMMETRY
-   //           saveForUndo();
-   //           let n1 = ns(),
-   //               s1 = S[n1];
-   //           switch (s1.symmetry) {
-   //           case 0:                            // CREATE MIRROR SYMMETRY
-   //              s1.symmetry = 1;
-   //              let s2 = {
-   //                 M: s1.M.slice(),
-   //                 color: s1.color,
-   //                 id: CG.uniqueID(),
-   //                 isBlobby: s1.isBlobby,
-   //                 isColored: s1.isColored,
-   //         rounded: s1.rounded,
-   //                 sign: s1.sign,
-   //                 symmetry: 2,
-   //                 type: s1.type,
-   //              };
-   //              s2.M[12] = -s1.M[12];
-   //              computeQuadric(s2);
-   //              insertBlob(n1+1, s2);
-   //              if (s1.jointPosition)
-   //                 createMirrorJoint(n1);
-   //              break;
-   //           case 1:                            // REMOVE MIRROR SYMMETRY
-   //              s1.symmetry = 0;
-   //              deleteBlob(n1+1);
-   //              break;
-   //           case 2:
-   //              s1.symmetry = 0;
-   //              deleteBlob(n1-1);
-   //              break;
-   //           }
-   //        }
-   //        break;
-   //     case 'O':
-   //        projectManager.clearNames();         // CLEAR PROJECT NAMES
-   //        activeSet(true);
-   //        break;
-   //     case 'P':
-   //        projectManager.choice(loadFunction); // USER CHOOSES PROJECT
-   //        break;
-   //     case 'R':       // AFTER MOVING A BLOB, ADJUST JOINT POSITIONS
-   //     case 'S':
-   //     case 'T':
-   //        if (mn >= 0) {
-   //           handleJoint(mn);
-   //       for (let n = 0 ; n < S.length ; n++)
-   //          if (S[n].parentID == S[mn].id)
-   //                 handleJoint(n);
-   //        }
-   //        break;
-   //     case 'U':
-   //        undo();
-   //        break;
-   //     case 'W':
-   //        isWiggling = ! isWiggling;
-   //        break;
-   //     }
-   //  }
+       switch (ch) {
+       case 'A':
+       case 'B':
+       case 'X':
+       case 'V':
+       case 'Z':
+          if (isRubber)
+         break;
+          createEnd();                      // ADD A BLOB
+          handleJoint(sn);
+          isCreating = false;
+          sn = -1;
+          break;
+       case 'C':
+          if (mn >= 0 && S[mn].M) {
+             saveForUndo();
+             S[mn].M[12] = 0;               // CENTER BLOB AT CURSOR
+             computeQuadric(S[mn]);
+          }
+          else                              // BUT IF OVER BACKGROUND
+             isCentering = ! isCentering;   // TOGGLE CENTERING MODE
+          break;
+       case 'D':
+          if (isRubber)
+         break;
+          saveForUndo();
+          deleteSelectedBlob();
+          break;
+       case 'E':
+          if (S.length > 0) {               // BLUR EDGES
+             saveForUndo();
+             S[ns()].rounded = ! S[ns()].rounded;
+             activeSet(true);
+          }
+          break;
+       case 'F':
+          isFaceted = ! isFaceted;
+          break;
+       case 'I':
+          redo();
+          break;
+       case 'J':
+          isShowingJoints = ! isShowingJoints;
+          break;
+       case 'K':
+          isShowingBounds = ! isShowingBounds;
+          break;
+       case 'M':
+          if (S.length > 0) {               // CHANGE MIRROR SYMMETRY
+             saveForUndo();
+             let n1 = ns(),
+                 s1 = S[n1];
+             switch (s1.symmetry) {
+             case 0:                            // CREATE MIRROR SYMMETRY
+                s1.symmetry = 1;
+                let s2 = {
+                   M: s1.M.slice(),
+                   color: s1.color,
+                   id: CG.uniqueID(),
+                   isBlobby: s1.isBlobby,
+                   isColored: s1.isColored,
+           rounded: s1.rounded,
+                   sign: s1.sign,
+                   symmetry: 2,
+                   type: s1.type,
+                };
+                s2.M[12] = -s1.M[12];
+                computeQuadric(s2);
+                insertBlob(n1+1, s2);
+                if (s1.jointPosition)
+                   createMirrorJoint(n1);
+                break;
+             case 1:                            // REMOVE MIRROR SYMMETRY
+                s1.symmetry = 0;
+                deleteBlob(n1+1);
+                break;
+             case 2:
+                s1.symmetry = 0;
+                deleteBlob(n1-1);
+                break;
+             }
+          }
+          break;
+       case 'O':
+          projectManager.clearNames();         // CLEAR PROJECT NAMES
+          activeSet(true);
+          break;
+       case 'P':
+          projectManager.choice(loadFunction); // USER CHOOSES PROJECT
+          break;
+       case 'R':       // AFTER MOVING A BLOB, ADJUST JOINT POSITIONS
+       case 'S':
+       case 'T':
+          if (mn >= 0) {
+             handleJoint(mn);
+         for (let n = 0 ; n < S.length ; n++)
+            if (S[n].parentID == S[mn].id)
+                   handleJoint(n);
+          }
+          break;
+       case 'U':
+          undo();
+          break;
+       case 'W':
+          isWiggling = ! isWiggling;
+          break;
+       }
+    }
  }
 
-export let modeler = new Modeler();
+// export let modeler = new Modeler();
  
  

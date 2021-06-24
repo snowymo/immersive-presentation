@@ -574,7 +574,7 @@ export function ImplicitSurface(M) {
 
    this.endBlobs = () => {
       if (! isBlobby) {
-         console.log("rendered the same as renderList obj");
+         console.log("render this the same as renderList obj");
       //  let draw = (b, m) => {
       //     M.save();
       //        M.set(CG.matrixMultiply(M.value(), m));

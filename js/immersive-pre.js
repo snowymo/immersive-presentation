@@ -24,7 +24,7 @@ import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
 import { metaroomSyncSender } from "./corelink_handler.js"
-// import { Modeler } from "./render/core/implicit_surfaces/modeler.js";
+import { Modeler } from "./render/core/implicit_surfaces/modeler.js";
 
 window.wsport = 8447;
 window.vr = false;
@@ -48,6 +48,7 @@ let time = 0;
 // WebGL scene globals.
 let gl = null;
 let renderer = null;
+// modeler = null;
 window.scene = new Scene();
 
 function initModels() {
@@ -141,7 +142,7 @@ function initGL() {
         new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
-    console.log("fffff" + gl.canvas);
+    window.modeler = new Modeler(gl.canvas);
     
 }
 
