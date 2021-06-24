@@ -1,38 +1,6 @@
-import { CG, Matrix } from "../CG.js";
+import { CG } from "../CG.js";
 import { materials } from "./materials.js";
 import { VERTEX_SIZE, VERTEX_WTS } from "../CG.js";
-
-export let matrix_inverse = src => {
-   let dst = [], det = 0, cofactor = (c, r) => {
-      let s = (i, j) => src[c+i & 3 | (r+j & 3) << 2];
-      return (c+r & 1 ? -1 : 1) * ( (s(1,1) * (s(2,2) * s(3,3) - s(3,2) * s(2,3)))
-                                  - (s(2,1) * (s(1,2) * s(3,3) - s(3,2) * s(1,3)))
-                                  + (s(3,1) * (s(1,2) * s(2,3) - s(2,2) * s(1,3))) );
-   }
-   for (let n = 0 ; n < 16 ; n++) dst.push(cofactor(n >> 2, n & 3));
-   for (let n = 0 ; n <  4 ; n++) det += src[n] * dst[n << 2];
-   for (let n = 0 ; n < 16 ; n++) dst[n] /= det;
-   return dst;
- }
-
- export let matrix_transpose = m =>
-  [ m[0],m[4],m[8],m[12], m[1],m[5],m[9],m[13], m[2],m[6],m[10],m[14], m[3],m[7],m[11],m[15] ];
-
- export let matrix_multiply = (a,b)   => {
-   let m = [];
-   for (let col = 0 ; col < 4 ; col++)
-   for (let row = 0 ; row < 4 ; row++) {
-      let value = 0;
-      for (let i = 0 ; i < 4 ; i++)
-         value += a[4*i + row] * b[4*col + i];
-      m.push(value);
-   }
-   return m;
-}
-
-export let matrix_perspective = fl => {
-   return [ 1,0,0,0, 0,1,0,0, 0,0,-1,-1/fl, 0,0,0,1 ];
- }
 
 function Blobs() {
 
@@ -417,7 +385,7 @@ function Blobs() {
  
     this.addBlob = (type, rounded, _M, d, material) => {
       let M = _M.slice();
-      let m = matrix_transpose(matrix_inverse(M));
+      let m = CG.matrixTranspose(CG.matrixInvert(M));
 
       if (d === undefined)
          d = 0.5;
@@ -606,10 +574,10 @@ export function ImplicitSurface(M) {
 
    this.endBlobs = () => {
       if (! isBlobby) {
-         console.log("how possible")
+         console.log("rendered the same as renderList obj");
       //  let draw = (b, m) => {
       //     M.save();
-      //        M.set(matrix_multiply(M.value(), m));
+      //        M.set(CG.matrixMultiply(M.value(), m));
       //        drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
       //                 blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
       //                 blobMaterialName[b]);
@@ -631,7 +599,7 @@ export function ImplicitSurface(M) {
          mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
          blobInverseMatrices = [];
          for (let b = 0 ; b < blobMatrices.length ; b++)
-            blobInverseMatrices.push(matrix_inverse(blobMatrices[b]));
+            blobInverseMatrices.push(CG.matrixInvert(blobMatrices[b]));
       }
    
       let phongData = [],
@@ -646,9 +614,9 @@ export function ImplicitSurface(M) {
               phongData = phongData.concat([a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], t[0],t[1],t[2],t[3]]);
      
               if (blobInverseMatrices[b]) {
-                 let matrix = matrix_multiply(blobMatrices[b], blobInverseMatrices[b]);
+                 let matrix = CG.matrixMultiply(blobMatrices[b], blobInverseMatrices[b]);
                  matrixData = matrixData.concat(matrix);
-                 invMatrixData = invMatrixData.concat(matrix_inverse(matrix));
+                 invMatrixData = invMatrixData.concat(CG.matrixInvert(matrix));
               }
       }
 

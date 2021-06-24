@@ -28,8 +28,9 @@ import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
 import * as Img from "../../util/image.js";
 import * as Tex from "../../util/webgl_texture_util.js";
-import { drawImplicitSurfaceObj, implicitSurfacesPgm} from "../core/implicitSurfaceObj.js";
+// import { drawImplicitSurfaceObj, implicitSurfacesPgm} from "../core/implicitSurfaceObj.js";
 import { materials } from "../core/implicit_surfaces/materials.js";
+import { modeler } from "./implicit_surfaces/modeler.js";
 // import { loadImage } from "../../immersive-pre.js"
 
 export const ATTRIB = {
@@ -1485,20 +1486,20 @@ export class Renderer {
 
   _drawImplicitSurfaceObj(views,isTriangleMesh) {
     let gl = this._gl;
-    if (!implicitSurfacesPgm.program) {
-      implicitSurfacesPgm.program = new Program(
+    if (!modeler.implicitSurfacesPgm.program) {
+      modeler.implicitSurfacesPgm.program = new Program(
         gl,
         RenderList_VERTEX_SOURCE,
         RenderList_FRAG_SOURCE
       );
     }
-    implicitSurfacesPgm.program.use();
-    let pgm = implicitSurfacesPgm.program;
-    if (!implicitSurfacesPgm.vao) {
-      implicitSurfacesPgm.initVAO(gl);
-      gl.bindVertexArray(implicitSurfacesPgm.vao);
+    modeler.implicitSurfacesPgm.program.use();
+    let pgm = modeler.implicitSurfacesPgm.program;
+    if (!modeler.implicitSurfacesPgm.vao) {
+      modeler.implicitSurfacesPgm.initVAO(gl);
+      gl.bindVertexArray(modeler.implicitSurfacesPgm.vao);
       gl.useProgram(pgm.program);
-      implicitSurfacesPgm.initBuffer(gl);
+      modeler.implicitSurfacesPgm.initBuffer(gl);
     }
     let setUniform = (type, name, a, b, c, d, e, f) => {
       let loc = gl.getUniformLocation(pgm.program, name);
@@ -1506,13 +1507,13 @@ export class Renderer {
    }
    
    let drawArrays = () => {
-      gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
+      gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, modeler.implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
    }
    
-
-    drawImplicitSurfaceObj();
-    gl.bindBuffer(gl.ARRAY_BUFFER, implicitSurfacesPgm.buffer); 
-    gl.bufferData(gl.ARRAY_BUFFER, implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
+   modeler.animate();
+    // drawImplicitSurfaceObj();
+    gl.bindBuffer(gl.ARRAY_BUFFER, modeler.implicitSurfacesPgm.buffer); 
+    gl.bufferData(gl.ARRAY_BUFFER, modeler.implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.BLEND);
@@ -1585,13 +1586,13 @@ export class Renderer {
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
     setUniform('1f', 'uOpacity', 1);
-    setUniform('Matrix4fv', 'uModel', false, implicitSurfacesPgm.M);
-    let material = materials[implicitSurfacesPgm.color];
+    setUniform('Matrix4fv', 'uModel', false, modeler.implicitSurfacesPgm.M);
+    let material = materials[modeler.implicitSurfacesPgm.color];
     let a = material.ambient, d = material.diffuse, s = material.specular;
     setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
-    setUniform('Matrix4fv', 'uBlobPhong'  , false, implicitSurfacesPgm.phongData);
-    setUniform('Matrix4fv', 'uMatrices'   , false, implicitSurfacesPgm.matrixData);
-    setUniform('Matrix4fv', 'uInvMatrices', false, implicitSurfacesPgm.invMatrixData);
+    setUniform('Matrix4fv', 'uBlobPhong'  , false, modeler.implicitSurfacesPgm.phongData);
+    setUniform('Matrix4fv', 'uMatrices'   , false, modeler.implicitSurfacesPgm.matrixData);
+    setUniform('Matrix4fv', 'uInvMatrices', false, modeler.implicitSurfacesPgm.invMatrixData);
     setUniform('1f', 'uBlobby', 1);
     setUniform('1f', 'uBrightness', 1);
     setUniform('3fv', 'uWindowDir', this._globalLightDir1);

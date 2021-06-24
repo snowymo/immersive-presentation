@@ -80,6 +80,8 @@ CG.XY2Q = (X,Y) => {
    let s = Math.sign(Q[3]);
    return [ -s * Q[0], -s * Q[1], -s * Q[2], s * Q[3] ];
 }
+CG.round = t => Math.floor(t*1000) / 1000;
+CG.uniqueID = () => 1000 * Math.floor(Math.random() * 1000000) + (Date.now() % 1000);
 
 
 ////////////////////////////// SUPPORT FOR MATRICES

@@ -23,46 +23,153 @@
                 Need to tie in to IK.
                 Need to tie in to procedural animation system.
 */
+import { CG, Matrix } from "../CG.js";
+import { ImplicitSurface } from "./implicitSurface.js";
+import { materials } from "./materials.js";
+import { ProjectManager } from "./projectManager.js";
 
-function Modeler(canvas) {
-    let S = [];
-    let activeCount = -1;
-    let blur = 0.2;
-    let fl = 3;                                                          // CAMERA FOCAL LENGTH
-    let flash = false;
-    let frameCount = 0;
-    let implicitSurface = new ImplicitSurface();
-    let isCentering = false;
-    let isClick = false;
-    let isCreating = false, isTranslating = false, isRotating = false, isScaling = false;
-    let isFaceted = false;
-    let isLightColor = false;
-    let isPressed = false;
-    let isRubber = false;
-    let isShowingBounds = false;
-    let isShowingJoints = false;
-    let isWiggling = false;
-    let mn = -1, mnPrev = -1, sn = -1;
-    let projectManager = new ProjectManager();
-    let rotation = 0, rotationState = 0;
-    let startTime = Date.now(), prevTime = startTime, fps = 10;          // TO TRACK FRAME RATE
-    let viewMatrix = matrix_identity();
-    let viewMatrixInverse = matrix_identity();
-    let xPrev, yPrev, xyTravel;
+let ImplicitSurfacesPgm = function () {
+   this.program = null;
+   this.vao = null;
+   this.buffer = null;
+   this.phongData = null;
+   this.matrixData = null;
+   this.invMatrixData = null;
+   this.mesh = null;
+   this.color = null;
+   this.M = null;
+   this.initBuffer = (gl) => {
+   this.buffer = gl.createBuffer();
+   };
+   this.initVAO = (gl) => {
+   this.vao = gl.createVertexArray();
+   };
+
+   this.assignValues = (phongData, matrixData, invMatrixData, mesh, color, M) => {
+       this.phongData = phongData;
+       this.matrixData = matrixData;
+       this.invMatrixData = invMatrixData;
+       this.mesh = mesh;
+       this.color = color;
+       this.M = M;
+   }
+};
+
+// let addEventListenersToCanvas = function(canvas) {
+//    // let r = canvas.getBoundingClientRect();
+//    let r = 1000;
+//    let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
+//        toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
+
+//    if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
+//    if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
+//    if (! canvas.onPress     ) canvas.onPress      = (x, y) => { };
+//    if (! canvas.onRelease   ) canvas.onRelease    = (x, y) => { };
+//    if (! canvas.onKeyPress  ) canvas.onKeyPress   = key => { };
+//    if (! canvas.onKeyRelease) canvas.onKeyRelease = key => { };
+
+//    canvas.addEventListener('mousemove', function(e) {
+//       this._response = this._isDown ? this.onDrag : this.onMove;
+//       this._response(toX(e.clientX), toY(e.clientY));
+//    });
+
+//    canvas.addEventListener('mousedown', function(e) {
+//       this.onPress(toX(e.clientX), toY(e.clientY));
+//       this._isDown = true ;
+//    });
+
+//    canvas.addEventListener('mouseup'  , function(e) {
+//       this.onRelease(toX(e.clientX), toY(e.clientY));
+//       this._isDown = false;
+//    });
+
+//    window.addEventListener('keydown', function(e) {
+//       canvas.onKeyPress(e.keyCode);
+//    }, true);
+
+//    window.addEventListener('keyup', function(e) {
+//       canvas.onKeyRelease(e.keyCode);
+//    }, true);
+// }
+
+ function Modeler() {
+   let M = new Matrix();
+   let S = [];
+   let activeCount = -1;
+   let blur = 0.2;
+   let fl = 3;                                                          // CAMERA FOCAL LENGTH
+   let flash = false;
+   let frameCount = 0;
+   let isCentering = false;
+   let isClick = false;
+   let isCreating = false, isTranslating = false, isRotating = false, isScaling = false;
+   let isFaceted = false;
+   let isLightColor = false;
+   let isPressed = false;
+   let isRubber = false;
+   let isShowingBounds = false;
+   let isShowingJoints = false;
+   let isWiggling = false;
+   let mn = -1, mnPrev = -1, sn = -1;
+   let projectManager = new ProjectManager();
+   let rotation = 0, rotationState = 0;
+   let startTime = Date.now(), prevTime = startTime, fps = 10;          // TO TRACK FRAME RATE
+   let viewMatrix = CG.matrixIdentity();
+   let viewMatrixInverse = CG.matrixIdentity();
+   let xPrev, yPrev, xyTravel;
+   let implicitSurface = new ImplicitSurface(M);
  
-    let activeSet   = isActive => activeCount = isActive ? 4 : -1;
-    let activeState = () => activeCount >= 0;
-    let activeTimer = () => activeCount--;
+   let activeSet   = isActive => activeCount = isActive ? 4 : -1;
+   let activeState = () => activeCount >= 0;
+   let activeTimer = () => activeCount--;
+
+   this.implicitSurfacesPgm = new ImplicitSurfacesPgm();
+
+   // let canvas = window.canvas;
+
+   // let r = 1000;
+   // let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
+   //    toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
+
+   // if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
+   // if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
+   // if (! canvas.onPress     ) canvas.onPress      = (x, y) => { };
+   // if (! canvas.onRelease   ) canvas.onRelease    = (x, y) => { };
+   // if (! canvas.onKeyPress  ) canvas.onKeyPress   = key => { };
+   // if (! canvas.onKeyRelease) canvas.onKeyRelease = key => { };
+
+   // canvas.addEventListener('mousemove', function(e) {
+   //    this._response = this._isDown ? this.onDrag : this.onMove;
+   //    this._response(toX(e.clientX), toY(e.clientY));
+   // });
+
+   // canvas.addEventListener('mousedown', function(e) {
+   //    this.onPress(toX(e.clientX), toY(e.clientY));
+   //    this._isDown = true ;
+   // });
+
+   // canvas.addEventListener('mouseup'  , function(e) {
+   //    this.onRelease(toX(e.clientX), toY(e.clientY));
+   //    this._isDown = false;
+   // });
+
+   // window.addEventListener('keydown', function(e) {
+   //    canvas.onKeyPress(e.keyCode);
+   // }, true);
+
+   // window.addEventListener('keyup', function(e) {
+   //    canvas.onKeyRelease(e.keyCode);
+   // }, true);
  
     // ANIMATE AND RENDER ONE FRAME
  
     let S_to_load = null,
         loadFunction = arg => S_to_load = arg;
  
-    this.animate = gl => {
-       if (window.clay_window)
-          clay_window.bgColor = flash ? '#404040' : '#202020';
- 
+    this.animate = () => {
+      //  if (window.clay_window)
+      //     clay_window.bgColor = flash ? '#404040' : '#202020';
+      // addEventListenersToCanvas(canvas);
        if (S_to_load) {
           S = S_to_load;
           S_to_load = null;
@@ -79,19 +186,13 @@ function Modeler(canvas) {
  
        frameCount++;
  
-       // SET ALL UNIFORM VARIABLES ON THE GPU
+       // UPDATE TIME
     
        let time = (Date.now() - startTime) / 1000;
-       setUniform('1f', 'uTime', time);                                  // SET GPU TIME
        let elapsed = time - prevTime;
        fps = .1 * fps + .9 / elapsed;
        prevTime = time;
-    
-       setUniform('1f', 'uOpacity', 1);
-       let r3 = Math.sqrt(1/3);
-       setUniform('3fv', 'uLDir', [r3,r3,r3, -r3,-r3,-r3]);              // SET GPU LIGHTS
-       setUniform('3fv', 'uLCol', [.6,.8,1, .4,.3,.2]);
-       setUniform('Matrix4fv', 'uCamera', false, matrix_perspective(fl)); // SET GPU CAMERA
+
  
        // SHOW CENTERING INDICATOR
  
@@ -99,7 +200,7 @@ function Modeler(canvas) {
           M.save();
              M.translate(0,0,-1);
              M.scale(.005,2,.005);
-             drawMesh(cubeMesh, 'white');
+            //  drawMesh(cubeMesh, 'white');
           M.restore();
        }
     
@@ -109,6 +210,26 @@ function Modeler(canvas) {
        implicitSurface.setBlur(blur);
        implicitSurface.setDivs(isRubber ? 100 : activeState() ? 50 : 100);
        implicitSurface.setFaceted(isFaceted);
+
+      // // TESTING
+
+      const N = 4;
+      const colorID = ['red','white','yellow','blue','brass'];
+       M.save();
+       M.translate(0,0.6,0);
+       implicitSurface.beginBlobs();
+       for (let n = 0 ; n < N ; n++) {
+           let T = (a,b,c) => .1 * Math.sin(a * Math.sin(b * time * (10+n)/10 + n + c));
+           M.save();
+               M.translate(T(14,.035,1), T(24,.024,2), T(34, .014, 3));
+               M.scale(0.1);
+               implicitSurface.addBlob(implicitSurface.SPHERE, true, M.value(), colorID[n], false, false);
+           M.restore();
+       }
+       M.rotateY(time / 4);
+       implicitSurface.remesh();
+       this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
+      M.restore();
  
        // ADVANCE THE "ACTIVE REMESHING" TIMER
  
@@ -124,11 +245,11 @@ function Modeler(canvas) {
        if (isWiggling)
           for (let n = 0 ; n < S.length ; n++)
              if (S[n].jointPosition) {
-                S[n].jointRotation = matrix_multiply(
-                                     matrix_multiply(
-                     matrix_rotateX(.1 * Math.sin(8 * prevTime + S[n].id * 10)),
-                     matrix_rotateY(.1 * Math.sin(8 * prevTime + S[n].id * 20))),
-                     matrix_rotateZ(.1 * Math.sin(8 * prevTime + S[n].id * 30)));
+                S[n].jointRotation = CG.matrixMultiply(
+                                     CG.matrixMultiply(
+                     CG.matrixRotateX(.1 * Math.sin(8 * prevTime + S[n].id * 10)),
+                     CG.matrixRotateY(.1 * Math.sin(8 * prevTime + S[n].id * 20))),
+                     CG.matrixRotateZ(.1 * Math.sin(8 * prevTime + S[n].id * 30)));
                 rotateAboutJoint(n);
              }
  
@@ -146,27 +267,26 @@ function Modeler(canvas) {
             // SHOW JOINT
  
                 M.save();
-                   M.setValue(matrix_multiply(viewMatrix, s.M));
+                   M.set(s.M);
                    M.translate(s.jointPosition);
-                   let sc = i => .03 / norm(M.value().slice(4*i,4*i+3));
+                   let sc = i => .03 / CG.norm(M.value().slice(4*i,4*i+3));
                    M.scale(sc(0), sc(1), sc(2));
-                   drawMesh(sphereMesh, 'white');
+                  //  drawMesh(sphereMesh, 'white');
                 M.restore();
  
             // SHOW CONNECTION BETWEEN PARENT AND CHILD JOINT
  
-                if (parent(s) && parent(s).jointPosition) {
-               M.save();
-              M.setValue(viewMatrix);
-              let p1 = matrix_transform(parent(s).M, parent(s).jointPosition);
-              let p2 = matrix_transform(s.M, s.jointPosition);
-              M.translate(mix(p1, p2, 0.5));
-              let dp = [p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]];
-              M.aimZ(dp);
-              M.scale(.01,.01,norm(dp) / 2);
-              drawMesh(tubeMesh, 'white');
-               M.restore();
-                }
+               if (parent(s) && parent(s).jointPosition) {
+                  M.save();
+                  let p1 = CG.matrixTransform(parent(s).M, parent(s).jointPosition);
+                  let p2 = CG.matrixTransform(s.M, s.jointPosition);
+                  M.translate(CG.mix(p1, p2, 0.5));
+                  let dp = [p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]];
+                  M.aimZ(dp);
+                  M.scale(.01,.01,CG.norm(dp) / 2);
+                  // drawMesh(tubeMesh, 'white');
+                  M.restore();
+               }
              }
           }
  
@@ -174,7 +294,7 @@ function Modeler(canvas) {
     
        for (let n = 0 ; n < S.length ; n++) {
           M.save();
-             M.setValue(matrix_multiply(viewMatrix, S[n].M));
+             M.set(S[n].M);
              let materialId = S[n].color;
  
          // IF IN BLOBBY MODE, ADD TO LIST OF BLOBS
@@ -189,7 +309,7 @@ function Modeler(canvas) {
                    S[n].type==1 ? implicitSurface.CYLINDERX :
                                   implicitSurface.SPHERE,
                    S[n].rounded,
-                   M.value(),
+                   M,
                    materialId,
                    S[n].sign == -1,
                    n==mn || n==sn);
@@ -198,72 +318,72 @@ function Modeler(canvas) {
          // IF NOT IN BLOBBY MODE, DRAW THE SHAPE
  
              else {
-                let m = materials[materialId];
-                m.specular = [.9,.9,.9,30];
+                let ma = materials[materialId];
+                ma.specular = [.9,.9,.9,30];
                 if (n == mn || n == sn)
-                   m.texture = [.5,0,0,0];
+                   ma.texture = [.5,0,0,0];
                 M.save();
                    switch (S[n].type) {
                    case 1: M.rotateY(Math.PI/2); break;
                    case 2: M.rotateX(Math.PI/2); break;
                    }
-                   drawMesh(S[n].type==4 ? cubeMesh :
-                            S[n].type> 0 ? cylinderMesh :
-                                           sphereMesh, materialId);
+                  //  drawMesh(S[n].type==4 ? cubeMesh :
+                  //           S[n].type> 0 ? cylinderMesh :
+                  //                          sphereMesh, materialId);
                 M.restore();
-                if (m.texture)
-                   delete m.texture;
-                m.specular = [.1,.1,.1,2];
+                if (ma.texture)
+                   delete ma.texture;
+                ma.specular = [.1,.1,.1,2];
              }
           M.restore();
        }
  
        // IF SHOWING JOINTS, MAKE BLOB MODEL TRANSPARENT
  
-       if (isShowingJoints)
-          setUniform('1f', 'uOpacity', 0.1);
-       setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
-       implicitSurface.endBlobs();
-       setUniform('1f', 'uNoisy', 0);
-       setUniform('1f', 'uOpacity', 1);
+      //  if (isShowingJoints)
+      //     setUniform('1f', 'uOpacity', 0.1);
+      //  setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
+      // this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
+      //  setUniform('1f', 'uNoisy', 0);
+      //  setUniform('1f', 'uOpacity', 1);
  
        // SHOW VISUAL HINT OF ANY NEGATIVE SHAPES
  
        if (! isRubber) {
-          setUniform('1f', 'uOpacity', .25);
+         //  setUniform('1f', 'uOpacity', .25);
           for (let n = 0 ; n < S.length ; n++)
              if (S[n].sign == -1) {
                 M.save();
-                   M.setValue(matrix_multiply(viewMatrix, S[n].M));
+                   M.set(CG.matrixMultiply(viewMatrix, S[n].M));
                    let m = materials[S[n].color];
                    if (n == mn || n == sn)
                       m.texture = [.5,0,0,0];
-                   drawMesh(sphereMesh, S[n].color);
+                  //  drawMesh(sphereMesh, S[n].color);
                    if (m.texture)
                       delete m.texture;
                 M.restore();
              }
-          setUniform('1f', 'uOpacity', 1);
+         //  setUniform('1f', 'uOpacity', 1);
        }
  
        // OPTIONALLY SHOW BOUNDING BOXES AROUND BLOBS
  
        if (isShowingBounds) {
           let bounds = implicitSurface.bounds();
-          setUniform('1f', 'uOpacity', 0.2);
+         //  setUniform('1f', 'uOpacity', 0.2);
           for (let n = 0 ; n < bounds.length ; n++) {
              let b = bounds[n];
              let x0 = b[0][0], x1 = b[0][1];
              let y0 = b[1][0], y1 = b[1][1];
              let z0 = b[2][0], z1 = b[2][1];
              M.save();
-                M.setValue(viewMatrix);
+                M.set(viewMatrix);
                 M.translate((x0+x1)/2, (y0+y1)/2, (z0+z1)/2);
                 M.scale((x1-x0)/2, (y1-y0)/2, (z1-z0)/2);
-                drawMesh(cubeMesh, 'white');
+               //  drawMesh(cubeMesh, 'white');
              M.restore();
           }
-          setUniform('1f', 'uOpacity', 1);
+         //  setUniform('1f', 'uOpacity', 1);
        }
  
        // POSSIBLY REBUILD THE IMPLICIT SURFACE, THEN DRAW IT
@@ -289,9 +409,9 @@ function Modeler(canvas) {
           }
        }
  
-       let viewMatrixPrev = viewMatrix;
-       viewMatrix = matrix_rotateY(rotation);
-       viewMatrixInverse = matrix_inverse(viewMatrix);
+      //  let viewMatrixPrev = viewMatrix;
+      //  viewMatrix = CG.matrixRotateY(rotation);
+      //  viewMatrixInverse = CG.matrixInvert(viewMatrix);
     }
  
     // INSERT A BLOB INTO THE ARRAY OF BLOBS
@@ -361,23 +481,23 @@ function Modeler(canvas) {
  
     let blobDuplicate = s => {
        return {
-          M: s.M.slice(),
-          Q: s.Q.slice(),
-          color: s.color,
-      id: uniqueID(),
-          isBlobby: s.isBlobby,
-          isColored: s.isColored,
-          rounded: s.rounded,
-          sign: s.sign,
-          symmetry: s.symmetry,
-          type: s.type,
+         M: s.M.slice(),
+         Q: s.Q.slice(),
+         color: s.color,
+         id: CG.uniqueID(),
+         isBlobby: s.isBlobby,
+         isColored: s.isColored,
+         rounded: s.rounded,
+         sign: s.sign,
+         symmetry: s.symmetry,
+         type: s.type,
        };
     }
  
     // COMPUTE THE MATRIX DESCRIBING A BLOB'S INITIAL POSITION/SCALE
  
     let computeMatrix = s => {
-       let C = mix(s.A, s.B, 0.5),
+       let C = CG.mix(s.A, s.B, 0.5),
            R = [ Math.abs(s.A[0] - s.B[0]) / 2,
                  Math.abs(s.A[1] - s.B[1]) / 2,
                  Math.abs(s.A[2] - s.B[2]) / 2 ];
@@ -385,16 +505,16 @@ function Modeler(canvas) {
                0   , R[1], 0   , 0 ,
                0   , 0   , R[2], 0 ,
                C[0], C[1], C[2], 1 ];
-       s.M = matrix_multiply(viewMatrixInverse, s.M);
+       s.M = CG.matrixMultiply(viewMatrixInverse, s.M);
        computeQuadric(s);
     }
  
     // COMPUTE THE QUADRIC EQUATION FOR RAY TRACING TO A BLOB
     
     let computeQuadric = s => {
-       let IM = matrix_inverse(s.M);
-       s.Q = matrix_multiply(matrix_transpose(IM),
-                             matrix_multiply([1, 0, 0, 0,
+       let IM = CG.matrixInvert(s.M);
+       s.Q = CG.matrixMultiply(CG.matrixTranspose(IM),
+                             CG.matrixMultiply([1, 0, 0, 0,
                                               0, 1, 0, 0,
                                               0, 0, 1, 0,
                                               0, 0, 0,-1], IM));
@@ -403,9 +523,9 @@ function Modeler(canvas) {
     // RAY TRACE TO A BLOB
     
     let raytraceToQuadric = (Q,p,u) => {
-       let A = dot(u, matrix_transform(Q, u)),
-           B = dot(u, matrix_transform(Q, p)),
-           C = dot(p, matrix_transform(Q, p)),
+       let A = CG.dot(u, CG.matrixTransform(Q, u)),
+           B = CG.dot(u, CG.matrixTransform(Q, p)),
+           C = CG.dot(p, CG.matrixTransform(Q, p)),
            D = B*B - A*C;
        return D < 0 ? 10000 : (-B - Math.sqrt(D)) / A;
     }
@@ -413,8 +533,8 @@ function Modeler(canvas) {
     // FIND WHICH BLOB IS VISIBLE AT A GIVEN PIXEL
     
     let findBlob = (x,y) => {
-       let p = matrix_transform(viewMatrixInverse, [0,0,fl,1]);
-       let u = matrix_transform(viewMatrixInverse, normalize([x,y,-fl,0]));
+       let p = CG.matrixTransform(viewMatrixInverse, [0,0,fl,1]);
+       let u = CG.matrixTransform(viewMatrixInverse, CG.normalize([x,y,-fl,0]));
        let tMin = 1000, nMin = -1;
        for (let n = 0 ; n < S.length ; n++) {
           let t = raytraceToQuadric(S[n].Q, p, u);
@@ -430,7 +550,7 @@ function Modeler(canvas) {
  
     let blobZ = (n, x,y) => {
        let p = [0,0,fl,1];
-       let u = normalize([x,y,-fl,0]);
+       let u = CG.normalize([x,y,-fl,0]);
        let t = raytraceToQuadric(S[n].Q, p, u);
        return p[2] + t * u[2];
     }
@@ -439,13 +559,13 @@ function Modeler(canvas) {
        let rotateAboutPoint = (nn, rot, p) => {
           let s = S[nn];
           move(s,-p[0],-p[1],-p[2]);
-          s.M = matrix_multiply(rot, s.M);
+          s.M = CG.matrixMultiply(rot, s.M);
           move(s, p[0], p[1], p[2]);
           for (let n = 0 ; n < S.length ; n++)
              if (S[n].parentID == s.id)
                 rotateAboutPoint(n, rot, p);
        }
-       let p = matrix_transform(S[nn].M, S[nn].jointPosition);
+       let p = CG.matrixTransform(S[nn].M, S[nn].jointPosition);
        rotateAboutPoint(nn, S[nn].jointRotation, p);
     }
  
@@ -455,9 +575,9 @@ function Modeler(canvas) {
  
     let xfBlob = (s, matrix, x,y,z, isTransformingChildren) => {
        move(s,-x,-y,-z);
-       s.M = matrix_multiply(viewMatrix        , s.M);
-       s.M = matrix_multiply(matrix            , s.M);
-       s.M = matrix_multiply(viewMatrixInverse , s.M);
+       s.M = CG.matrixMultiply(viewMatrix        , s.M);
+       s.M = CG.matrixMultiply(matrix            , s.M);
+       s.M = CG.matrixMultiply(viewMatrixInverse , s.M);
        move(s, x, y, z);
        if (isTransformingChildren)
           for (let i = 0 ; i < S.length ; i++)
@@ -471,12 +591,12 @@ function Modeler(canvas) {
        let mx = s.M[12], my = s.M[13], mz = s.M[14];
        if (isScaling)
           xfBlob(s,
-             matrix_scale(1+x, 1+y, 1+z),
+             CG.matrixScalescale(1+x, 1+y, 1+z),
              mx,my,mz,
              isPressed);
        if (isRotating)
           xfBlob(s,
-             matrix_multiply(matrix_rotateX(-y), matrix_rotateY( x)),
+             CG.matrixMultiply(CG.matrixRotateX(-y), CG.matrixRotateY( x)),
              mx,my,mz,
              isPressed);
        if (isTranslating) {
@@ -541,17 +661,17 @@ function Modeler(canvas) {
     let createBegin = (x,y) => {
        sn = S.length;
        S.push({
-          A: [x,y,0],
-          B: [x+.01,y+.01,0],
-          age: 0,
-          color: 'color0',
-          id: uniqueID(),
-          isBlobby: true,
-          isColored: false,
-          rounded: true,
-          sign: 1,
-          symmetry: 0,
-          type: 0,
+         A: [x,y,0],
+         B: [x+.01,y+.01,0],
+         age: 0,
+         color: 'color0',
+         id: CG.uniqueID(),
+         isBlobby: true,
+         isColored: false,
+         rounded: true,
+         sign: 1,
+         symmetry: 0,
+         type: 0,
        });
        computeMatrix(S[sn]);
        xPrev = x;
@@ -593,28 +713,28 @@ function Modeler(canvas) {
  
     // RESPOND TO MOUSE/CURSOR EVENTS
  
-    canvas.onPress = (x,y) => {
-       isPressed = true;
-       if (! isRotating && ! isScaling)
-          isTranslating = true;
-       saveForUndo();
-       xyTravel = 0;
-       sn = findBlob(x,y);
-       if (isRubber)
-          sn = sn < 0 ? ns() : sn;
+   //  canvas.onPress = (x,y) => {
+   //     isPressed = true;
+   //     if (! isRotating && ! isScaling)
+   //        isTranslating = true;
+   //     saveForUndo();
+   //     xyTravel = 0;
+   //     sn = findBlob(x,y);
+   //     if (isRubber)
+   //        sn = sn < 0 ? ns() : sn;
  
-       xPrev = x;
-       yPrev = y;
-    }
+   //     xPrev = x;
+   //     yPrev = y;
+   //  }
     
-    canvas.onDrag = (x,y) => {
-       if (sn >= 0)
-          transform(sn, x - xPrev, y - yPrev, 0);
+   //  canvas.onDrag = (x,y) => {
+   //     if (sn >= 0)
+   //        transform(sn, x - xPrev, y - yPrev, 0);
  
-       xyTravel += Math.abs(x - xPrev) + Math.abs(y - yPrev);
-       xPrev = x;
-       yPrev = y;
-    }
+   //     xyTravel += Math.abs(x - xPrev) + Math.abs(y - yPrev);
+   //     xPrev = x;
+   //     yPrev = y;
+   //  }
  
     let handleJoint = nn => {
        if (nn >= 0) {
@@ -627,7 +747,7 @@ function Modeler(canvas) {
              let p = [ (I[0][0] + I[0][1]) / 2,
                        (I[1][0] + I[1][1]) / 2,
                        (I[2][0] + I[2][1]) / 2 ];
-             s.jointPosition = matrix_transform(matrix_inverse(s.M), p);
+             s.jointPosition = CG.matrixTransform(CG.matrixInvert(s.M), p);
           }
           if (S[nn].jointPosition) {                 // REPOSITION EXISTING JOINT
              let b = implicitSurface.bounds();
@@ -646,7 +766,7 @@ function Modeler(canvas) {
                         I[1][0] < I[1][1] &&
                         I[2][0] < I[2][1] ) {
                       computeJointPosition(S[nn], I);
-                      S[nn].jointRotation = matrix_identity();
+                      S[nn].jointRotation = CG.matrixIdentity();
                       S[nn].parentID = S[n].id;
                       S[n].age = 10;
                       if (S[nn].symmetry)
@@ -667,7 +787,7 @@ function Modeler(canvas) {
                             s1.jointPosition[1],
                             s1.jointPosition[2]];
        s2.parentID = s1.parentID;
-       s2.jointRotation = matrix_identity();
+       s2.jointRotation = CG.matrixIdentity();
        if (parent(s1).symmetry) {
           let n = findBlobIndex(parent(s1));
           n += parent(s1).symmetry == 1 ? 1 : -1;
@@ -675,317 +795,286 @@ function Modeler(canvas) {
        }
     }
  
-    canvas.onRelease = (x,y) => {
-       handleJoint(sn); // AFTER MOVING A BLOB, ADJUST JOINT POSITION
-       activeSet(false);
-       isTranslating = isRotating = isScaling = false;
-       mn = sn;
-       sn = -1;
-       isPressed = false;
-    }
+   //  canvas.onRelease = (x,y) => {
+   //     handleJoint(sn); // AFTER MOVING A BLOB, ADJUST JOINT POSITION
+   //     activeSet(false);
+   //     isTranslating = isRotating = isScaling = false;
+   //     mn = sn;
+   //     sn = -1;
+   //     isPressed = false;
+   //  }
     
-    canvas.onMove = (x,y) => {
-       if (isCreating)
-          createDrag(x, y);
-       else if (mn >= 0 && (isTranslating || isRotating || isScaling))
-          transform(mn, x - xPrev, y - yPrev, 0);
-       else {
-          mn = findBlob(x, y);
-          if (mn != mnPrev)
-             activeSet(true);
-          mnPrev = mn;
-       }
-       xPrev = x;
-       yPrev = y;
-    }
+   //  canvas.onMove = (x,y) => {
+   //     if (isCreating)
+   //        createDrag(x, y);
+   //     else if (mn >= 0 && (isTranslating || isRotating || isScaling))
+   //        transform(mn, x - xPrev, y - yPrev, 0);
+   //     else {
+   //        mn = findBlob(x, y);
+   //        if (mn != mnPrev)
+   //           activeSet(true);
+   //        mnPrev = mn;
+   //     }
+   //     xPrev = x;
+   //     yPrev = y;
+   //  }
  
     // RESPOND TO THE KEYBOARD
  
     let kPrev = -1;
     
-    canvas.onKeyPress = k => {
-       if (k != kPrev) {
-          switch (k) {
-      case 8:
-         if (isRubber)
-            flash = true;
-             break;
-      }
-          let ch = String.fromCharCode(k);
-          switch (ch) {
-          case 'A':
-          case 'B':
-          case 'X':
-          case 'V':
-          case 'Z':
-         if (isRubber) {
-            flash = true;
-            break;
-             }
-             saveForUndo();
-             if (! isCreating) {
-                createBegin(xPrev, yPrev);
-                if (ch == 'X') S[sn].type = 1;
-                if (ch == 'V') S[sn].type = 2;
-                if (ch == 'Z') S[sn].type = 3;
-                if (ch == 'B') S[sn].type = 4;
-             }
-             isCreating = true;
-             break;
-          case 'D':
-         if (isRubber)
-            flash = true;
-         break;
-          case 'R':
-             saveForUndo();
-             isRotating = true;
-             break;
-          case 'S':
-             saveForUndo();
-             isScaling = true;
-             break;
-          case 'T':
-             saveForUndo();
-             isTranslating = true;
-             break;
-          }
-       }
-       kPrev = k;
-    }
+   //  canvas.onKeyPress = k => {
+   //     if (k != kPrev) {
+   //        switch (k) {
+   //    case 8:
+   //       if (isRubber)
+   //          flash = true;
+   //           break;
+   //    }
+   //        let ch = String.fromCharCode(k);
+   //        switch (ch) {
+   //        case 'A':
+   //        case 'B':
+   //        case 'X':
+   //        case 'V':
+   //        case 'Z':
+   //       if (isRubber) {
+   //          flash = true;
+   //          break;
+   //           }
+   //           saveForUndo();
+   //           if (! isCreating) {
+   //              createBegin(xPrev, yPrev);
+   //              if (ch == 'X') S[sn].type = 1;
+   //              if (ch == 'V') S[sn].type = 2;
+   //              if (ch == 'Z') S[sn].type = 3;
+   //              if (ch == 'B') S[sn].type = 4;
+   //           }
+   //           isCreating = true;
+   //           break;
+   //        case 'D':
+   //       if (isRubber)
+   //          flash = true;
+   //       break;
+   //        case 'R':
+   //           saveForUndo();
+   //           isRotating = true;
+   //           break;
+   //        case 'S':
+   //           saveForUndo();
+   //           isScaling = true;
+   //           break;
+   //        case 'T':
+   //           saveForUndo();
+   //           isTranslating = true;
+   //           break;
+   //        }
+   //     }
+   //     kPrev = k;
+   //  }
  
     let ns = () => mn >= 0 ? mn : S.length - 1;
  
-    canvas.onKeyRelease = k => {
-       flash = false;
-       kPrev = -1;
+   //  canvas.onKeyRelease = k => {
+   //     flash = false;
+   //     kPrev = -1;
  
-       isTranslating = isRotating = isScaling = false;
-       let ch = String.fromCharCode(k);
+   //     isTranslating = isRotating = isScaling = false;
+   //     let ch = String.fromCharCode(k);
  
-       // TYPE 0-9 TO SET BLOB COLOR
+   //     // TYPE 0-9 TO SET BLOB COLOR
  
-       if (S.length > 0 && ch >= '0' && ch <= '9') {
-          saveForUndo();
-          let color = 'color' + (k - 48) + (isLightColor ? 'l' : '');
+   //     if (S.length > 0 && ch >= '0' && ch <= '9') {
+   //        saveForUndo();
+   //        let color = 'color' + (k - 48) + (isLightColor ? 'l' : '');
  
-          // SET COLOR OVER BACKGROUND TO COLOR ALL UNCOLORED BLOBS.
+   //        // SET COLOR OVER BACKGROUND TO COLOR ALL UNCOLORED BLOBS.
  
-          if (mn < 0) {
-             for (let n = 0 ; n < S.length ; n++)
-                if (! S[n].isColored)
-                   S[n].color = color;
-          }
+   //        if (mn < 0) {
+   //           for (let n = 0 ; n < S.length ; n++)
+   //              if (! S[n].isColored)
+   //                 S[n].color = color;
+   //        }
  
-          // SET COLOR OVER A BLOB TO EXPLICITLY COLOR IT.
+   //        // SET COLOR OVER A BLOB TO EXPLICITLY COLOR IT.
  
-          else {
-             let sym = S[ns()].symmetry ? 1 : 0;
-             for (let i = 0 ; i <= sym ; i++) {
-                S[I(ns())+i].color = color;
-                S[I(ns())+i].isColored = true;
-             }
-          }
+   //        else {
+   //           let sym = S[ns()].symmetry ? 1 : 0;
+   //           for (let i = 0 ; i <= sym ; i++) {
+   //              S[I(ns())+i].color = color;
+   //              S[I(ns())+i].isColored = true;
+   //           }
+   //        }
  
-          isLightColor = false;
-          return;
-       }
+   //        isLightColor = false;
+   //        return;
+   //     }
     
-       switch (k) {
-       case 8: // DELETE
-          if (isRubber)
-         break;
-          saveForUndo();
-          deleteSelectedBlob();             // DELETE THE SELECTED BLOB
-          break;
-       case 37: // LEFT ARROW
-          rotationState--;                  // ROTATE LEFT
-          return;
-       case 39: // RIGHT ARROW
-          rotationState++;                  // ROTATE RIGHT
-          return;
-       case 189: // '-'
-          saveForUndo();
-          if (S.length > 0) {               // MAKE NEGATIVE
-             let sym = S[ns()].symmetry ? 1 : 0;
-             for (let i = 0 ; i <= sym ; i++)
-                S[I(ns())+i].sign = -S[I(ns())+i].sign;
-             activeSet(true);
-          }
-          break;
-       case 190: // '.'
-          saveForUndo();
-          if (S.length > 0) {               // TOGGLE IS BLOBBY
-             let sym = S[ns()].symmetry ? 1 : 0;
-             for (let i = 0 ; i <= sym ; i++)
-                S[I(ns())+i].isBlobby = ! S[I(ns())+i].isBlobby;
-             activeSet(true);
-          }
-          break;
-       case 191: // '/'
-          isRubber = ! isRubber;
-          break;
-       case 192: // '`'
-          isLightColor = ! isLightColor;    // LIGHT COLOR
-          break;
-       case 219: // '['
-          saveForUndo();
-          if (S.length > 0)
-             transform(ns(), 0,0,-.05);     // AWAY
-          break;
-       case 220: // '\'
-          saveForUndo();
-          S = [];                           // NEW: DELETE ALL BLOBS
-      isWiggling = false;
-          activeSet(true);
-          break;
-       case 221: // ']'
-          saveForUndo();
-          if (S.length > 0)
-             transform(ns(), 0,0,.05);      // FORWARD
-          break;
-       }
+   //     switch (k) {
+   //     case 8: // DELETE
+   //        if (isRubber)
+   //       break;
+   //        saveForUndo();
+   //        deleteSelectedBlob();             // DELETE THE SELECTED BLOB
+   //        break;
+   //     case 37: // LEFT ARROW
+   //        rotationState--;                  // ROTATE LEFT
+   //        return;
+   //     case 39: // RIGHT ARROW
+   //        rotationState++;                  // ROTATE RIGHT
+   //        return;
+   //     case 189: // '-'
+   //        saveForUndo();
+   //        if (S.length > 0) {               // MAKE NEGATIVE
+   //           let sym = S[ns()].symmetry ? 1 : 0;
+   //           for (let i = 0 ; i <= sym ; i++)
+   //              S[I(ns())+i].sign = -S[I(ns())+i].sign;
+   //           activeSet(true);
+   //        }
+   //        break;
+   //     case 190: // '.'
+   //        saveForUndo();
+   //        if (S.length > 0) {               // TOGGLE IS BLOBBY
+   //           let sym = S[ns()].symmetry ? 1 : 0;
+   //           for (let i = 0 ; i <= sym ; i++)
+   //              S[I(ns())+i].isBlobby = ! S[I(ns())+i].isBlobby;
+   //           activeSet(true);
+   //        }
+   //        break;
+   //     case 191: // '/'
+   //        isRubber = ! isRubber;
+   //        break;
+   //     case 192: // '`'
+   //        isLightColor = ! isLightColor;    // LIGHT COLOR
+   //        break;
+   //     case 219: // '['
+   //        saveForUndo();
+   //        if (S.length > 0)
+   //           transform(ns(), 0,0,-.05);     // AWAY
+   //        break;
+   //     case 220: // '\'
+   //        saveForUndo();
+   //        S = [];                           // NEW: DELETE ALL BLOBS
+   //    isWiggling = false;
+   //        activeSet(true);
+   //        break;
+   //     case 221: // ']'
+   //        saveForUndo();
+   //        if (S.length > 0)
+   //           transform(ns(), 0,0,.05);      // FORWARD
+   //        break;
+   //     }
  
-       switch (ch) {
-       case 'A':
-       case 'B':
-       case 'X':
-       case 'V':
-       case 'Z':
-          if (isRubber)
-         break;
-          createEnd();                      // ADD A BLOB
-          handleJoint(sn);
-          isCreating = false;
-          sn = -1;
-          break;
-       case 'C':
-          if (mn >= 0 && S[mn].M) {
-             saveForUndo();
-             S[mn].M[12] = 0;               // CENTER BLOB AT CURSOR
-             computeQuadric(S[mn]);
-          }
-          else                              // BUT IF OVER BACKGROUND
-             isCentering = ! isCentering;   // TOGGLE CENTERING MODE
-          break;
-       case 'D':
-          if (isRubber)
-         break;
-          saveForUndo();
-          deleteSelectedBlob();
-          break;
-       case 'E':
-          if (S.length > 0) {               // BLUR EDGES
-             saveForUndo();
-             S[ns()].rounded = ! S[ns()].rounded;
-             activeSet(true);
-          }
-          break;
-       case 'F':
-          isFaceted = ! isFaceted;
-          break;
-       case 'I':
-          redo();
-          break;
-       case 'J':
-          isShowingJoints = ! isShowingJoints;
-          break;
-       case 'K':
-          isShowingBounds = ! isShowingBounds;
-          break;
-       case 'M':
-          if (S.length > 0) {               // CHANGE MIRROR SYMMETRY
-             saveForUndo();
-             let n1 = ns(),
-                 s1 = S[n1];
-             switch (s1.symmetry) {
-             case 0:                            // CREATE MIRROR SYMMETRY
-                s1.symmetry = 1;
-                let s2 = {
-                   M: s1.M.slice(),
-                   color: s1.color,
-                   id: uniqueID(),
-                   isBlobby: s1.isBlobby,
-                   isColored: s1.isColored,
-           rounded: s1.rounded,
-                   sign: s1.sign,
-                   symmetry: 2,
-                   type: s1.type,
-                };
-                s2.M[12] = -s1.M[12];
-                computeQuadric(s2);
-                insertBlob(n1+1, s2);
-                if (s1.jointPosition)
-                   createMirrorJoint(n1);
-                break;
-             case 1:                            // REMOVE MIRROR SYMMETRY
-                s1.symmetry = 0;
-                deleteBlob(n1+1);
-                break;
-             case 2:
-                s1.symmetry = 0;
-                deleteBlob(n1-1);
-                break;
-             }
-          }
-          break;
-       case 'O':
-          projectManager.clearNames();         // CLEAR PROJECT NAMES
-          activeSet(true);
-          break;
-       case 'P':
-          projectManager.choice(loadFunction); // USER CHOOSES PROJECT
-          break;
-       case 'R':       // AFTER MOVING A BLOB, ADJUST JOINT POSITIONS
-       case 'S':
-       case 'T':
-          if (mn >= 0) {
-             handleJoint(mn);
-         for (let n = 0 ; n < S.length ; n++)
-            if (S[n].parentID == S[mn].id)
-                   handleJoint(n);
-          }
-          break;
-       case 'U':
-          undo();
-          break;
-       case 'W':
-          isWiggling = ! isWiggling;
-          break;
-       }
-    }
- 
-    // BUILD THE PALETTE OF COLORS
-    
-    let colors = [
-       [1,1,1],     // white
-       [1,0,0],     // red
-       [1,.2,0],    // orange
-       [1,1,0],     // yellow
-       [0,1,0],     // green
-       [0,1,1],     // cyan
-       [.2,.2,1],   // blue
-       [1,0,1],     // violet
-       [.3,.1,.05], // brown
-       [0,0,0],     // black
-    ];
-    
-    for (let n = 0 ; n < 10 ; n++) {
-       let r = colors[n][0], g = colors[n][1], b = colors[n][2];   
-       for (let l = 0 ; l < 2 ; l++) {
-          if (l) {
-             r = .5 + .5 * r;
-             g = .5 + .5 * g;
-             b = .5 + .5 * b;
-          }
-          materials['color' + n + (l ? 'l' : '')] = {
-             ambient : [.2*r,.2*g,.2*b],
-             diffuse : [Math.max(.01,.8*r),
-                        Math.max(.01,.8*g),
-                        Math.max(.01,.8*b)],
-             specular: [.1,.1,.1,2]
-          };
-       };
-    }
+   //     switch (ch) {
+   //     case 'A':
+   //     case 'B':
+   //     case 'X':
+   //     case 'V':
+   //     case 'Z':
+   //        if (isRubber)
+   //       break;
+   //        createEnd();                      // ADD A BLOB
+   //        handleJoint(sn);
+   //        isCreating = false;
+   //        sn = -1;
+   //        break;
+   //     case 'C':
+   //        if (mn >= 0 && S[mn].M) {
+   //           saveForUndo();
+   //           S[mn].M[12] = 0;               // CENTER BLOB AT CURSOR
+   //           computeQuadric(S[mn]);
+   //        }
+   //        else                              // BUT IF OVER BACKGROUND
+   //           isCentering = ! isCentering;   // TOGGLE CENTERING MODE
+   //        break;
+   //     case 'D':
+   //        if (isRubber)
+   //       break;
+   //        saveForUndo();
+   //        deleteSelectedBlob();
+   //        break;
+   //     case 'E':
+   //        if (S.length > 0) {               // BLUR EDGES
+   //           saveForUndo();
+   //           S[ns()].rounded = ! S[ns()].rounded;
+   //           activeSet(true);
+   //        }
+   //        break;
+   //     case 'F':
+   //        isFaceted = ! isFaceted;
+   //        break;
+   //     case 'I':
+   //        redo();
+   //        break;
+   //     case 'J':
+   //        isShowingJoints = ! isShowingJoints;
+   //        break;
+   //     case 'K':
+   //        isShowingBounds = ! isShowingBounds;
+   //        break;
+   //     case 'M':
+   //        if (S.length > 0) {               // CHANGE MIRROR SYMMETRY
+   //           saveForUndo();
+   //           let n1 = ns(),
+   //               s1 = S[n1];
+   //           switch (s1.symmetry) {
+   //           case 0:                            // CREATE MIRROR SYMMETRY
+   //              s1.symmetry = 1;
+   //              let s2 = {
+   //                 M: s1.M.slice(),
+   //                 color: s1.color,
+   //                 id: CG.uniqueID(),
+   //                 isBlobby: s1.isBlobby,
+   //                 isColored: s1.isColored,
+   //         rounded: s1.rounded,
+   //                 sign: s1.sign,
+   //                 symmetry: 2,
+   //                 type: s1.type,
+   //              };
+   //              s2.M[12] = -s1.M[12];
+   //              computeQuadric(s2);
+   //              insertBlob(n1+1, s2);
+   //              if (s1.jointPosition)
+   //                 createMirrorJoint(n1);
+   //              break;
+   //           case 1:                            // REMOVE MIRROR SYMMETRY
+   //              s1.symmetry = 0;
+   //              deleteBlob(n1+1);
+   //              break;
+   //           case 2:
+   //              s1.symmetry = 0;
+   //              deleteBlob(n1-1);
+   //              break;
+   //           }
+   //        }
+   //        break;
+   //     case 'O':
+   //        projectManager.clearNames();         // CLEAR PROJECT NAMES
+   //        activeSet(true);
+   //        break;
+   //     case 'P':
+   //        projectManager.choice(loadFunction); // USER CHOOSES PROJECT
+   //        break;
+   //     case 'R':       // AFTER MOVING A BLOB, ADJUST JOINT POSITIONS
+   //     case 'S':
+   //     case 'T':
+   //        if (mn >= 0) {
+   //           handleJoint(mn);
+   //       for (let n = 0 ; n < S.length ; n++)
+   //          if (S[n].parentID == S[mn].id)
+   //                 handleJoint(n);
+   //        }
+   //        break;
+   //     case 'U':
+   //        undo();
+   //        break;
+   //     case 'W':
+   //        isWiggling = ! isWiggling;
+   //        break;
+   //     }
+   //  }
  }
+
+export let modeler = new Modeler();
  
  

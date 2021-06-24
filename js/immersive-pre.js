@@ -24,6 +24,7 @@ import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
 import { metaroomSyncSender } from "./corelink_handler.js"
+// import { Modeler } from "./render/core/implicit_surfaces/modeler.js";
 
 window.wsport = 8447;
 window.vr = false;
@@ -40,6 +41,7 @@ if (QueryArgs.getBool("usePolyfill", true)) {
 let xrButton = null;
 let xrImmersiveRefSpace = null;
 let inlineViewerHelper = null;
+// export let modeler = null;
 let inputController = null;
 let time = 0;
 
@@ -119,7 +121,7 @@ function initGL() {
         webgl2: true,
     });
     document.body.appendChild(gl.canvas);
-
+    window.canvas = gl.canvas;
     function onResize() {
         gl.canvas.width = gl.canvas.clientWidth * window.devicePixelRatio;
         gl.canvas.height = gl.canvas.clientHeight * window.devicePixelRatio;
@@ -139,6 +141,8 @@ function initGL() {
         new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
+    console.log("fffff" + gl.canvas);
+    
 }
 
 function onRequestSession() {

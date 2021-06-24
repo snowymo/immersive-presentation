@@ -67,6 +67,7 @@ export class InlineViewerHelper {
     });
 
     canvas.addEventListener("touchstart", (event) => {
+      console.log("touchstart");
       if (primaryTouch == undefined) {
         let touch = event.changedTouches[0];
         primaryTouch = touch.identifier;
@@ -76,6 +77,7 @@ export class InlineViewerHelper {
     });
 
     canvas.addEventListener("touchend", (event) => {
+      console.log("touchend");
       for (let touch of event.changedTouches) {
         if (primaryTouch == touch.identifier) {
           primaryTouch = undefined;
@@ -93,6 +95,7 @@ export class InlineViewerHelper {
     });
 
     canvas.addEventListener("touchmove", (event) => {
+      console.log("touchmove");
       for (let touch of event.changedTouches) {
         if (primaryTouch == touch.identifier) {
           this.rotateView(touch.pageX - prevTouchX, touch.pageY - prevTouchY);
