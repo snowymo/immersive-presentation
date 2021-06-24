@@ -123,8 +123,9 @@ export function init() {
     // }
   });
 
-  window.EventBus.subscribe("3d", (json) => {
-    window.pointCloudData = json["frame"];
+  window.EventBus.subscribe("realsense", (json) => {
+    if (!window.pointCloudData) window.pointCloudData = {};
+    window.pointCloudData[json["username"]] = json["frame"];
   });
 
   window.EventBus.subscribe("mute", (json) => {
