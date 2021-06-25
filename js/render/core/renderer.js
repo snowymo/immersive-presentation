@@ -1486,6 +1486,7 @@ export class Renderer {
   }
 
   _drawImplicitSurfaceObj(views,isTriangleMesh) {
+    window.views = views;
     let gl = this._gl;
     if (!window.modeler.implicitSurfacesPgm.program) {
       window.modeler.implicitSurfacesPgm.program = new Program(

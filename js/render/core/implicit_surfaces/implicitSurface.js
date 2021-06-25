@@ -295,16 +295,16 @@ function Blobs() {
        return new Float32Array(mesh);
     }
  
-    let minfunc = (a,b,c) => {
-       if (isSoftMin) {
-          a = Math.exp(1-a*a);
-          b = Math.exp(1-b*b);
-          c = c === undefined ? 0 : Math.exp(1-c*c);
-          return 1 - Math.log(a + b + c);
-       }
-       else
-          return c === undefined ? Math.min(a, b) : Math.min(a, b, c);
-    }
+    let minfunc = (rounded, a,b,c) => {
+      if (rounded) {
+         a = Math.exp(1-a*a);
+         b = Math.exp(1-b*b);
+         c = c === undefined ? 0 : Math.exp(1-c*c);
+         return 1 - Math.log(a + b + c);
+      }
+      else
+         return c === undefined ? Math.min(a, b) : Math.min(a, b, c);
+   }
  
     let massage = (t, sgn) => t <= 0 ? 0 : (t > 1 ? 2 - 1/t/t : t*t) * sgn;
  
