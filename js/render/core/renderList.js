@@ -2,6 +2,8 @@
 
 import { CG, Matrix } from "./CG.js";
 import { ImprovedNoise } from "../math/improvedNoise.js";
+import { buttonState, controllerMatrix, leftHandState, rightHandState } from "../core/renderListScene.js";
+import { pHitTest } from "../../util/hitTest.js";
 
 export let m = new Matrix();
 
@@ -107,6 +109,25 @@ let RenderList = function () {
       return this;
     };
 
+    this.hitEvent = (f, isShared) => {
+      this.hit = f;
+      this.shared = isShared;
+      return this;
+    }
+
+    this.group = (n) => {
+      if (groups[n] === undefined) {
+        groups[n] = [this];
+        this.groupInd = 0;
+      }
+      else if (!groups[n].includes(this)) {
+        groups[n].push(this);
+        this.groupInd = groups[n].length - 1;
+      }
+      this.groupId = n;
+      return this;
+    }
+
     this.setBaseTexture = (url) => {
       this.texture = url;
     }
@@ -168,12 +189,47 @@ let RenderList = function () {
   this.beginBuild = () => ((n = 0), (this.num = 0));
   this.endBuild = () => {
     /* do something */
+    let hmR = pHitTest(0);
+    let evR = {handedness: "right",
+              state: rightHandState,
+              buttonState: buttonState.right,
+              hitItem: hmR};
+    let hmL = pHitTest(1);
+    let evL = {handedness: "left",
+              state: leftHandState,
+              buttonState: buttonState.left,
+              hitItem: hmL};
+    if (hmR && hmR.hit !== undefined) {
+      hmR.hit(evR);
+      if (hmR.shared && hmR.groupId !== undefined) {
+        evR.indirect = true;
+        for (let i=0; i<groups[hmR.groupId].length; i++) {
+          if (i === hmR.groupInd) continue;
+          let obj = groups[hmR.groupId][i];
+          evR.hitItem = obj;
+          obj.hit(evR);
+        }
+      }
+    }
+    if (hmL && hmL.hit !== undefined) {
+      hmL.hit(evL);
+      if (hmL.shared && hmL.groupId !== undefined) {
+        evL.indirect = true;
+        for (let i=0; i<groups[hmL.groupId].length; i++) {
+          if (i === hmL.groupInd) continue;
+          let obj = groups[hmL.groupId][i];
+          evL.hitItem = obj;
+          obj.hit(evL);
+        }
+      }
+    }
   };
-  this.add = (shape) => {
+  this.add = (shape, name) => {
     if (items[n]) items[n].init();
     else items[n] = new Item();
     items[n].shape = shape;
     items[n].matrix = m.value().slice();
+    if (name) items[n].mesh = name;
     this.num++;
     return items[n++];
   };
@@ -245,6 +301,7 @@ let RenderList = function () {
         item.sz
       )
     );
+    item.matrix = mat;
     switch (item.type) {
       // render list
       case 1: {
@@ -322,7 +379,7 @@ let RenderList = function () {
           item.sz
         )
       );
-
+      items[i].matrix = mat;
       switch (item.type) {
         // render list
         case 1: {
@@ -366,16 +423,21 @@ let RenderList = function () {
   this.program = null;
   this.num = 0;
 
+  this.getItems = () => {
+    return items;
+  }
+
   let items = [],
     n = 0,
     improvedNoise = new ImprovedNoise();
+  let groups = [];
 };
 
 RenderList.prototype.mMesh = function (V) {
   return this.add(V);
 };
 RenderList.prototype.mCube = function () {
-  return this.add(CG.cube);
+  return this.add(CG.cube, "cube");
 };
 RenderList.prototype.mPoly4 = function (V) {
   return this.add(CG.createPoly4Vertices(V));
@@ -390,10 +452,10 @@ RenderList.prototype.mSquare = function () {
   return this.add(CG.quad);
 };
 RenderList.prototype.mSphere = function () {
-  return this.add(CG.sphere);
+  return this.add(CG.sphere, "sphere");
 };
 RenderList.prototype.mCylinder = function () {
-  return this.add(CG.cylinder);
+  return this.add(CG.cylinder, "cylinder");
 };
 RenderList.prototype.mRoundedCylinder = function () {
   return this.add(CG.roundedCylinder);

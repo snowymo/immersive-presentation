@@ -1095,10 +1095,18 @@ export class Renderer {
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
+    //renderList.endBuild();
     if (renderList.num > 0) {
       // console.log('-------------------');
+      let tmp = [];
       for (let i = 0; i < renderList.num; i++) {
-        this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
+        //this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
+        // console.log(...renderList.endFrame(i));
+        tmp[i] = renderList.endFrame(i);
+      }
+      renderList.endBuild();
+      for (let i = 0; i < renderList.num; i++) {
+        this._drawRenderListPrimitive(views, ...tmp[i]);
         // console.log(...renderList.endFrame(i));
       }
     }

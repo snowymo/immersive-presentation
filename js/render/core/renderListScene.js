@@ -2,6 +2,7 @@
 import { mainScene } from "../scenes/mainScene.js";
 
 export let viewMatrix = [], time = 0, isPressed = false, isDragged = false, isReleased = true;
+export let leftHandState = "released", rightHandState = "released";
 
 export let controllerMatrix = { left: [], right: [] };
 export let buttonState = { left: [], right: [] };
@@ -33,12 +34,18 @@ let onPress = (hand, button) => {
   isPressed = true;
   isReleased = false;
   isDragged = false;
+
+  if (hand === "left") leftHandState = "pressed";
+  else if (hand === "right") rightHandState = "pressed";
 };
 
 let onDrag = (hand, button) => {
   isDragged = true;
   isReleased = false;
   isPressed = false;
+
+  if (hand === "left") leftHandState = "dragged";
+  else if (hand === "right") rightHandState = "dragged";
 };
 
 let onRelease = (hand, button) => {
@@ -46,6 +53,9 @@ let onRelease = (hand, button) => {
   isReleased = true;
   isPressed = false;
   isDragged = false;
+
+  if (hand === "left") leftHandState = "released";
+  else if (hand === "right") rightHandState = "released";
 };
 
 export let getViews = (views) => {

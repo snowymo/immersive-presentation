@@ -36,6 +36,8 @@ if (QueryArgs.getBool("usePolyfill", true)) {
     let polyfill = new WebXRPolyfill();
 }
 
+import { setFrameInfo } from "./util/hitTest.js";
+
 // XR globals.
 let xrButton = null;
 let xrImmersiveRefSpace = null;
@@ -271,6 +273,8 @@ function updateInputSources(session, frame, refSpace) {
                 headPose.transform.matrix;
         }
     }
+    setFrameInfo(session.inputSources, frame, refSpace);
+
 }
 
 function hitTest(inputSource, frame, refSpace) {

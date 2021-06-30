@@ -30,6 +30,7 @@ import { demoObjects } from "./demoObjects.js";
 import { demoParticles } from "./demoParticles.js";
 import { demoPrajval } from "./demoPrajval.js";
 import { demoRohail } from "./demoRohail.js";
+import { demoHittest } from "./demoHittest.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -49,7 +50,7 @@ export let mainScene = () => {
 
   // add the procedural objects you wish to have all the time here
   m.save();
-      renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
+      renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]).hitEvent((ev)=>{ev.hitItem.color([.5,.3,.01]);}, true);
       renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
       renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
   m.restore();
@@ -66,6 +67,7 @@ export let mainScene = () => {
   if (demoPrajvalState % 2) loadScene(demoPrajval); else stopScene(demoPrajval);
   if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
   if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
+  if (demoHittestState % 2) loadScene(demoHittest); else stopScene(demoHittest);
 };
 
 function loadScene(demo) {
@@ -153,6 +155,6 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,Hittest";
 addDemoButtons(window.demoNames);
 window.addNameField();
