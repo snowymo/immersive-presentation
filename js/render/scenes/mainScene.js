@@ -33,7 +33,7 @@ import { demoRohail } from "./demoRohail.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
-let defaultBackground = "./media/gltf/60_fifth_ave/60_fifth_ave.gltf";
+let defaultBackground = "./media/gltf/60_fifth_ave_new/60_5thAveLab2.gltf";
 //let tableUrl = "./media/gltf/table/Table.gltf"
 
 const FEET_TO_METERS = 0.3048;
