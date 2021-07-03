@@ -35,6 +35,7 @@ let msg = '  These are\nsome Metaroom\n   objects';
 let PT = new CG.ParticlesText(msg);
 
 let A = PT.layout(null, .5,.5), B = [], C = [];
+
 for (let n = 0 ; n < msg.length ; n++) {
    let theta = Math.PI - 2 * Math.PI * n / msg.length;
    B[n] = [10 * Math.cos(theta), 5 * Math.sin(theta), 0];
