@@ -1,3 +1,5 @@
+"use strict";
+
 import { initXR } from "../js/immersive-pre.js"
 import { ab2str, corelink_message } from "../js/util/corelink_sender.js"
 import { initSelfAvatar } from "../js/primitive/event.js"
@@ -98,7 +100,7 @@ const run = async () => {
         }
 
         if (metaroomEventSender = await corelink.createSender({
-            workspace, protocol, type: 'event', echo: true, alert: true,
+            workspace, protocol, type: 'event', echo: false, alert: true,
         }).catch((err) => { console.log(err) })) {
             console.log("ZH: metaroomEventSender", metaroomEventSender);
             // start webrtc signalling

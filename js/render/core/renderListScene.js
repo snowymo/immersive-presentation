@@ -23,11 +23,12 @@ export let updateController = (avatar, buttonInfo) => {
     const b = buttonInfo.buttons;
 
     for (let i = 0; i < 7; i++) {
-      // if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
-      // else
-      //   if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
-      //   else
-      //     if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
+      // allow local owner to react to the buttons
+      if (b[i].pressed && !buttonState[h][i]) onPress(h, i);
+      else
+        if (b[i].pressed && buttonState[h][i]) onDrag(h, i);
+        else
+          if (!b[i].pressed && buttonState[h][i]) onRelease(h, i);
 
       // Update
       buttonState[h][i] = b[i].pressed;
