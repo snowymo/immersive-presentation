@@ -2,6 +2,7 @@ import { initAvatar } from "../primitive/avatar.js";
 import { mat4, vec3, quat } from "../render/math/gl-matrix.js";
 import { metaroomWebrtcSender } from "../corelink_handler.js"
 import { corelink_message } from "../util/corelink_sender.js"
+import { audioInit, audioContext, loadAudioSources } from "../util/positional-audio.js"
 
 // vars
 window.localUuid = "";
@@ -473,6 +474,19 @@ window.muteSelf = function () {
   // window.wsclient.send("mute", {
   //   uuid: window.localUuid,
   // });
+  if (audioContext == null) {
+    audioInit();
+    // Load multiple audio sources.
+    loadAudioSources(window.scene);
+  }
+
+  window.webrtc_start();
+
+  setTimeout(realMute, 1000);
+
+};
+
+function realMute() {
   var msg = corelink_message("mute", {
     uuid: window.localUuid,
   });
@@ -484,4 +498,4 @@ window.muteSelf = function () {
   } else {
     document.querySelector("#Speak").innerText = "Speak";
   }
-};
+}

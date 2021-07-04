@@ -74,8 +74,8 @@ export function initXR() {
             window.avatars[window.playerid].vr = window.vr;
         });
 
-        // Load multiple audio sources.
-        loadAudioSources(window.scene);
+        // // Load multiple audio sources.
+        // loadAudioSources(window.scene);
 
         navigator.xr.requestSession("inline").then(onSessionStarted);
     }
@@ -417,7 +417,7 @@ function onXRFrame(t, frame) {
 
     window.scene.drawXRFrame(frame, pose, time);
 
-    if (pose) {
+    if (pose && resonance) {
         resonance.setListenerFromMatrix({ elements: pose.transform.matrix });
     }
 

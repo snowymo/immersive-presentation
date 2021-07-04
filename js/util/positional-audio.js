@@ -15,15 +15,18 @@ let pauseTexture = new UrlTexture('./media/textures/pause-button.png');
 // const AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // Audio scene globals
-let audioContext = new AudioContext();
-export let resonance = new ResonanceAudio(audioContext);
-resonance.output.connect(audioContext.destination);
+export let audioContext = null;
+export let resonance;
+export function audioInit() {
+    audioContext = new AudioContext();
+    resonance = new ResonanceAudio(audioContext);
+    resonance.output.connect(audioContext.destination);
+    audioContext.suspend();
+}
 
 export let stereo = new Gltf2Node({ url: './media/gltf/stereo/stereo.gltf' });
 // FIXME: Temporary fix to initialize for cloning.
 stereo.visible = false;
-
-audioContext.suspend();
 
 // TODO: This is crashing in recent versions of Resonance for me, and I'm
 // not sure why. It does run succesfully without it, though.
@@ -177,6 +180,10 @@ function playAudio() {
 }
 
 export function pauseAudio() {
+    if (!audioContext) {
+        console.log("audioContext is not ready");
+        return;
+    }
     if (audioContext.state == 'suspended')
         return;
 
