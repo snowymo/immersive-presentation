@@ -197,7 +197,7 @@ void main(void) {
         vBlobPhong += t * uBlobPhong[n];
       }
     }
-    pos = uProj * uView * uModel * pos;
+    pos = uModel * pos;
     nor = nor * invModel;
     vNor = nor.xyz;
     vPos = pos.xyz;

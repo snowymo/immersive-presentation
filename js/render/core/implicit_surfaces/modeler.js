@@ -143,11 +143,11 @@ let ImplicitSurfacesPgm = function () {
  
        // FETCH AND UPDATE CURRENT PROJECT
  
-       if (frameCount == 0)
-          projectManager.load(loadFunction);
+      //  if (frameCount == 0)
+      //     projectManager.load(loadFunction);
  
-       if (frameCount % 100 == 99)
-          projectManager.save(S);
+      //  if (frameCount % 100 == 99)
+      //     projectManager.save(S);
  
        frameCount++;
  
@@ -249,7 +249,7 @@ let ImplicitSurfacesPgm = function () {
     
        for (let n = 0 ; n < S.length ; n++) {
           M.save();
-             M.set(S[n].M);
+             M.set(CG.matrixMultiply(viewMatrix,S[n].M));
              let materialId = S[n].color;
  
          // IF IN BLOBBY MODE, ADD TO LIST OF BLOBS
@@ -368,7 +368,7 @@ let ImplicitSurfacesPgm = function () {
        }
  
        let viewMatrixPrev = viewMatrix;
-       viewMatrix = CG.matrixRotateY(rotation);
+       viewMatrix = CG.matrixMultiply(CG.matrixRotateY(rotation),viewMatrix);
        viewMatrixInverse = CG.matrixInvert(viewMatrix);
     }
  
@@ -1017,13 +1017,13 @@ let ImplicitSurfacesPgm = function () {
                }
             }
             break;
-         case 'O':
-            projectManager.clearNames();         // CLEAR PROJECT NAMES
-            activeSet(true);
-            break;
-         case 'P':
-            projectManager.choice(loadFunction); // USER CHOOSES PROJECT
-            break;
+         // case 'O':
+         //    projectManager.clearNames();         // CLEAR PROJECT NAMES
+         //    activeSet(true);
+         //    break;
+         // case 'P':
+         //    projectManager.choice(loadFunction); // USER CHOOSES PROJECT
+         //    break;
          case 'R':       // AFTER MOVING A BLOB, ADJUST JOINT POSITIONS
          case 'S':
          case 'T':
