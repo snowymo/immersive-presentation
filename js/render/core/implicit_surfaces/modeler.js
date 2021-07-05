@@ -246,10 +246,10 @@ let ImplicitSurfacesPgm = function () {
           }
  
        // SPECIFY BLOBS FOR THIS FRAME
-    
+          console.log("blob num: " + S.length);
        for (let n = 0 ; n < S.length ; n++) {
           M.save();
-             M.set(CG.matrixMultiply(viewMatrix,S[n].M));
+             M.set(S[n].M);
              let materialId = S[n].color;
  
          // IF IN BLOBBY MODE, ADD TO LIST OF BLOBS
@@ -264,7 +264,7 @@ let ImplicitSurfacesPgm = function () {
                    S[n].type==1 ? implicitSurface.CYLINDERX :
                                   implicitSurface.SPHERE,
                    S[n].rounded,
-                   M.value(),
+                   CG.matrixMultiply(viewMatrix,M.value()),
                    materialId,
                    S[n].sign == -1,
                    n==mn || n==sn);
