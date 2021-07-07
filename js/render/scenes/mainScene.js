@@ -159,14 +159,6 @@ function showNameTag() {
   }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,SyncTest,Draw";
-=======
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rachel,Rohail,Speak,Text";
->>>>>>> planets demo
-=======
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,Speak,Text";
->>>>>>> clean up Planets demo
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,Speak,Text,SyncTest,Draw";
 addDemoButtons(window.demoNames);
 window.addNameField();
