@@ -3,13 +3,10 @@ import { m, renderList } from "../core/renderList.js";
 import { CG } from "../core/CG.js";
 import { time } from "../core/renderListScene.js";
 
-let DemoRachel = function () {
-   //this.background = "./media/gltf/space/space.gltf";
-   //this.background = "./media/tglt";
+let DemoPlanets = function () {
    this.background = null;
    this.loadGLTF = false;
    this.envInd = null;
-    //m.save();
    
     this.display = () => {
 
@@ -50,52 +47,19 @@ let DemoRachel = function () {
          renderList.mSphere().move(Math.cos(time * 1.2) * 10.5,15, Math.sin(time * 1.2) * 10.5).turnX(-Math.PI/2).turnY(time).color([1, 1, 1]).setBaseTexture("earth_texture.png");
          renderList.mSphere().move(Math.cos(time * 0.7) * 13,15, Math.sin(time * 0.7) * 13).turnY(time).color([1, 1, 1]).setBaseTexture("moontexture.jpeg");
          renderList.mSphere().move(Math.cos(time * 0.4) * 15.2,15, Math.sin(time * 0.4) * 15.2).size(1.7).turnY(time).color([1, 1, 1]).setBaseTexture("jupitertexture.jpg");
-         //renderList.mTorus().move(Math.cos(time * 0.4) * 15.2,15, Math.sin(time * 0.4) * 15.2).size(1.3).turnY(time).color([1, 0, 1]).turnZ(10);
          renderList.mSphere().move(Math.cos(time * 0.3) * 18,15, Math.sin(time * 0.3) * 18).turnY(time).color([1, 1, 1]).setBaseTexture("uranustexture.jpg");
          renderList.mSphere().move(Math.cos(time * 0.65) * 20.5,15, Math.sin(time * 0.65) * 20.5).size(1.2).turnY(time).color([1, 1, 1]).setBaseTexture("neptunetexture.jpg");
          renderList.mSphere().move(Math.cos(time * 0.2) * 23,15, Math.sin(time * 0.2) * 23).size(0.4).turnY(time).color([1, 1, 1]).setBaseTexture("plutotexture.jpeg");
          
-         //renderList.mCube().turnY(time).color([1, 1, 1]).translate(1,1,1).setBaseTexture("brick.png");
          break;
 
-	 /*case 2:
-         renderList.mQuad().turnY(time).color([1, 1, 1]).setBaseTexture("stones.jpg");;
-	 break;
-
-	 case 3:
-         renderList.mSquare().turnY(time).color([10, 0, 0]).setBaseTexture("font.png");
-	 break;
-
-	 case 4:
-         renderList.mCylinder().turnY(time).color([1, 1, 1])
-	           .textureView(window.textures[1].lookupImageByID(1)).textureAtlas(window.textures[1]);
-	 break;
-
-	 case 5:
-         renderList.mRoundedCylinder().turnY(time).color([1, 1, 1])
-	           .textureView(window.textures[2].lookupImageByID(1)).textureAtlas(window.textures[2]);
-	 break;
-
-	 case 6:
-         renderList.mTorus().turnY(time).color([1, 1, 1]);
-	 break;
-
-	 case 7:
-         renderList.mCone().turnY(time).color([1, 1, 1]);
-	 break;*/
          }
          m.restore();
       }
       m.restore();
       
    };
-       /*m.translate(0,1.5 + .5 * Math.sin(3 * time),-1);
-       m.translate(0,0,0);
-       if (Math.floor(time) % 10 < 5)
-          renderList.mCube().size(.2).turnY(time).color([0,1,0]);
-       else
-          renderList.mCylinder().size(.2).turnY(time).color([1,0,0]);
-    m.restore();*/
+       
 };
 
 let msg = '  Solar\nSystem\n   ';
@@ -109,4 +73,4 @@ for (let n = 0 ; n < msg.length ; n++) {
 }
 
 
-export let demoRachel = new DemoRachel();
+export let demoPlanets = new DemoPlanets();
