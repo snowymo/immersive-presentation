@@ -1,0 +1,9 @@
+export let materials = {};
+materials['black' ] = { ambient: [.0 ,.0 ,.0 ], diffuse: [0  ,0  ,0  ], specular: [.9,.9,.9,10] };
+materials['blue'  ] = { ambient: [.0 ,.0 ,.2 ], diffuse: [0  ,0  ,1  ], specular: [.9,.9,.9,10] };
+materials['brass' ] = { ambient: [.03,.02,.01], diffuse: [.03,.02,.01], specular: [.9,.6,.3,10] };
+materials['cyan'  ] = { ambient: [.0 ,.15,.15], diffuse: [0  ,.07,.07], specular: [.0,.7,.7,10] };
+materials['green' ] = { ambient: [.0 ,.2 ,.0 ], diffuse: [0  ,1  ,0  ], specular: [.9,.9,.9,10] };
+materials['red'   ] = { ambient: [.2 ,.0 ,.0 ], diffuse: [1  ,0  ,0  ], specular: [.9,.9,.9,10] };
+materials['white' ] = { ambient: [.2 ,.2 ,.2 ], diffuse: [1  ,1  ,1  ], specular: [.9,.9,.9,10] };
+materials['yellow'] = { ambient: [.2 ,.2 ,.0 ], diffuse: [1  ,1  ,0  ], specular: [.9,.9,.9,10] };

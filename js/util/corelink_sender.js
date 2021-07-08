@@ -1,5 +1,7 @@
 "use strict";
 
+import { metaroomEventSender, metaroomSyncSender } from "../corelink_handler.js"
+
 export function ab2str(buf) {
     var rawBuf = String.fromCharCode.apply(null, new Uint16Array(buf));
     // we are using json objects everywhere
@@ -14,6 +16,14 @@ function str2ab(str) {
         bufView[i] = str.charCodeAt(i);
     }
     return buf;
+}
+
+export function corelink_event(data) {
+    if (window.initxr) {
+        var msg = corelink_message("event", data);
+        corelink.send(metaroomEventSender, msg);
+
+    }
 }
 
 export function corelink_message(type, data) {
@@ -92,6 +102,21 @@ export function corelink_message(type, data) {
                 state: data,
             };
             console.log("demo", message);
+            break;
+        case "event":
+            // console.log(data);
+            message = {
+                type: "event",
+                uid: window.playerid,
+                ts: Date.now(),
+                // it: lt[rigger], rt[rigger]
+                // op: press, release, hold
+                state: {
+                    item: data["it"],
+                    operation: data["op"],
+                }
+            };
+            // console.log("event", message);
             break;
         default:
             break;

@@ -1,3 +1,5 @@
+"use strict";
+
 import { initXR } from "../js/immersive-pre.js"
 import { ab2str, corelink_message } from "../js/util/corelink_sender.js"
 import { initSelfAvatar } from "../js/primitive/event.js"
@@ -5,10 +7,11 @@ import { initAvatar } from "../js/primitive/avatar.js"
 
 const workspace = 'Chalktalk'
 const protocol = 'ws'
-const datatype = ['sync', 'webrtc']
+const datatype = ['sync', 'webrtc', 'event'];
 var receiverdata = 0.0
 export var metaroomSyncSender = ""
 export var metaroomWebrtcSender = "";
+export var metaroomEventSender = "";
 export var metaroomReceiver = "";
 
 window.offlineMode = false;
@@ -85,7 +88,7 @@ const run = async () => {
             // initialize
             initSelfAvatar(metaroomSyncSender);
             // start webrtc signalling
-            window.webrtc_start();
+            // window.webrtc_start();
         }
 
         if (metaroomWebrtcSender = await corelink.createSender({
@@ -94,6 +97,14 @@ const run = async () => {
             console.log("ZH: metaroomWebrtcSender", metaroomWebrtcSender);
             // start webrtc signalling
             window.webrtc_start();
+        }
+
+        if (metaroomEventSender = await corelink.createSender({
+            workspace, protocol, type: 'event', echo: false, alert: true,
+        }).catch((err) => { console.log(err) })) {
+            console.log("ZH: metaroomEventSender", metaroomEventSender);
+            // start webrtc signalling
+            // window.webrtc_start();
         }
 
         metaroomReceiver = await corelink.createReceiver({
@@ -125,12 +136,13 @@ const run = async () => {
             receiverdata = ab2str(data)
             window[streamID + '_data'] = ab2str(data)
             window.EventBus.publish(receiverdata["type"], receiverdata);
-            if (receiverdata["type"] != "avatar")
-                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
+            // if (receiverdata["type"] != "avatar")
+            //     console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
 
         }).catch((err) => { console.log(err) })
 
         // Start the XR application.
+        window.initxr = true;
         initXR();
     }
 }

@@ -31,6 +31,8 @@ import { demoParticles } from "./demoParticles.js";
 import { demoPrajval } from "./demoPrajval.js";
 import { demoRohail } from "./demoRohail.js";
 import { demoHittest } from "./demoHittest.js";
+import { demoSyncTest } from "./demoSyncTest.js";
+import { demoDraw } from "./demoDraw.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -50,9 +52,9 @@ export let mainScene = () => {
 
   // add the procedural objects you wish to have all the time here
   m.save();
-      renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
-      renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
-      renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .74, 0).turnX(Math.PI / 2).size(.8, .8, .01).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .37, 0).turnX(Math.PI / 2).size(.07, .07, .37).color([.25, .15, .05]);
+  renderList.mCylinder().move(0, .005, 0).turnX(Math.PI / 2).size(.25, .25, .005).color([.25, .15, .05]);
   m.restore();
 
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
@@ -68,6 +70,8 @@ export let mainScene = () => {
   if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
   if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
   if (demoHittestState % 2) loadScene(demoHittest); else stopScene(demoHittest);
+  if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
+  if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
 };
 
 function loadScene(demo) {
@@ -129,32 +133,32 @@ function switchBackground(background) {
 
 function showNameTag() {
   for (let key in window.avatars) {
-    if( window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined ) {
+    if (window.playerid && window.playerid != window.avatars[key].playerid && window.avatars[key].headset.matrix[0] != undefined) {
       m.save();
-        let msg =  window.avatars[key].name;
-        let PT = new CG.ParticlesText(msg);
-        PT.layout(null, .5,.5);
-        // let mat = Array.from(window.avatars[key].headset.matrix);
-        let mat = [];
-        for (let i = 0; i< 16; i ++) {
-          mat.push(window.avatars[key].headset.matrix[i])
-        }
-        m.set(mat);
+      let msg = window.avatars[key].name;
+      let PT = new CG.ParticlesText(msg);
+      PT.layout(null, .5, .5);
+      // let mat = Array.from(window.avatars[key].headset.matrix);
+      let mat = [];
+      for (let i = 0; i < 16; i++) {
+        mat.push(window.avatars[key].headset.matrix[i])
+      }
+      m.set(mat);
 
-        m.save();
-          m.rotateY(Math.PI);
-          m.translate(0,0.15,0.1);
-          m.scale(0.05);
-          // renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
-          PT.render(renderList, m, window.avatars[key].nameTagColor);
-        m.restore();
+      m.save();
+      m.rotateY(Math.PI);
+      m.translate(0, 0.15, 0.1);
+      m.scale(0.05);
+      // renderList.mMesh(PT.mesh()).color(window.avatars[key].nameTagColor).setBaseTexture('font.png');
+      PT.render(renderList, m, window.avatars[key].nameTagColor);
+      m.restore();
       m.restore();
     }
-    
-    
+
+
   }
 }
 
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,Hittest";
+window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,Hittest,SyncTest,Draw";
 addDemoButtons(window.demoNames);
 window.addNameField();

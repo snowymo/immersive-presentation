@@ -3,7 +3,8 @@
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
 import { SyncObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
-import { metaroomSyncSender, metaroomWebrtcSender } from "../corelink_handler.js"
+import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender } from "../corelink_handler.js"
+import { left_controller_trigger, right_controller_trigger } from "../util/input_event_handler.js"
 
 export function initSelfAvatar(id) {
   if (!window.avatars) {
@@ -337,6 +338,27 @@ export function init() {
       // console.log(key, value);
     }
     // flags[temp] = window[temp];
+  });
+
+  window.eventOwner = -1;
+  window.EventBus.subscribe("event", (json) => {
+    window.eventOwner = json["uid"];
+    // console.log("window.EventBus.subscribe('event'", json["state"], json);
+    // for (const [item, operation] of Object.entries(json["state"])) {
+    switch (json["state"]["item"]) {
+      case "lefttrigger":
+        //left trigger
+        // console.log("call left_controller_trigger", json["state"]['operation']);
+        left_controller_trigger(json["state"]['operation']);
+        break;
+      case "righttrigger":
+        //left trigger
+        right_controller_trigger(json["state"]['operation']);
+        break;
+      default:
+        break;
+    }
+    // }
   });
 
   // on success
