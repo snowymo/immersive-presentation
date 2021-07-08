@@ -2,6 +2,7 @@
 import { mainScene } from "../scenes/mainScene.js";
 import { corelink_event } from "../../util/corelink_sender.js";
 
+export let leftHandState = "released", rightHandState = "released";
 export let viewMatrix = [], time = 0;
 window.isPressed = false;
 window.isDragged = false;
@@ -46,6 +47,9 @@ export let onPress = (hand, button) => {
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "press" });
+  
+  if (hand === "left") leftHandState = "pressed";
+  else if (hand === "right") rightHandState = "pressed";
 };
 
 export let onDrag = (hand, button) => {
@@ -54,6 +58,9 @@ export let onDrag = (hand, button) => {
     window.isDragged = true;
     window.isReleased = false;
     window.isPressed = false;
+    
+    if (hand === "left") leftHandState = "dragged";
+    else if (hand === "right") rightHandState = "dragged";
   }
 };
 
@@ -64,6 +71,9 @@ export let onRelease = (hand, button) => {
     window.isDragged = false;
     console.log("onRelease", hand, "button", button,
       window.isPressed, window.isReleased, window.isDragged);
+    
+    if (hand === "left") leftHandState = "released";
+    else if (hand === "right") rightHandState = "released";
   }
 
   //ZH
