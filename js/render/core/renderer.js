@@ -1159,7 +1159,7 @@ export class Renderer {
     if (this._colorMaskNeedsReset) {
       gl.colorMask(true, true, true, true);
     }
-
+    window.views = views;
     renderList.initBuffer(this._gl);
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
@@ -1486,7 +1486,6 @@ export class Renderer {
   }
 
   _drawImplicitSurfaceObj(views,isTriangleMesh) {
-    window.views = views;
     let gl = this._gl;
     if (!window.modeler.implicitSurfacesPgm.program) {
       window.modeler.implicitSurfacesPgm.program = new Program(
@@ -1512,7 +1511,7 @@ export class Renderer {
       gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, window.modeler.implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
    }
    
-   window.modeler.animate();
+  //  window.modeler.animate();
     gl.bindBuffer(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.buffer); 
     gl.bufferData(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
     gl.enable(gl.DEPTH_TEST);
@@ -1573,8 +1572,7 @@ export class Renderer {
     let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
     gl.enableVertexAttribArray(aWts1);
     gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
-
-    setUniform('1f', 'uOpacity', 1);
+    setUniform('1f', 'uOpacity', window.modeler.implicitSurfacesPgm.opacity);
     setUniform('Matrix4fv', 'uModel', false, window.modeler.implicitSurfacesPgm.M);
     let material = materials[window.modeler.implicitSurfacesPgm.color];
     let a = material.ambient, d = material.diffuse, s = material.specular;
@@ -1582,7 +1580,8 @@ export class Renderer {
     setUniform('Matrix4fv', 'uBlobPhong'  , false, window.modeler.implicitSurfacesPgm.phongData);
     setUniform('Matrix4fv', 'uMatrices'   , false, window.modeler.implicitSurfacesPgm.matrixData);
     setUniform('Matrix4fv', 'uInvMatrices', false, window.modeler.implicitSurfacesPgm.invMatrixData);
-    setUniform('1f', 'uBlobby', 1);
+    setUniform('1f', 'uBlobby', window.modeler.implicitSurfacesPgm.blobby);
+    setUniform('1f', 'uNoisy', window.modeler.implicitSurfacesPgm.noisy);
     setUniform('1f', 'uBrightness', 1);
     setUniform('3fv', 'uWindowDir', this._globalLightDir1);
 

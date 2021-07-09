@@ -52,7 +52,7 @@ export let mainScene = () => {
   //     renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
   //     renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
   // m.restore();
-
+  window.modeler.animate();
   if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
   if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
   if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);

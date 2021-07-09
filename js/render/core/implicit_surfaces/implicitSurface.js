@@ -7,7 +7,7 @@ function Blobs() {
    this.SPHERE    = 0;
    this.CYLINDERX = 1;
    this.CYLINDERY = 2;
-   this.CYLINDERZ = 3;
+  this.CYLINDERZ = 3;
    this.CUBE      = 4;
  
     // DEFINE SOME USEFUL FUNCTIONS
@@ -620,7 +620,7 @@ export function ImplicitSurface(M) {
               }
       }
 
-      return [phongData, matrixData, invMatrixData, mesh, "white", M.value()];
+      return [isBlobby, phongData, matrixData, invMatrixData, mesh, "white", M.value()];
 
     }
  

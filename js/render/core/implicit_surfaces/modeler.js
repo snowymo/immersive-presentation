@@ -33,6 +33,9 @@ let ImplicitSurfacesPgm = function () {
    this.program = null;
    this.vao = null;
    this.buffer = null;
+   this.opacity = 1;
+   this.noisy = 0;
+   this.blobby = 1;
    this.phongData = null;
    this.matrixData = null;
    this.invMatrixData = null;
@@ -46,7 +49,10 @@ let ImplicitSurfacesPgm = function () {
    this.vao = gl.createVertexArray();
    };
 
-   this.assignValues = (phongData, matrixData, invMatrixData, mesh, color, M) => {
+   this.assignValues = (opacity, noisy, blobby, phongData, matrixData, invMatrixData, mesh, color, M) => {
+       this.opacity = opacity;
+       this.noisy = noisy;
+       this.blobby = blobby;
        this.phongData = phongData;
        this.matrixData = matrixData;
        this.invMatrixData = invMatrixData;
@@ -81,7 +87,7 @@ let ImplicitSurfacesPgm = function () {
    let viewMatrix = CG.matrixIdentity();
    let viewMatrixInverse = CG.matrixIdentity();
    let xPrev, yPrev, xyTravel;
-   let implicitSurface = new ImplicitSurface(m);
+   let implicitSurface = new ImplicitSurface(M);
  
    let activeSet   = isActive => activeCount = isActive ? 4 : -1;
    let activeState = () => activeCount >= 0;
@@ -90,8 +96,8 @@ let ImplicitSurfacesPgm = function () {
    this.implicitSurfacesPgm = new ImplicitSurfacesPgm();
 
    let r = canvas.getBoundingClientRect();
-   let toX = x => 2 * (x-18 - r.left) / canvas.width - 1,
-      toY = y => (canvas.height - 2 * (y - r.top)) / canvas.width;
+   let toX = x => (2 * x - r.left - r.right) / canvas.height,
+      toY = y => 0.5 - 2 * (y - r.top) / canvas.height;
 
    if (! canvas.onDrag      ) canvas.onDrag       = (x, y) => { };
    if (! canvas.onMove      ) canvas.onMove       = (x, y) => { };
@@ -129,6 +135,13 @@ let ImplicitSurfacesPgm = function () {
         loadFunction = arg => S_to_load = arg;
  
     this.animate = () => {
+
+      // m.save();
+      // renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
+      // renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
+      // renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
+      // m.restore();
+
        let temp = CG.matrixMultiply(window.views[0].projectionMatrix,window.views[0].viewMatrix);
        viewMatrix = temp;
        temp = CG.matrixInvert(temp);
@@ -163,12 +176,12 @@ let ImplicitSurfacesPgm = function () {
  
        if (! isRubber && isCentering) {
           M.save();
-             M.translate(0,0,-1);
-             M.scale(.005,2,.005);
-             m.save();
-             m.set(M.value());
-             renderList.mCube().color(0.5,0.5,0.5);
-             m.restore();
+            M.translate(0,0,-1);
+            M.scale(.005,2,.005);
+            m.save();
+            m.set(M.value());
+            renderList.mCube().color(1.5,.5,.5);
+            m.restore();
             //  drawMesh(cubeMesh, 'white');
           M.restore();
        }
@@ -220,25 +233,27 @@ let ImplicitSurfacesPgm = function () {
                    M.translate(s.jointPosition);
                    let sc = i => .03 / CG.norm(M.value().slice(4*i,4*i+3));
                    M.scale(sc(0), sc(1), sc(2));
+                   m.save();
                    m.set(M.value());
-                   renderList.mSphere().color(0.5,0.5,0.5);
+                   renderList.mSphere().color(1.5,.5,.5);
                    m.restore();
-                  //  drawMesh(sphereMesh, 'white');
                 M.restore();
  
             // SHOW CONNECTION BETWEEN PARENT AND CHILD JOINT
  
                if (parent(s) && parent(s).jointPosition) {
                   M.save();
-                  let p1 = CG.matrixTransform(parent(s).M, parent(s).jointPosition);
-                  let p2 = CG.matrixTransform(s.M, s.jointPosition);
+                  let p1 = CG.matrixTransform(CG.matrixMultiply(viewMatrix,parent(s).M), parent(s).jointPosition);
+                  let p2 = CG.matrixTransform(CG.matrixMultiply(viewMatrix,s.M), s.jointPosition);
                   M.translate(CG.mix(p1, p2, 0.5));
                   let dp = [p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]];
                   M.aimZ(dp);
                   M.scale(.01,.01,CG.norm(dp) / 2);
-                  m.set(M.value());
-                  renderList.mTube().color(0.5,0.5,0.5);
-                  m.restore();
+                  m.save();
+                   m.set(M.value());
+                   renderList.mTube().color(.5,.5,.5);
+                   m.restore();
+                   console.log("renderList num " + renderList.num);
                   // drawMesh(tubeMesh, 'white');
                   M.restore();
                }
@@ -246,7 +261,6 @@ let ImplicitSurfacesPgm = function () {
           }
  
        // SPECIFY BLOBS FOR THIS FRAME
-          console.log("blob num: " + S.length);
        for (let n = 0 ; n < S.length ; n++) {
           M.save();
              M.set(S[n].M);
@@ -282,6 +296,14 @@ let ImplicitSurfacesPgm = function () {
                    case 1: M.rotateY(Math.PI/2); break;
                    case 2: M.rotateX(Math.PI/2); break;
                    }
+                   m.save();
+                   m.set(M.value());
+                   // still need to bind the material !!!!!
+                   S[n].type==4 ? renderList.mCube().color(.5,.5,.5) :
+                            S[n].type> 0 ? renderList.mCylinder().color(.5,.5,.5) :
+                            renderList.mSphere().color(.5,.5,.5);
+                   renderList.mSphere().color(.5,.5,.5);
+                   m.restore();
                   //  drawMesh(S[n].type==4 ? cubeMesh :
                   //           S[n].type> 0 ? cylinderMesh :
                   //                          sphereMesh, materialId);
@@ -295,53 +317,52 @@ let ImplicitSurfacesPgm = function () {
  
        // IF SHOWING JOINTS, MAKE BLOB MODEL TRANSPARENT
  
-      //  if (isShowingJoints)
-      //     setUniform('1f', 'uOpacity', 0.1);
-      //  setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
-      this.implicitSurfacesPgm.assignValues(...implicitSurface.endBlobs());
-      //  setUniform('1f', 'uNoisy', 0);
-      //  setUniform('1f', 'uOpacity', 1);
+      this.implicitSurfacesPgm.assignValues(isShowingJoints? 0.25:1, isRubber ? 1 : 0, ...implicitSurface.endBlobs());
  
        // SHOW VISUAL HINT OF ANY NEGATIVE SHAPES
  
        if (! isRubber) {
-         //  setUniform('1f', 'uOpacity', .25);
+         // this.implicitSurfacesPgm.opacity =  0.25;
           for (let n = 0 ; n < S.length ; n++)
              if (S[n].sign == -1) {
                 M.save();
-                   M.set(CG.matrixMultiply(viewMatrix, S[n].M));
-                   let m = materials[S[n].color];
+                console.log(S[n].M)
+                   M.set(S[n].M);
+                   let ma = materials[S[n].color];
                    if (n == mn || n == sn)
-                      m.texture = [.5,0,0,0];
+                      ma.texture = [.5,0,0,0];
+                      m.save();
+                      m.set(M.value());
+                      renderList.mSphere().color(1.5,.5,.5);
+                      m.restore();
                   //  drawMesh(sphereMesh, S[n].color);
-                   if (m.texture)
-                      delete m.texture;
+                   if (ma.texture)
+                      delete ma.texture;
                 M.restore();
              }
-         //  setUniform('1f', 'uOpacity', 1);
        }
  
        // OPTIONALLY SHOW BOUNDING BOXES AROUND BLOBS
  
        if (isShowingBounds) {
           let bounds = implicitSurface.bounds();
-         //  setUniform('1f', 'uOpacity', 0.2);
+         //  this.implicitSurfacesPgm.opacity =  0.2;
           for (let n = 0 ; n < bounds.length ; n++) {
              let b = bounds[n];
              let x0 = b[0][0], x1 = b[0][1];
              let y0 = b[1][0], y1 = b[1][1];
              let z0 = b[2][0], z1 = b[2][1];
              M.save();
-                M.set(viewMatrix);
-                M.translate((x0+x1)/2, (y0+y1)/2, (z0+z1)/2);
-                M.scale((x1-x0)/2, (y1-y0)/2, (z1-z0)/2);
-               //  drawMesh(cubeMesh, 'white');
+               M.set(viewMatrix);
+               M.translate((x0+x1)/2, (y0+y1)/2, (z0+z1)/2);
+               M.scale((x1-x0)/2, (y1-y0)/2, (z1-z0)/2);
+               m.save();
                m.set(M.value());
-               renderList.mCube().color(0.5,0.5,0.5);
+               renderList.mCube().color(.5,.5,.5);
                m.restore();
+               //  drawMesh(cubeMesh, 'white');
              M.restore();
           }
-         //  setUniform('1f', 'uOpacity', 1);
        }
  
        // POSSIBLY REBUILD THE IMPLICIT SURFACE, THEN DRAW IT
@@ -709,7 +730,7 @@ let ImplicitSurfacesPgm = function () {
              let p = [ (I[0][0] + I[0][1]) / 2,
                        (I[1][0] + I[1][1]) / 2,
                        (I[2][0] + I[2][1]) / 2 ];
-             s.jointPosition = CG.matrixTransform(CG.matrixInvert(s.M), p);
+             s.jointPosition = CG.matrixTransform(CG.matrixInvert(CG.matrixMultiply(viewMatrix,s.M)), p);
           }
           if (S[nn].jointPosition) {                 // REPOSITION EXISTING JOINT
              let b = implicitSurface.bounds();
