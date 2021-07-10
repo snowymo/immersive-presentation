@@ -2,21 +2,37 @@ import { ImprovedNoise } from "../math/improvedNoise.js";
 import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 import { time, viewMatrix } from "../core/renderListScene.js";
+import { realsenseData } from "../../data/realsensedata.js";
 import { airfont } from "../core/airfont.js";
 import "../../third-party/corelink.browser.lib.js";
 
-// expected dimensions of the incoming data texture
+// if true, this will read from "../../data/realsensedata.js"
+// otherwise, we read from streamed data on the "realsense" channel
+const READ_FROM_FILE = true;
+
+// expected dimensions of the incoming data texture, note this is from the cropped image.
 // TODO: perhaps we could infer this from the first frame of data?
-const pixelWidth = 640*.6;
-const pixelHeight = 480*.6;
+const pixelWidth = 384;
+const pixelHeight = 288;
+
+// number of particles
 let P = {};
+
+// these are used to position different avatars at different, fixed locations
 let positionOffsets = {};
+let rotationOffsets = {};
 let curPosIdx = 0;
 const availablePositions = [
-  [-1.5, 1.3, 0],
-  [0, 1.3, 1.5],
-  [1.5, 1.3, 0]
+  [-0.2, 1.0, 0],
+  [-0.2, 1.0, 0],
+  [-0.2, 1.0, 0]
 ];
+const availableRotations = [
+  -1.047,
+  0,
+  1.047
+];
+
 
 let DemoRealSense = function () {
    this.background = null;
@@ -24,46 +40,63 @@ let DemoRealSense = function () {
    this.envInd = null;
 
    this.display = () => {
-      if (window.pointCloudData) {
-        for (const username in window.pointCloudData) {
+     let dataframe = {};
+     if (READ_FROM_FILE) {
+       // fake an offset of time when reading from the same file.
+       // later on, we may use 3 different avatars.
+        let frame_idx1 = Math.floor(24 * time) % realsenseData.length;
+        let frame_idx2 = Math.floor(24 * time + realsenseData.length / 3) % realsenseData.length;
+        let frame_idx3 = Math.floor(24 * time + realsenseData.length / 3 * 2) % realsenseData.length;
+        dataframe["user1"] = realsenseData[frame_idx1];
+        dataframe["user2"] = realsenseData[frame_idx2];
+        dataframe["user3"] = realsenseData[frame_idx3];
+     } else {
+       // data from the realsense channel
+       dataframe = window.pointCloudData;
+     }
+      if (dataframe) {
+        for (const username in dataframe) {
           if (!P[username]) {
             // create a new particle cloud & assign it an offset
             P[username] = CG.particlesCreateMesh(3000);
             positionOffsets[username] = availablePositions[curPosIdx];
+            rotationOffsets[username] = availableRotations[curPosIdx];
             curPosIdx++;
           }
-          let dataPoints = window.pointCloudData[username];
+          let dataPoints = dataframe[username];
           if (dataPoints.length > 0) {
             // dimensions of the space the points occupy
             const realWidth = 6.4;
             const realHeight = 4.8;
             let R = [];
             for (let i = 0; i < dataPoints.length; i++) {
+              // idx is the index of the point in a 1D-resizing of the texture array
+              // this tells us the coordinates of the point.
               let idx = dataPoints[i][0];
-              let d = dataPoints[i][1];
-              let c = dataPoints[i][2];
               let rx = (idx % pixelWidth) / pixelWidth * realWidth;
               let ry = (1 - Math.floor(idx / pixelWidth) / pixelHeight) * realHeight;
+
+              // d is depth, r,g,b is color
+              let d = dataPoints[i][1];
+              let r = dataPoints[i][2];
+              let g = dataPoints[i][3];
+              let b = dataPoints[i][4];
+              
+              // base z position on depth, which is given in cm
               let rz = d / 100;
+              // fixed size for particles
               let rrad = 0.008 * realWidth;
-              // TODO: color
-              let baseR = 0.3;
-              let baseG = 0.8;
-              let baseB = 1.2;
-              // faking scanlines
-              if (Math.abs(ry - time / 2) % 1.5 < 0.1) {
-                baseR = 1.0;
-                baseG = 1.2;
-                baseB = 1.6;
-              }
-              let rr = baseR * c / 256;
-              let rg = baseG * c / 256;
-              let rb = baseB * c / 256;
+
+              let rr = r / 256;
+              let rg = g / 256;
+              let rb = b / 256;
               R.push([rx, ry, rz, rrad, rr, rg, rb]);
             }
             CG.particlesSetPositions(P[username], R, CG.matrixMultiply(viewMatrix[0], m.value()));
             m.save();
-                m.translate(0, 1.3, 0);
+            // apply offsets to position different users in different spots
+                m.rotateY(rotationOffsets[username]);
+                m.translate(positionOffsets[username][0], positionOffsets[username][1], positionOffsets[username][2]);
                 renderList.mMesh(P[username]).size(.1).color([10, 10, 10]);
             m.restore();
           }
