@@ -64,8 +64,10 @@ window.syncDemos = function () {
     // window.demoNames
     var flags = {};
     window.demoNames.split(",").forEach(element => {
-        var temp = 'demo' + element + 'State';
-        flags[temp] = window[temp];
+        if (element != "Speak") {
+            var temp = 'demo' + element + 'State';
+            flags[temp] = window[temp];
+        }
     });
     var msg = corelink_message("demo", flags);
     corelink.send(metaroomSyncSender, msg);
