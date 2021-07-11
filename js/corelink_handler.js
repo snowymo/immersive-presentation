@@ -88,8 +88,6 @@ const run = async () => {
             console.log("ZH: metaroomSyncSender", metaroomSyncSender);
             // initialize
             initSelfAvatar(metaroomSyncSender);
-            // start webrtc signalling
-            // window.webrtc_start();
         }
 
         if (metaroomWebrtcSender = await corelink.createSender({
@@ -104,8 +102,6 @@ const run = async () => {
             workspace, protocol, type: 'event', echo: false, alert: true,
         }).catch((err) => { console.log(err) })) {
             console.log("ZH: metaroomEventSender", metaroomEventSender);
-            // start webrtc signalling
-            // window.webrtc_start();
         }
 
         if (metaroomInitSender = await corelink.createSender({
@@ -120,6 +116,7 @@ const run = async () => {
                     dest: "all",
                 });
                 corelink.send(metaroomInitSender, msg);
+                // setTimeout(10000, corelink.send(metaroomInitSender, msg));
                 console.log("corelink.send", msg);
             }
         }
@@ -134,6 +131,7 @@ const run = async () => {
                     dest: "all",
                 });
                 corelink.send(metaroomInitSender, msg);
+                // setTimeout(10000, corelink.send(metaroomInitSender, msg));
                 console.log("corelink.send", msg);
             }
         }
