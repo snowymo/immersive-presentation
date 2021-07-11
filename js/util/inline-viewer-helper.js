@@ -53,6 +53,7 @@ export class InlineViewerHelper {
       if (event.buttons & 1) {
         this.rotateView(event.movementX, event.movementY);
       }
+      window.webrtc_start();
     });
 
     // Keep track of touch-related state so that users can touch and drag on
@@ -130,23 +131,23 @@ export class InlineViewerHelper {
   onKeyDown(e) {
     if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
       // console.log("strafe left");
-      this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-      this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
     }
     if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
       // console.log("strafe right");
-      this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-      this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
     }
     if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
       // console.log("move forward");
-      this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw);
-      this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw);
+      this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw);
+      this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw);
     }
     if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
       // console.log("move back");
-      this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw);
-      this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw);
+      this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw);
+      this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw);
     }
     if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
       // console.log("move forward");
@@ -169,9 +170,9 @@ export class InlineViewerHelper {
 
   onKeyUp(e) {
     switch (e.keyCode) {
-    case keyboardInput.KEY_Z:
-       window.isSlideShow = ! window.isSlideShow;
-       break;
+      case keyboardInput.KEY_Z:
+        window.isSlideShow = !window.isSlideShow;
+        break;
     }
     this.dirty = true;
   }
@@ -199,7 +200,7 @@ export class InlineViewerHelper {
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
       xform = new XRRigidTransform({ y: -this.viewerHeight });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
-      xform = new XRRigidTransform({x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1});
+      xform = new XRRigidTransform({ x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
       this.dirty = false;
     }
