@@ -118,6 +118,14 @@ export function corelink_message(type, data) {
             };
             // console.log("event", message);
             break;
+        case "init":
+            message = {
+                type: "init",
+                uid: window.playerid,
+                state: data,
+            };
+            console.log("init", message);
+            break;
         default:
             break;
     }

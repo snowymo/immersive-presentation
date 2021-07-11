@@ -7,11 +7,12 @@ import { initAvatar } from "../js/primitive/avatar.js"
 
 const workspace = 'Chalktalk'
 const protocol = 'ws'
-const datatype = ['sync', 'webrtc', 'event'];
+const datatype = ['sync', 'webrtc', 'event', 'init'];
 var receiverdata = 0.0
 export var metaroomSyncSender = ""
 export var metaroomWebrtcSender = "";
 export var metaroomEventSender = "";
+export var metaroomInitSender = "";
 export var metaroomReceiver = "";
 
 window.offlineMode = false;
@@ -96,7 +97,7 @@ const run = async () => {
         }).catch((err) => { console.log(err) })) {
             console.log("ZH: metaroomWebrtcSender", metaroomWebrtcSender);
             // start webrtc signalling
-            window.webrtc_start();
+            // window.webrtc_start();
         }
 
         if (metaroomEventSender = await corelink.createSender({
@@ -107,12 +108,38 @@ const run = async () => {
             // window.webrtc_start();
         }
 
-        metaroomReceiver = await corelink.createReceiver({
+        if (metaroomInitSender = await corelink.createSender({
+            workspace, protocol, type: 'init', echo: false, alert: true,
+        }).catch((err) => { console.log(err) })) {
+            // window.bInit = false;
+            console.log("ZH: metaroomInitSender", metaroomInitSender);
+            if (metaroomReceiver != "") {
+                var msg = corelink_message("init", {
+                    displayName: window.playerid,
+                    uuid: window.localUuid,
+                    dest: "all",
+                });
+                corelink.send(metaroomInitSender, msg);
+                console.log("corelink.send", msg);
+            }
+        }
+
+        if (metaroomReceiver = await corelink.createReceiver({
             workspace, protocol, type: datatype, echo: true, alert: true,
-        }).catch((err) => { console.log(err) })
+        }).catch((err) => { console.log(err) })) {
+            if (metaroomInitSender != "") {
+                var msg = corelink_message("init", {
+                    displayName: window.playerid,
+                    uuid: window.localUuid,
+                    dest: "all",
+                });
+                corelink.send(metaroomInitSender, msg);
+                console.log("corelink.send", msg);
+            }
+        }
 
         metaroomReceiver.forEach(async data => {
-            console.log("[webrtc debug] metaroomReceiver.forEach", data.streamID, data.meta.name)
+            // console.log("[webrtc debug] metaroomReceiver.forEach", data.streamID, data.meta.name)
             // var btn = document.createElement("BUTTON")   // Create a <button> element
             // btn.innerHTML = " Plot: " + data.streamID + " " + data.meta.name
             // btn.id = "stream" + data.streamID

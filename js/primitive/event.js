@@ -1,7 +1,7 @@
 "use strict";
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
-import { SyncObject } from "../util/object-sync.js";
+import { SyncObject, updateObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
 import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender } from "../corelink_handler.js"
 import { left_controller_trigger, right_controller_trigger } from "../util/input_event_handler.js"
@@ -21,6 +21,7 @@ export function init() {
     console.log("receive from server [test]", json["state"], "at", Date.now());
   });
 
+  // unused for corelink version
   window.EventBus.subscribe("initialize", (json) => {
     const id = json["id"];
     initSelfAvatar(id);
@@ -64,6 +65,7 @@ export function init() {
     // window.webrtc_start();
   });
 
+  // unused for corelinnk version
   window.EventBus.subscribe("join", (json) => {
     console.log("receive event: join");
     // console.log(json);
@@ -333,9 +335,10 @@ export function init() {
   });
 
   window.EventBus.subscribe("demo", (json) => {
+    console.log("[demo] update demo buttons");
     for (const [flagname, flagvalue] of Object.entries(json["state"])) {
       window[flagname] = flagvalue;
-      // console.log(key, value);
+      console.log("demo", flagname, flagvalue);
     }
     // flags[temp] = window[temp];
   });
@@ -357,6 +360,25 @@ export function init() {
         break;
       default:
         break;
+    }
+    // }
+  });
+
+  // for stateless corelink use
+  // the welcome package now includes button state(excluding speak/mute since it is personal), and objects
+  window.EventBus.subscribe("init", (json) => {
+    // if (window.bInit) {
+    // send out welcome package
+    // 1) demo buttons
+    console.log("[init] receive event.", json);
+    if (json["uid"] == window.playerid) {
+      console.log("self init, discarded");
+      return;
+    }
+    window.syncDemos();
+    // 2) objects
+    for (let id in window.objects) {
+      updateObject(id);
     }
     // }
   });
