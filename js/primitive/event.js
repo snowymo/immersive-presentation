@@ -3,7 +3,7 @@
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
 import { SyncObject, updateObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
-import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender } from "../corelink_handler.js"
+import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender, metaroomInitSender } from "../corelink_handler.js"
 import { left_controller_trigger, right_controller_trigger } from "../util/input_event_handler.js"
 
 export function initSelfAvatar(id) {
@@ -129,7 +129,7 @@ export function init() {
   window.EventBus.subscribe("mute", (json) => {
     // a client wants to mute self
     console.log("receive webrtc", json["ts"], Date.now());
-    window.mute(json["state"]["uuid"]);
+    window.mute(json["state"]["uuid"], json["state"]["speak"]);
   });
 
   window.EventBus.subscribe("webrtc", (json) => {
@@ -326,16 +326,22 @@ export function init() {
 
     let dirtyObject = json["state"];
     // { type: objectType, matrix: objectMatrix, objid: objid }
-    if (!(dirtyObject["objid"] in window.objects))
-      window.objects[dirtyObject["objid"]] = new SyncObject(
-        dirtyObject["objid"],
-        dirtyObject["type"]
-      );
-    window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
+    if (dirtyObject["type"] in window.models) {
+      if (!(dirtyObject["objid"] in window.objects))
+        window.objects[dirtyObject["objid"]] = new SyncObject(
+          dirtyObject["objid"],
+          dirtyObject["type"]
+        );
+      window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
+    }
   });
 
   window.EventBus.subscribe("demo", (json) => {
     console.log("[demo] update demo buttons");
+    if (json["uid"] == window.playerid) {
+      console.log("self event, discard");
+      return;
+    }
     for (const [flagname, flagvalue] of Object.entries(json["state"])) {
       window[flagname] = flagvalue;
       console.log("demo", flagname, flagvalue);
@@ -376,6 +382,15 @@ export function init() {
       return;
     }
     window.syncDemos();
+
+    if (window['demo' + "Speak" + 'State'] == 1) {
+      // by default it is muted, if not, we need to sync this
+      var msg = corelink_message("mute", {
+        uuid: window.localUuid,
+      });
+      corelink.send(metaroomWebrtcSender, msg);
+      console.log("corelink.send", msg);
+    }
     // 2) objects
     for (let id in window.objects) {
       updateObject(id);
