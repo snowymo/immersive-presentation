@@ -14,9 +14,9 @@ export function initObject(objectType, objectMatrix, objid = 0) {
     // server side: send object updates
 
     // window.wsclient.send("objectInit", { type: objectType, matrix: objectMatrix, objid: objid });
-    var msg = corelink_message("object", { type: objectType, matrix: objectMatrix, objid: objid })
-    corelink.send(metaroomSyncSender, msg);
-    console.log("corelink.send", msg);
+    var coremsg = corelink_message("object", { type: objectType, matrix: objectMatrix, objid: objid })
+    corelink.send(metaroomSyncSender, coremsg);
+    // console.log("corelink.send", msg);
 }
 
 export function updateObject(objectID) {
@@ -43,12 +43,11 @@ export class SyncObject {
         this.draggingInput = undefined;
 
         this.toJson = function () {
+            // { type: objectType, matrix: objectMatrix, objid: objid }
             var jsonObj = {
-                id: this.objid,
-                state: {
-                    type: this.type,
-                    matrix: this.node.matrix,
-                },
+                type: this.type,
+                matrix: this.node.matrix,
+                objid: this.objid,
             };
             return jsonObj;
         }
@@ -64,8 +63,10 @@ window.syncDemos = function () {
     // window.demoNames
     var flags = {};
     window.demoNames.split(",").forEach(element => {
-        var temp = 'demo' + element + 'State';
-        flags[temp] = window[temp];
+        if (element != "Speak") {
+            var temp = 'demo' + element + 'State';
+            flags[temp] = window[temp];
+        }
     });
     var msg = corelink_message("demo", flags);
     corelink.send(metaroomSyncSender, msg);

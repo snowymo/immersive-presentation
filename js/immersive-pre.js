@@ -453,7 +453,7 @@ function updateObjects() {
         let type = window.objects[id]["type"];
         let matrix = window.objects[id]["matrix"];
         // create the model if model is null
-        if (!window.objects[id].node) {
+        if (!window.objects[id].node && type in window.models) {
             // create the model, this is the sample by gltf model
             // we may need other model style like CG.js later
             window.objects[id].node = new Gltf2Node({
