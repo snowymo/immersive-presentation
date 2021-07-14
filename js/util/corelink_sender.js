@@ -66,6 +66,7 @@ export function corelink_message(type, data) {
                     state: data,
                 };
             }
+            console.log("corelink.send object", message);
             break;
         case "objectInit":
             {
@@ -94,6 +95,7 @@ export function corelink_message(type, data) {
                     state: data,
                 };
             }
+            console.log("corelink.send mute", message);
             break;
         case "demo":
             message = {
@@ -117,6 +119,14 @@ export function corelink_message(type, data) {
                 }
             };
             // console.log("event", message);
+            break;
+        case "init":
+            message = {
+                type: "init",
+                uid: window.playerid,
+                state: data,
+            };
+            console.log("init", message);
             break;
         default:
             break;

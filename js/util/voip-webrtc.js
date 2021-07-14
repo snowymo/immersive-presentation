@@ -10,6 +10,9 @@ window.peerConnections = {}; // key is uuid, values are peer connection object a
 window.remoteIDs = [];
 window.webrtcInit = false;
 // const AudioContext = window.AudioContext || window.webkitAudioContext;
+window.speakStates = {};
+
+
 var peerConnectionConfig = {
   iceServers: [
     { urls: "stun:stun.stunprotocol.org:3478" },
@@ -54,8 +57,9 @@ function setUserMediaVariable() {
 }
 
 window.webrtc_start = function () {
+  console.log("window.webrtcInit", window.webrtcInit);
   if (window.webrtcInit)
-    console.log("window.webrtcInit", window.webrtcInit);
+    return;
 
   window.webrtcInit = true;
   window.localUuid = window.avatars[window.playerid].localUuid;
@@ -134,27 +138,34 @@ function setUpPeer(peerUuid, displayName, initCall = false) {
 }
 window.setUpPeer = setUpPeer;
 
-window.mute = function (peerUuid = window.localUuid) {
+window.mute = function (peerUuid = window.localUuid, speak = true /*0 speaking 1 muting */) {
   // or unmute
+  // console.log("window.peerConnections size", Object.keys(window.peerConnections).length);
+  // if (Object.keys(window.peerConnections).length == 0) {
+  //   // not yet setup webrtc
+  //   // console.log("window.peerConnections size 0, delay mute operation", peerUuid);
+  //   // setTimeout(5000, window.mute(peerUuid));
+  //   return;
+  // }
   if (peerUuid == window.localUuid) {
     console.log("DONT mute self", window.localUuid);
     for (let id in window.avatars) {
       console.log(window.avatars[id].localUuid);
     }
-  } else {
+  } else if (peerUuid in window.peerConnections) {
     var hasAudio = false;
     console.log(
       peerUuid,
       window.peerConnections,
-      window.peerConnections[peerUuid]
+      window.peerConnections[peerUuid], "speaking or not", speak
     );
     // udpated
-    if (peerUuid in window.peerConnections && window.peerConnections[peerUuid].audioInputStream) {
+    if (window.peerConnections[peerUuid].audioInputStream) {
       window.peerConnections[peerUuid].audioInputStream.mediaStream
         .getAudioTracks()
         .forEach((t) => {
           if (t.kind === "audio") {
-            t.enabled = !t.enabled;
+            t.enabled = speak;//!t.enabled;
             hasAudio = t.enabled;
             return hasAudio;
           }
@@ -164,6 +175,10 @@ window.mute = function (peerUuid = window.localUuid) {
     }
 
     return hasAudio;
+  }
+  else {
+    // peerUuid is not in windowlpeerConnections yet, let's record it for now
+    window.speakStates[peerUuid] = speak;
   }
 };
 
@@ -227,6 +242,12 @@ function gotRemoteStream(event, peerUuid) {
   };
 
   playAvatarAudio(event.streams[0], peerUuid);
+
+  // handle previous speakState
+  if (peerUuid in window.speakStates) {
+    console.log("handle previous speak", peerUuid);
+    window.mute(peerUuid, window.speakStates[peerUuid]);
+  }
 
   var vidContainer = document.createElement("div");
   vidContainer.setAttribute("id", "remoteAudio_" + peerUuid);
@@ -475,6 +496,7 @@ window.muteSelf = function () {
   // });
   var msg = corelink_message("mute", {
     uuid: window.localUuid,
+    speak: window["demoSpeakState"]//0 speaking 1 muting
   });
   corelink.send(metaroomWebrtcSender, msg);
   console.log("corelink.send", msg);
