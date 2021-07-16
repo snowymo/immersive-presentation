@@ -148,7 +148,7 @@ let ImplicitSurfacesPgm = function () {
  // DRAW ROUTINE THAT ALLOWS CUSTOM COLORS AND OPTIONAL TRANSFORMATIONS
 
  let draw = (mesh,color,move,turn,size) => {
-    
+    fl = 1/window.views[0].projectionMatrix[0];
    if (! materials[color]) {
       let rgb = color.split(',');
       let r = parseInt(rgb[0]) / 255,
@@ -224,7 +224,6 @@ this.animate = () => {
    setUniform('Matrix4fv', 'uPerspective', false, CG.matrixPerspective(fl)); // SET GPU CAMERA
    // setUniform('Matrix4fv', 'uPerspective', false, window.views[0].projectionMatrix); // SET GPU CAMERA
    M.save();
-
    viewMatrix = window.views[0].viewMatrix;
    M.set(window.views[0].viewMatrix);
    M.scale(0.95);
@@ -484,6 +483,7 @@ this.animate = () => {
    setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
    M.save();
       M.set(sceneMatrix);
+      // M.set(CG.matrixMultiply(window.views[0].projectionMatrix, window.views[0].viewMatrix))
       implicitSurface.endBlobs();
    M.restore();
    setUniform('1f', 'uNoisy', 0);
