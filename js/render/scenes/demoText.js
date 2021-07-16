@@ -31,7 +31,8 @@ let DemoText = function () {
   };
 };
 
-let msg = '  These are\nsome Metaroom\n   objects';
+//let msg = '  These are\nsome Metaroom\n   objects';
+let msg = 'These are\nsome Metaroom\nobjects';
 let PT = new CG.ParticlesText(msg);
 
 let A = PT.layout(null, .5,.5), B = [], C = [];

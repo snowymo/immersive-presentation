@@ -58,7 +58,7 @@ let DemoRealSense = function () {
         for (const username in dataframe) {
           if (!P[username]) {
             // create a new particle cloud & assign it an offset
-            P[username] = CG.particlesCreateMesh(3000);
+            P[username] = CG.particlesCreateMesh(1800);
             positionOffsets[username] = availablePositions[curPosIdx];
             rotationOffsets[username] = availableRotations[curPosIdx];
             curPosIdx++;
@@ -69,6 +69,7 @@ let DemoRealSense = function () {
             const realWidth = 6.4;
             const realHeight = 4.8;
             let R = [];
+            let particleCount = 0;
             for (let i = 0; i < dataPoints.length; i++) {
               // idx is the index of the point in a 1D-resizing of the texture array
               // this tells us the coordinates of the point.
@@ -90,9 +91,16 @@ let DemoRealSense = function () {
               let rr = r / 256;
               let rg = g / 256;
               let rb = b / 256;
-              R.push([rx, ry, rz, rrad, rr, rg, rb]);
+	      if (Math.min(rr, rg, rb) < .6) {
+	         particleCount++;
+                 R.push([rx, ry, rz, rrad, rr, rg, rb]);
+              }
+	      else
+                 R.push([0,0,0,0,0,0,0]);
             }
-            CG.particlesSetPositions(P[username], R, CG.matrixMultiply(viewMatrix[0], m.value()));
+	    let matrix = m.value();
+	    matrix = CG.matrixMultiply( CG.matrixRotateY(rotationOffsets[username]) , matrix);
+            CG.particlesSetPositions(P[username], R, CG.matrixMultiply(viewMatrix[0], matrix));
             m.save();
             // apply offsets to position different users in different spots
                 m.rotateY(rotationOffsets[username]);
