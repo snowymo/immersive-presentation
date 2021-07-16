@@ -1,13 +1,14 @@
 import { CG } from "../CG.js";
 import { materials } from "./materials.js";
-import { VERTEX_SIZE, VERTEX_WTS } from "../CG.js";
+import { VERTEX_SIZE, VERTEX_WTS } from "./geometry.js";
+import { Noise } from "./noise.js"
 
 function Blobs() {
-
+   let time = 0, divs = 0;
    this.SPHERE    = 0;
    this.CYLINDERX = 1;
    this.CYLINDERY = 2;
-  this.CYLINDERZ = 3;
+   this.CYLINDERZ = 3;
    this.CUBE      = 4;
  
     // DEFINE SOME USEFUL FUNCTIONS
@@ -15,11 +16,14 @@ function Blobs() {
     let cross     = (a,b) => [ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] ];
     let dot       = (a,b) =>   a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
     let normalize =   a   => { let s = Math.sqrt(dot(a,a)); return [ a[0]/s, a[1]/s, a[2]/s ]; }
- 
+    let noise = new Noise(), noiseState = 0;
     // CONVERT VOLUME TO A TRIANGLE MESH
     
-    this.implicitSurfaceTriangleMesh = (n, isFaceted) => {
-    
+    this.implicitSurfaceTriangleMesh = (n, isFaceted, _noiseState) => {
+      divs = n;
+      noiseState = _noiseState;
+
+      time = Date.now() / 1000;
        // HERE IS WHERE MOST OF THE WORK HAPPENS
     
        let marchingTetrahedra = function(V, ni, nj) {
@@ -173,6 +177,9 @@ function Blobs() {
        this.outerBounds = computeBounds(1,3,5);
  
        for (let b = 0 ; b < data.length ; b++) {
+         if (data[b].sign == 0)
+         continue;
+
           let blobBounds = this.outerBounds[b];
           if (blobBounds) {
              let k0 = t2i(blobBounds[2][0]),
@@ -242,13 +249,31 @@ function Blobs() {
              type == this.CYLINDERZ ? minfunc(rounded, T(U), T(V))
                                                         : minfunc(rounded, T(U), T(V), T(W));
                          if (t > 0)
-                            volume[m+i] += massage(t, sign);
+                            volume[m+i] += massage(t, sign, x,y,z);
                       }
                    }
                 }
              }
           }
        }
+
+        // MAKE SURE THE SHAPE IS CLOSED ON ALL SIX FACES OF THE CUBIC VOLUME.
+
+      let fillVolume = (value, x0,y0,z0, x1,y1,z1) => {
+         for (let z = z0 ; z < z1 ; z++)
+         for (let y = y0 ; y < y1 ; y++)
+         for (let x = x0 ; x < x1 ; x++)
+	    volume[x + n*(y + n*z)] = value;
+      }
+
+      fillVolume(-1, 0, 0, 0,  1, n, n);
+      fillVolume(-1, 0, 0, 0,  n, 1, n);
+      fillVolume(-1, 0, 0, 0,  n, n, 1);
+
+      fillVolume(-1, n-1, 0, 0,  n, n, n);
+      fillVolume(-1, 0, n-1, 0,  n, n, n);
+      fillVolume(-1, 0, 0, n-1,  n, n, n);
+   
     
        // FIND ALL VERTICES AND TRIANGLES IN THE VOLUME
        
@@ -306,7 +331,28 @@ function Blobs() {
          return c === undefined ? Math.min(a, b) : Math.min(a, b, c);
    }
  
-    let massage = (t, sgn) => t <= 0 ? 0 : (t > 1 ? 2 - 1/t/t : t*t) * sgn;
+   let massage = (t, sgn, x,y,z) => {
+      switch (noiseState) {
+      case 1:
+         t += 2 * noise.noise(7*x,7*y,7*z + time) - 1;
+	 break;
+      case 2:
+         t += .5 * (noise.noise(7*x,7*y,7*z + time) - .3);
+	 break;
+      case 3:
+         for (let s = 4 ; s < 16 ; s *= 2) {
+            let u = Math.max(0, noise.noise(t*7*x,t*7*y,t*7*z));
+            t -= 16 * u * u / s;
+         }
+	 break;
+      case 4:
+         for (let s = 4 ; s < 64 ; s *= 2)
+            t += (noise.noise(7*s*x,7*s*y,7*s*z) - .3) / s;
+	 break;
+      }
+      return t <= 0 ? 0 : (t > 1 ? 2 - 1/t/t : t*t) * sgn;
+   }
+
  
     let data;
  
@@ -376,14 +422,14 @@ function Blobs() {
          }
          break;
       }
-      return massage(t, data.sign);
+      return massage(t, data.sign,x,y,z);
    }
  
     this.clear = () => data = [];
 
     let blurFactor = 0.5;
  
-    this.addBlob = (type, rounded, _M, d, material) => {
+    this.addBlob = (type, rounded, _M, d) => {
       let M = _M.slice();
       let m = CG.matrixTranspose(CG.matrixInvert(M));
 
@@ -427,16 +473,19 @@ function Blobs() {
        // CREATE AN INDEXED ARRAY OF NON-ZERO WEIGHTS
  
        let index = [], value = [], sum = 0;
+       let noiseStateSave = noiseState;
+      noiseState = 0;
        for (let b = 0 ; b < data.length ; b++) {
-          let v = blob(data[b], x,y,z);
-          if (v > 0) {
-             index.push(b);
-             value.push(v);
-             sum += v;
-             if (index.length == 6)
-                break;
-          }
+         let v = Math.abs(blob(data[b], x,y,z));
+	 if (v > 0) {
+            index.push(b);
+            value.push(v);
+            sum += v;
+            if (index.length == 6)
+               break;
+         }
        }
+       noiseState = noiseStateSave;
  
        // PACK INDEX AND WEIGHT INTO INT+FRACTION PORTIONS OF THE SAME NUMBER
  
@@ -454,7 +503,21 @@ function Blobs() {
                      fx = this.eval(x+e,y  ,z  ),
                      fy = this.eval(x  ,y+e,z  ),
                      fz = this.eval(x  ,y  ,z+e);
-       return normalize([f0-fx,f0-fy,f0-fz]);
+                     let N = normalize([f0-fx,f0-fy,f0-fz]);
+
+                     // HANDLE FLAT REGIONS AT THE SIX FACES OF THE CUBIC VOLUME
+               
+                     let t = 0, m0 = 3/divs - 1, m1 = 1 - 10/divs, N2;
+               
+                     if (x < m0) N = CG.mix(N, [-1,0,0], CG.sCurve((m0 + x) / (m0 - 1)));
+                     if (y < m0) N = CG.mix(N, [0,-1,0], CG.sCurve((m0 + y) / (m0 - 1)));
+                     if (z < m0) N = CG.mix(N, [0,0,-1], CG.sCurve((m0 + z) / (m0 - 1)));
+               
+                     if (x > m1) N = CG.mix(N, [1,0,0], CG.sCurve((x - m1) / (1 - m1)));
+                     if (y > m1) N = CG.mix(N, [0,1,0], CG.sCurve((y - m1) / (1 - m1)));
+                     if (z > m1) N = CG.mix(N, [0,0,1], CG.sCurve((z - m1) / (1 - m1)));
+               
+                     return N;
     }
  
     let computeQuadric = A => {
@@ -515,10 +578,35 @@ function Blobs() {
  
  // CREATE SETS OF BLOBS THAT CAN THEN TURN INTO FLEXIBLE RUBBER SHEET SURFACES
  
-export function ImplicitSurface(M) {
+export function ImplicitSurface(M, gl, pgm) {
+
+   let setUniform = (type, name, a, b, c, d, e, f) => {
+      let loc = gl.getUniformLocation(pgm.program, name);
+      (gl['uniform' + type])(loc, a, b, c, d, e, f);
+   }
+   
+   let drawMesh = (mesh, materialId, isTriangleMesh) => {
+      let m = M.value();
+      setUniform('Matrix4fv', 'uMatrix', false, m);
+      setUniform('Matrix4fv', 'uInvMatrix', false, CG.matrixInvert(m));
+   
+      let material = materials[materialId];
+      let a = material.ambient, d = material.diffuse, s = material.specular, t = material.texture;
+      if (t === undefined) t = [0,0,0,0];
+      setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], t[0],t[1],t[2],t[3]]);
+   
+      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+      // console.log("implicit surface mesh" + mesh)
+      gl.drawArrays(isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, mesh.length / VERTEX_SIZE);
+   }
+
+   this.updatePgm = (program) => {
+      pgm = program;
+   }
+
    let blobType, blobMaterialName, blobIsNegative, blobIsSelected,
    blobInverseMatrices, blobMatrices, blobs = new Blobs(), divs, blur, mesh,
-   isFaceted = false, isBlobby = false;
+   noiseState = 0, isFaceted = false, isBlobby = false;
 
    this.SPHERE    = blobs.SPHERE;
    this.CYLINDERX = blobs.CYLINDERX;
@@ -530,24 +618,11 @@ export function ImplicitSurface(M) {
    this.setBlobby  = value => { if (value != isBlobby) mesh = null; isBlobby = value; }
    this.setBlur    = value => { if (value != blur) mesh = null; blur = value; }
    this.setFaceted = value => { if (value != isFaceted) mesh = null; isFaceted = value; }
+   this.setNoise    = value => { if (value != noiseState) mesh = null; noiseState = value; }
    this.mesh       = () => mesh;
    this.remesh     = () => mesh = null;
    this.isBlobby   = () => isBlobby;
-   this.bounds = t => {
-      if (t === undefined)
-         t = 0;
-      let innerBounds = blobs.innerBounds;
-      let outerBounds = blobs.outerBounds;
-      let B = [];
-      for (let n = 0 ; n < innerBounds.length ; n++) {
-         let ib = innerBounds[n];
-         let ob = outerBounds[n];
-         B.push([ [ ib[0][0]*(1-t) + ob[0][0]*t, ib[0][1]*(1-t) + ob[0][1]*t ],
-                  [ ib[1][0]*(1-t) + ob[1][0]*t, ib[1][1]*(1-t) + ob[1][1]*t ],
-                  [ ib[2][0]*(1-t) + ob[2][0]*t, ib[2][1]*(1-t) + ob[2][1]*t ] ]);
-      }
-      return B;
-   }
+   this.bounds = t => blobs.innerBounds;
 
    this.beginBlobs = () => {
       blobs.clear();
@@ -560,43 +635,43 @@ export function ImplicitSurface(M) {
  
    // ADD A SINGLE BLOB
 
-   this.addBlob = (type, rounded, matrix, materialName, isNegativeShape, isSelectedShape) => {
+   this.addBlob = (type, rounded, matrix, materialName, sign, isSelectedShape) => {
       blobType.push(type);
       blobMaterialName.push(materialName);
       blobMatrices.push(matrix);
-      blobIsNegative.push(isNegativeShape);
+      blobIsNegative.push(sign < 0);
       blobIsSelected.push(isSelectedShape);
       if (isBlobby)
-         blobs.addBlob(type, rounded, matrix, isNegativeShape ? -blur : blur);
+         blobs.addBlob(type, rounded, matrix, sign * blur);
    }
 
    // FINAL PREPARATION FOR BLOBBY RENDERING FOR THIS ANIMATION FRAME
 
    this.endBlobs = () => {
       if (! isBlobby) {
-         console.log("render this the same as renderList obj");
-      //  let draw = (b, m) => {
-      //     M.save();
-      //        M.set(CG.matrixMultiply(M.value(), m));
-      //        drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
-      //                 blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
-      //                 blobMaterialName[b]);
-      //     M.restore();
-      //  }
+         // console.log("render this the same as renderList obj");
+       let draw = (b, m) => {
+          M.save();
+             M.set(CG.matrixMultiply(M.value(), m));
+             drawMesh(M.value(), gl, program, blobType[b] == this.CUBE     ? cubeMesh :
+                      blobType[b] == this.CYLINDER ? cylinderMesh : sphereMesh,
+                      blobMaterialName[b]);
+          M.restore();
+       }
 
-      //  for (let b = 0 ; b < blobType.length ; b++)
-      //     draw(b, blobMatrices[b]);
+       for (let b = 0 ; b < blobType.length ; b++)
+          draw(b, blobMatrices[b]);
 
-      //  setUniform(gl, program, '1f', 'uOpacity', .25);
-      //  for (let b = 0 ; b < blobType.length ; b++)
-      //     draw(b, growMatrix(blobMatrices[b], blur/2));
-      //  setUniform(gl, program, '1f', 'uOpacity', 1);
+       setUniform(gl, program, '1f', 'uOpacity', .25);
+       for (let b = 0 ; b < blobType.length ; b++)
+          draw(b, growMatrix(blobMatrices[b], blur/2));
+       setUniform(gl, program, '1f', 'uOpacity', 1);
 
-      //  return;
+       return;
       }
 
       if (! mesh) {
-         mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted);
+         mesh = blobs.implicitSurfaceTriangleMesh(divs, isFaceted, noiseState);
          blobInverseMatrices = [];
          for (let b = 0 ; b < blobMatrices.length ; b++)
             blobInverseMatrices.push(CG.matrixInvert(blobMatrices[b]));
@@ -619,8 +694,12 @@ export function ImplicitSurface(M) {
                  invMatrixData = invMatrixData.concat(CG.matrixInvert(matrix));
               }
       }
-
-      return [isBlobby, phongData, matrixData, invMatrixData, mesh, "white", M.value()];
+      setUniform('Matrix4fv', 'uBlobPhong'  , false, phongData);
+      setUniform('Matrix4fv', 'uMatrices'   , false, matrixData);
+      setUniform('Matrix4fv', 'uInvMatrices', false, invMatrixData);
+      setUniform('1f', 'uBlobby', 1);
+      drawMesh(mesh, 'white', true);
+      setUniform('1f', 'uBlobby', 0);
 
     }
  

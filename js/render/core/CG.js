@@ -124,6 +124,10 @@ CG.matrixInvert = a => {
   for (let n = 0 ; n < 16 ; n++) b[n] /= d;
   return b;
 }
+CG.matrixPerspective = fl => {
+   return [ 1,0,0,0, 0,1,0,0, 0,0,-1,-1/fl, 0,0,0,1 ];
+ }
+ 
 CG.matrixTranspose = a => {
   let b = [];
   for (let i = 0; i < 4; i ++) {
@@ -424,8 +428,8 @@ CG.vertexArray = (p,n,t,uv,rgb, wts) => {
       CG.packAB(n[2],t[2]),
       uv[0],uv[1],
       CG.packRGB(rgb),
-      1,0,0,
-      0,0,0
+      wts[0],wts[1],wts[2],
+      wts[3],wts[4],wts[5]
    ];
 }
 

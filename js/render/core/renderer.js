@@ -114,6 +114,7 @@ uniform mat4 uProj;
 uniform float uBlobby;
 uniform mat4  uMatrices[64], uInvMatrices[64];
 uniform mat4  uBlobPhong[64];
+uniform float uAspectRatio;
 uniform float uNoisy;
 
 uniform float uTime;     // time in seconds
@@ -194,6 +195,7 @@ void main(void) {
         float t = mod(vWeights[i], 1.);
         pos += t * (uMatrices[n] * apos);
         nor += t * (anor * uInvMatrices[n]);
+        t = t * t * (3. - 2. * t);
         vBlobPhong += t * uBlobPhong[n];
       }
     }
@@ -211,7 +213,8 @@ void main(void) {
       vBlobPhong *= .8 + .2 * t;
    }
 
-    gl_Position = pos * vec4(1.,1.,.1,1.);
+   if(uBlobby > 0.) gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+   else gl_Position = pos * vec4(1.,1.,.1,1.);
   }
 }
 `;
@@ -327,13 +330,13 @@ void main() {
     vec4 specular = phong[2].rgba;
     vec4 texture  = phong[3].rgba;
 
-    vec3 color = ambient;
+    vec3 color = ambient + texture.r * (.5 + dot(diffuse, diffuse));
     vec3 N = normalize(vNor);
     for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
       vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
       color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
     }
-    color *= 1. + sin(160. * vPos.x) * sin(160. * vPos.y) * texture.r;
+    // color *= 1. + sin(160. * vPos.x) * sin(160. * vPos.y) * texture.r;
     fragColor = vec4(sqrt(color), 1.0) * uOpacity;
   } else {
     vec4 texture0 = texture(uTex0, vUV * uTexScale);
@@ -399,6 +402,149 @@ void main() {
       fragColor *= texture(uTex0, vUV);
     }
   } 
+}
+`; 
+
+const ImplicitSurface_VERTEX_SOURCE = `#version 300 es
+precision highp float;
+
+// input vertex
+in vec3  aPos, aRot, aWts0, aWts1;
+in vec2  aUV;
+in float aRGB;
+
+// interpolated vertex
+out vec3  vPos, vNor, vRGB;
+out vec2  vUV;
+out mat4  vBlobPhong;
+out float vWeights[6];
+
+// matrices
+uniform   float uTime;
+uniform   mat4  uMatrix, uInvMatrix, uPerspective;
+uniform   float uBlobby, uNoisy;
+uniform   mat4  uMatrices[64], uInvMatrices[64];
+uniform   mat4  uBlobPhong[64];
+uniform   float uAspectRatio;
+
+vec3 unpack0(vec3 ab) {
+  return ab / 40000. * 2. - 1.;
+}
+
+vec3 unpack1(vec3 ab) {
+  return mod(ab, 1.) * 2. - 1.;
+}
+
+vec3 unpackRGB(float rgb) {
+  return mod(vec3(rgb, rgb / 256., rgb / 65536.), 1.);
+}
+
+float noise(vec3 point) { 
+  float r = 0.; for (int i=0;i<16;i++) {
+  vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+       1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+  C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+  D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+  r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+  } 
+  return .5 * sin(r); 
+}
+
+void main() {
+
+  for (int i = 0 ; i < 3 ; i++) {
+     vWeights[i  ] = aWts0[i];
+     vWeights[3+i] = aWts1[i];
+  }
+
+  vec4 apos = vec4(aPos, 1.);
+  vec4 pos = apos;
+
+  vec3 aNor = unpack0(aRot);
+  vec4 anor = vec4(aNor, 0.);
+  vec4 nor = anor;
+
+  // IF THIS IS A BLOBBY OBJECT
+
+  if (uBlobby > 0.) {
+
+     // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
+     // AND COLORS FROM COMPONENT OBJECTS
+
+     pos = vec4(0.);
+     nor = vec4(0.);
+vBlobPhong = mat4(0.);
+     for (int i = 0 ; i < 6 ; i++)
+  if (vWeights[i] > 0.) {
+           int n = int(vWeights[i]);
+           float t = mod(vWeights[i], 1.);
+           pos += t * (uMatrices[n] * apos);
+           nor += t * (anor * uInvMatrices[n]);
+     t = t * t * (3. - 2. * t);
+     vBlobPhong += t * uBlobPhong[n];
+        }
+  }
+  pos = uPerspective * uMatrix * pos;
+  nor = nor * uInvMatrix;
+
+  vPos = pos.xyz;
+  vNor = nor.xyz;
+  vRGB = unpackRGB(aRGB);
+  vUV  = aUV;
+
+  if (uNoisy > 0.) {
+     float t = .5 + noise(7. * aPos * uNoisy);
+      t = t * t * (3. - t - t);
+      t = t * t * (3. - t - t);
+     vBlobPhong *= .8 + .2 * t;
+  }
+
+  gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+}
+`;
+
+const ImplicitSurface_FRAG_SOURCE = `#version 300 es // NEWER VERSION OF GLSL
+precision highp float; // HIGH PRECISION FLOATS
+
+#define LDIR_MAX_COUNT (1)
+
+vec3 Ldir[LDIR_MAX_COUNT];
+vec3 Lrgb[LDIR_MAX_COUNT];
+uniform vec3 uWindowDir;
+uniform float uTime;                // TIME, IN SECONDS
+uniform float uBlobby;              // BLOBBY FLAG
+uniform float uOpacity;
+uniform mat4  uPhong;               // MATERIAL
+
+in vec3  vPos, vNor, vRGB;     // POSITION, NORMAL, COLOR
+in float vWeights[6];          // BLOBBY WEIGHTS
+in mat4  vBlobPhong;           // BLOBBY MATERIAL
+
+out vec4 fragColor; // RESULT WILL GO HERE
+
+void main() {
+  Ldir[0] = -1. * normalize(uWindowDir);
+  //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
+  //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
+    Lrgb[0] = vec3(0.85, .75, .7);
+  //  Lrgb[1] = vec3(.8, .75, .7);
+  //  Lrgb[2] = vec3(.1, .15, .2);
+  mat4 phong = uBlobby > 0. ? vBlobPhong : uPhong;
+  vec3 ambient  = phong[0].rgb;
+  vec3 diffuse  = phong[1].rgb;
+  vec4 specular = phong[2].rgba;
+  vec4 texture  = phong[3].rgba;
+
+  vec3 color = ambient + texture.r * (.5 + dot(diffuse, diffuse));
+  vec3 N = normalize(vNor);
+  for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
+    vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
+    color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
+  }
+  //color *= 1. + sin(240. * vPos.x) * sin(240. * vPos.y) * texture.r;
+
+  fragColor = vec4(sqrt(color * vRGB), 1.0) * uOpacity;
+
 }
 `; 
 
@@ -1171,6 +1317,7 @@ export class Renderer {
         // console.log(...renderList.endFrame(i));
       }
     }
+    window.modeler.implicitSurfacesPgm.initBuffer(this._gl);
     this._drawImplicitSurfaceObj(views);
   }
 
@@ -1396,13 +1543,13 @@ export class Renderer {
       bpe * 8
     );
 
-    // let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
-    // gl.enableVertexAttribArray(aWts0);
-    // gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    gl.enableVertexAttribArray(aWts0);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
 
-    // let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
-    // gl.enableVertexAttribArray(aWts1);
-    // gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
+    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    gl.enableVertexAttribArray(aWts1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
 
 
     renderList.bufferAux = gl.createBuffer();
@@ -1486,14 +1633,15 @@ export class Renderer {
   }
 
   _drawImplicitSurfaceObj(views,isTriangleMesh) {
-    let gl = this._gl;
+    let gl = window.modeler.gl;
     if (!window.modeler.implicitSurfacesPgm.program) {
       window.modeler.implicitSurfacesPgm.program = new Program(
         gl,
-        RenderList_VERTEX_SOURCE,
-        RenderList_FRAG_SOURCE
+        ImplicitSurface_VERTEX_SOURCE,
+        ImplicitSurface_FRAG_SOURCE
       );
     }
+
     window.modeler.implicitSurfacesPgm.program.use();
     let pgm = window.modeler.implicitSurfacesPgm.program;
     if (!window.modeler.implicitSurfacesPgm.vao) {
@@ -1502,6 +1650,7 @@ export class Renderer {
       gl.useProgram(pgm.program);
       window.modeler.implicitSurfacesPgm.initBuffer(gl);
     }
+
     let setUniform = (type, name, a, b, c, d, e, f) => {
       let loc = gl.getUniformLocation(pgm.program, name);
       (gl['uniform' + type])(loc, a, b, c, d, e, f);
@@ -1511,24 +1660,25 @@ export class Renderer {
       gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, window.modeler.implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
    }
    
-  //  window.modeler.animate();
-    gl.bindBuffer(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.buffer); 
-    gl.bufferData(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.buffer);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+    // gl.clearDepth(-1);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); 
-
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    // gl.bufferData(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
     let bpe = Float32Array.BYTES_PER_ELEMENT;
-
     let aPos = gl.getAttribLocation(pgm.program, "aPos");
+    let new_vertex_size = 16;
     gl.enableVertexAttribArray(aPos);
     gl.vertexAttribPointer(
       aPos,
       3,
       gl.FLOAT,
       false,
-      bpe * VERTEX_SIZE,
+      bpe * new_vertex_size,
       bpe * 0
     );
 
@@ -1539,7 +1689,7 @@ export class Renderer {
       3,
       gl.FLOAT,
       false,
-      bpe * VERTEX_SIZE,
+      bpe * new_vertex_size,
       bpe * 3
     );
 
@@ -1550,7 +1700,7 @@ export class Renderer {
       2,
       gl.FLOAT,
       false,
-      bpe * VERTEX_SIZE,
+      bpe * new_vertex_size,
       bpe * 6
     );
 
@@ -1561,57 +1711,59 @@ export class Renderer {
       1,
       gl.FLOAT,
       false,
-      bpe * VERTEX_SIZE,
+      bpe * new_vertex_size,
       bpe * 8
     );
 
     let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
     gl.enableVertexAttribArray(aWts0);
-    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, new_vertex_size * bpe, 9 * bpe);
 
     let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
     gl.enableVertexAttribArray(aWts1);
-    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
-    setUniform('1f', 'uOpacity', window.modeler.implicitSurfacesPgm.opacity);
-    setUniform('Matrix4fv', 'uModel', false, window.modeler.implicitSurfacesPgm.M);
-    let material = materials[window.modeler.implicitSurfacesPgm.color];
-    let a = material.ambient, d = material.diffuse, s = material.specular;
-    setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
-    setUniform('Matrix4fv', 'uBlobPhong'  , false, window.modeler.implicitSurfacesPgm.phongData);
-    setUniform('Matrix4fv', 'uMatrices'   , false, window.modeler.implicitSurfacesPgm.matrixData);
-    setUniform('Matrix4fv', 'uInvMatrices', false, window.modeler.implicitSurfacesPgm.invMatrixData);
-    setUniform('1f', 'uBlobby', window.modeler.implicitSurfacesPgm.blobby);
-    setUniform('1f', 'uNoisy', window.modeler.implicitSurfacesPgm.noisy);
-    setUniform('1f', 'uBrightness', 1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, new_vertex_size * bpe, 12 * bpe);
+    // // setUniform('1f', 'uOpacity', window.modeler.implicitSurfacesPgm.opacity);
+    // // setUniform('Matrix4fv', 'uModel', false, window.modeler.implicitSurfacesPgm.M);
+    // // let material = materials[window.modeler.implicitSurfacesPgm.color];
+    // // let a = material.ambient, d = material.diffuse, s = material.specular;
+    // // setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
+    // // setUniform('Matrix4fv', 'uBlobPhong'  , false, window.modeler.implicitSurfacesPgm.phongData);
+    // // setUniform('Matrix4fv', 'uMatrices'   , false, window.modeler.implicitSurfacesPgm.matrixData);
+    // // setUniform('Matrix4fv', 'uInvMatrices', false, window.modeler.implicitSurfacesPgm.invMatrixData);
+    // // setUniform('1f', 'uBlobby', window.modeler.implicitSurfacesPgm.blobby);
+    // // setUniform('1f', 'uNoisy', window.modeler.implicitSurfacesPgm.noisy);
+    // // setUniform('1f', 'uBrightness', 1);
     setUniform('3fv', 'uWindowDir', this._globalLightDir1);
 
-    if (views.length == 1) {
-      setUniform('Matrix4fv', 'uProj',  false, views[0].projectionMatrix);
-      setUniform('Matrix4fv', 'uView',  false, views[0].viewMatrix);
-      drawArrays();
-    } else {
-      for (let i = 0; i < views.length; ++i) {
-        let view = views[i];
-        if (views.length > 1) {
-          let vp = view.viewport;
-          gl.viewport(vp.x, vp.y, vp.width, vp.height);
-          setUniform('Matrix4fv', 'uProj',  false, view.projectionMatrix);
-          setUniform('Matrix4fv', 'uView',  false, view.viewMatrix);
-        }
-        // if (isToon) {
-        //   gl.uniform1f(
-        //     gl.getUniformLocation(pgm.program, "uToon"),
-        //     0.005 * CG.norm(m.value().slice(0, 3))
-        //   );
-        //   gl.cullFace(gl.FRONT);
-        //   gl.cullFace(gl.BACK);
-        //   gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
-        // }
-        // if (isMirror) gl.cullFace(gl.FRONT);
-        drawArrays();
-      }
-    }
+    // if (views.length == 1) {
+    //   setUniform('Matrix4fv', 'uProj',  false, views[0].projectionMatrix);
+    //   setUniform('Matrix4fv', 'uView',  false, views[0].viewMatrix);
+    //   // drawArrays();
+    // } else {
+    //   for (let i = 0; i < views.length; ++i) {
+    //     let view = views[i];
+    //     if (views.length > 1) {
+    //       let vp = view.viewport;
+    //       gl.viewport(vp.x, vp.y, vp.width, vp.height);
+    //       setUniform('Matrix4fv', 'uProj',  false, view.projectionMatrix);
+    //       setUniform('Matrix4fv', 'uView',  false, view.viewMatrix);
+    //     }
+    //     // if (isToon) {
+    //     //   gl.uniform1f(
+    //     //     gl.getUniformLocation(pgm.program, "uToon"),
+    //     //     0.005 * CG.norm(m.value().slice(0, 3))
+    //     //   );
+    //     //   gl.cullFace(gl.FRONT);
+    //     //   gl.cullFace(gl.BACK);
+    //     //   gl.uniform1f(gl.getUniformLoca ation(pgm.program, "uToon"), 0);
+    //     // }
+    //     // if (isMirror) gl.cullFace(gl.FRONT);
+    //     // drawArrays();
+    //   }
+    // }
     // gl.cullFace(gl.BACK);
+    window.modeler.animate();
+    gl.cullFace(gl.BACK);
   }
 
   _getRenderTexture(texture) {

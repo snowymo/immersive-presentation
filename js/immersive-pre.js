@@ -143,7 +143,8 @@ function initGL() {
         new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
-    window.modeler = new Modeler(gl.canvas);
+    window.modeler = new Modeler(gl);
+    console.log(window.modeler.gl)
     
 }
 
