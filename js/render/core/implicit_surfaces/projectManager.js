@@ -1,4 +1,3 @@
-
 export function ProjectManager() {
     let projectName = 'project 1';
  
@@ -44,13 +43,34 @@ export function ProjectManager() {
           localStorage.setItem('projectName', projectName);
        }
  
-       let str = localStorage.getItem(projectName);
-       if (str)
-          onLoad(JSON.parse(str));
+       function readTextFile(file, callback) {
+         var rawFile = new XMLHttpRequest();
+         rawFile.overrideMimeType("application/json");
+         rawFile.open("GET", file, true);
+         rawFile.onreadystatechange = function() {
+             if (rawFile.readyState === 4 && rawFile.status == "200") {
+                 callback(rawFile.responseText);
+             }
+         }
+         rawFile.send(null);
+     }
+     
+     readTextFile("js/data/clayData.json", function(text){
+         var data = JSON.parse(text);
+         if (data) {
+            onLoad(data);
+          }
+         console.log(data);
+     });
+      //  let str = localStorage.getItem(projectName);
+      //  if (str) {
+      //    onLoad(str);
+      //  }
     }
  
     this.save = S => {
        localStorage.setItem(projectName, JSON.stringify(S));
+       console.log(localStorage.getItem(projectName))
     }
  }
  

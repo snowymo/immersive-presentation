@@ -203,12 +203,12 @@ this.animate = () => {
 //    // HANDLE FETCHING AND UPDATING THE CURRENT PROJECT
 
    if (frameCount == 0) {
-      // projectManager.load(loadFunction);
+      projectManager.load(loadFunction);
       setUniform('1f', 'uAspectRatio', screen.width / screen.height);
    }
 
-//    // if (frameCount % 100 == 99)
-//    //    projectManager.save(saveFunction());
+   // if (frameCount % 100 == 99)
+   //    projectManager.save(saveFunction());
 
    frameCount++;
 
