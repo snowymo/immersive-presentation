@@ -60,7 +60,6 @@ export function ProjectManager() {
          if (data) {
             onLoad(data);
           }
-         console.log(data);
      });
       //  let str = localStorage.getItem(projectName);
       //  if (str) {
