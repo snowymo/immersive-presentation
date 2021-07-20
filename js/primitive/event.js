@@ -1,9 +1,10 @@
 "use strict";
 
 import { Headset, Controller, Avatar, initAvatar } from "./avatar.js";
-import { SyncObject } from "../util/object-sync.js";
+import { SyncObject, updateObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
-import { metaroomSyncSender, metaroomWebrtcSender } from "../corelink_handler.js"
+import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender, metaroomInitSender } from "../corelink_handler.js"
+import { left_controller_trigger, right_controller_trigger } from "../util/input_event_handler.js"
 
 export function initSelfAvatar(id) {
   if (!window.avatars) {
@@ -20,6 +21,7 @@ export function init() {
     console.log("receive from server [test]", json["state"], "at", Date.now());
   });
 
+  // unused for corelink version
   window.EventBus.subscribe("initialize", (json) => {
     const id = json["id"];
     initSelfAvatar(id);
@@ -63,6 +65,7 @@ export function init() {
     // window.webrtc_start();
   });
 
+  // unused for corelinnk version
   window.EventBus.subscribe("join", (json) => {
     console.log("receive event: join");
     // console.log(json);
@@ -131,7 +134,7 @@ export function init() {
   window.EventBus.subscribe("mute", (json) => {
     // a client wants to mute self
     console.log("receive webrtc", json["ts"], Date.now());
-    window.mute(json["state"]["uuid"]);
+    window.mute(json["state"]["uuid"], json["state"]["speak"]);
   });
 
   window.EventBus.subscribe("webrtc", (json) => {
@@ -328,20 +331,76 @@ export function init() {
 
     let dirtyObject = json["state"];
     // { type: objectType, matrix: objectMatrix, objid: objid }
-    if (!(dirtyObject["objid"] in window.objects))
-      window.objects[dirtyObject["objid"]] = new SyncObject(
-        dirtyObject["objid"],
-        dirtyObject["type"]
-      );
-    window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
+    if (dirtyObject["type"] in window.models) {
+      if (!(dirtyObject["objid"] in window.objects))
+        window.objects[dirtyObject["objid"]] = new SyncObject(
+          dirtyObject["objid"],
+          dirtyObject["type"]
+        );
+      window.objects[dirtyObject["objid"]].fromJson(dirtyObject);
+    }
   });
 
   window.EventBus.subscribe("demo", (json) => {
+    console.log("[demo] update demo buttons");
+    if (json["uid"] == window.playerid) {
+      console.log("self event, discard");
+      return;
+    }
     for (const [flagname, flagvalue] of Object.entries(json["state"])) {
       window[flagname] = flagvalue;
-      // console.log(key, value);
+      console.log("demo", flagname, flagvalue);
     }
     // flags[temp] = window[temp];
+  });
+
+  window.eventOwner = -1;
+  window.EventBus.subscribe("event", (json) => {
+    window.eventOwner = json["uid"];
+    // console.log("window.EventBus.subscribe('event'", json["state"], json);
+    // for (const [item, operation] of Object.entries(json["state"])) {
+    switch (json["state"]["item"]) {
+      case "lefttrigger":
+        //left trigger
+        // console.log("call left_controller_trigger", json["state"]['operation']);
+        left_controller_trigger(json["state"]['operation']);
+        break;
+      case "righttrigger":
+        //left trigger
+        right_controller_trigger(json["state"]['operation']);
+        break;
+      default:
+        break;
+    }
+    // }
+  });
+
+  // for stateless corelink use
+  // the welcome package now includes button state(excluding speak/mute since it is personal), and objects
+  window.EventBus.subscribe("init", (json) => {
+    // if (window.bInit) {
+    // send out welcome package
+    // 1) demo buttons
+    console.log("[init] receive event.", json);
+    if (json["uid"] == window.playerid) {
+      console.log("self init, discarded");
+      return;
+    }
+    window.syncDemos();
+
+    if (window['demo' + "Speak" + 'State'] == 1) {
+      // by default it is muted, if not, we need to sync this
+      var msg = corelink_message("mute", {
+        uuid: window.localUuid,
+      });
+      corelink.send(metaroomWebrtcSender, msg);
+      console.log("corelink.send", msg);
+    }
+    // 2) objects
+    for (let id in window.objects) {
+      updateObject(id);
+    }
+    // }
   });
 
   // on success

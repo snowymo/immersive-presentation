@@ -156,6 +156,7 @@ function onRequestSession() {
 async function onSessionStarted(session) {
     session.addEventListener("end", onSessionEnded);
 
+    //Each input source should define a primary action. A primary action (which will sometimes be shortened to "select action") is a platform-specific action which responds to the user manipulating it by delivering, in order, the events selectstart, select, and selectend. Each of these events is of type XRInputSourceEvent.
     session.addEventListener("selectstart", onSelectStart);
     session.addEventListener("selectend", onSelectEnd);
     session.addEventListener("select", (ev) => {
@@ -269,6 +270,20 @@ function updateInputSources(session, frame, refSpace) {
                 headPose.transform.orientation;
             window.avatars[window.playerid].headset.matrix =
                 headPose.transform.matrix;
+
+            for (let source of session.inputSources) {
+                if (source.handedness && source.gamepad) {
+                    if (source.gamepad.buttons[3].pressed) {
+                        console.log("source.gamepad.buttons[3].pressed", source.gamepad.buttons[3].pressed);
+                    }
+                    if (source.handedness == "left")
+                        window.avatars[window.playerid].leftController.updateButtons(source.gamepad.buttons);
+                    if (source.handedness == "right")
+                        window.avatars[window.playerid].rightController.updateButtons(source.gamepad.buttons);
+                    // console.log("leftController", window.avatars[window.playerid].leftController);
+                    // console.log("rightController", window.avatars[window.playerid].rightController)
+                }
+            }
         }
     }
 }
@@ -385,6 +400,9 @@ function onXRFrame(t, frame) {
 
     updateObjects();
 
+    // ZH: save previous "source.gamepad.buttons" for two controllers,
+    // check if changes per frame
+    // send to the server if changes
     if (window.playerid) {
         const thisAvatar = window.avatars[window.playerid];
         for (let source of session.inputSources) {
@@ -435,7 +453,7 @@ function updateObjects() {
         let type = window.objects[id]["type"];
         let matrix = window.objects[id]["matrix"];
         // create the model if model is null
-        if (!window.objects[id].node) {
+        if (!window.objects[id].node && type in window.models) {
             // create the model, this is the sample by gltf model
             // we may need other model style like CG.js later
             window.objects[id].node = new Gltf2Node({

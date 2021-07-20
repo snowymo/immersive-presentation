@@ -1,3 +1,5 @@
+"use strict";
+
 import { initXR } from "../js/immersive-pre.js"
 import { ab2str, corelink_message } from "../js/util/corelink_sender.js"
 import { initSelfAvatar } from "../js/primitive/event.js"
@@ -5,10 +7,12 @@ import { initAvatar } from "../js/primitive/avatar.js"
 
 const workspace = 'Chalktalk'
 const protocol = 'ws'
-const datatype = ['sync', 'webrtc']
+const datatype = ['sync', 'webrtc', 'event', 'init'];
 var receiverdata = 0.0
 export var metaroomSyncSender = ""
 export var metaroomWebrtcSender = "";
+export var metaroomEventSender = "";
+export var metaroomInitSender = "";
 export var metaroomReceiver = "";
 
 window.offlineMode = false;
@@ -84,8 +88,6 @@ const run = async () => {
             console.log("ZH: metaroomSyncSender", metaroomSyncSender);
             // initialize
             initSelfAvatar(metaroomSyncSender);
-            // start webrtc signalling
-            window.webrtc_start();
         }
 
         if (metaroomWebrtcSender = await corelink.createSender({
@@ -93,15 +95,49 @@ const run = async () => {
         }).catch((err) => { console.log(err) })) {
             console.log("ZH: metaroomWebrtcSender", metaroomWebrtcSender);
             // start webrtc signalling
-            window.webrtc_start();
+            // window.webrtc_start();
         }
 
-        metaroomReceiver = await corelink.createReceiver({
+        if (metaroomEventSender = await corelink.createSender({
+            workspace, protocol, type: 'event', echo: false, alert: true,
+        }).catch((err) => { console.log(err) })) {
+            console.log("ZH: metaroomEventSender", metaroomEventSender);
+        }
+
+        if (metaroomInitSender = await corelink.createSender({
+            workspace, protocol, type: 'init', echo: false, alert: true,
+        }).catch((err) => { console.log(err) })) {
+            // window.bInit = false;
+            console.log("ZH: metaroomInitSender", metaroomInitSender);
+            if (metaroomReceiver != "") {
+                var msg = corelink_message("init", {
+                    displayName: window.playerid,
+                    uuid: window.localUuid,
+                    dest: "all",
+                });
+                corelink.send(metaroomInitSender, msg);
+                // setTimeout(10000, corelink.send(metaroomInitSender, msg));
+                console.log("corelink.send", msg);
+            }
+        }
+
+        if (metaroomReceiver = await corelink.createReceiver({
             workspace, protocol, type: datatype, echo: true, alert: true,
-        }).catch((err) => { console.log(err) })
+        }).catch((err) => { console.log(err) })) {
+            if (metaroomInitSender != "") {
+                var msg = corelink_message("init", {
+                    displayName: window.playerid,
+                    uuid: window.localUuid,
+                    dest: "all",
+                });
+                corelink.send(metaroomInitSender, msg);
+                // setTimeout(10000, corelink.send(metaroomInitSender, msg));
+                console.log("corelink.send", msg);
+            }
+        }
 
         metaroomReceiver.forEach(async data => {
-            console.log("[webrtc debug] metaroomReceiver.forEach", data.streamID, data.meta.name)
+            // console.log("[webrtc debug] metaroomReceiver.forEach", data.streamID, data.meta.name)
             // var btn = document.createElement("BUTTON")   // Create a <button> element
             // btn.innerHTML = " Plot: " + data.streamID + " " + data.meta.name
             // btn.id = "stream" + data.streamID
@@ -124,12 +160,13 @@ const run = async () => {
             receiverdata = ab2str(data)
             window[streamID + '_data'] = ab2str(data)
             window.EventBus.publish(receiverdata["type"], receiverdata);
-            if (receiverdata["type"] != "avatar" && receiverdata["type"] != "realsense")
-                console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
+            // if (receiverdata["type"] != "avatar" && receiverdata["type"] != "realsense")
+            //     console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
 
         }).catch((err) => { console.log(err) })
 
         // Start the XR application.
+        window.initxr = true;
         initXR();
     }
 }

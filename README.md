@@ -8,6 +8,8 @@ install python3 if you haven't
 
 `python -m http.server`
 
+***if the above is not working, try python run.py instead.***
+
 go to https://lcoalhost:8000/sig21.html
 
 # How to access in public

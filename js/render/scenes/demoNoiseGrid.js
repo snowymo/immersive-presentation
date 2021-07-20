@@ -13,9 +13,6 @@ import {
   viewMatrix,
   controllerMatrix,
   buttonState,
-  isReleased,
-  isDragged,
-  isPressed,
 } from "../core/renderListScene.js";
 
 const FEET_TO_METERS = 0.3048;
@@ -236,19 +233,21 @@ let DemoNoiseGrid = function () {
   this.envInd = null;
 
   this.display = () => {
-    if (isPressed) {
+    if (window.isPressed) {
+      // console.log("pressed")
       justReleased = true;
       if (buttonState.left[0] && tMode == 0) {
         zScale = 1;
         cursorPath.push([]);
       }
-    } else if (isDragged && tMode == 0) {
+    } else if (window.isDragged && tMode == 0) {
+      // console.log("dragged")
       if (buttonState.left[0])
         if (controllerMatrix.left) {
           let P = controllerMatrix.left.slice(12, 15);
           cursorPath[cursorPath.length - 1].push(P);
         }
-    } else if (isReleased) {
+    } else if (window.isReleased) {
       // if (buttonState.left[1]) {
       if (justReleased) {
         justReleased = false;
