@@ -431,6 +431,10 @@ this.animate = () => {
       }
    }
 
+   let rm = CG.matrixMultiply(CG.matrixRotateY(-time*.9),
+            CG.matrixMultiply(CG.matrixTranslate(.5,-.7,0),
+                              CG.matrixScale(.3)));
+
    // SPECIFY THE BLOBS FOR THE MODEL
    for (let n = 0 ; n < S.length ; n++) {
       M.save();
@@ -461,7 +465,9 @@ this.animate = () => {
             if (n == mn)
                m.texture = [.5,0,0,0];
             M.save();
-               M.set(CG.matrixMultiply(sceneMatrix, S[n].M));
+	       let sm = sceneMatrix;
+	       sm = CG.matrixMultiply(sm, rm);
+               M.set(CG.matrixMultiply(sm, S[n].M));
                if (S[n].type == 1) M.rotateY(Math.PI/2);
                if (S[n].type == 2) M.rotateX(Math.PI/2);
                drawMesh(S[n].type==4 ? cubeMesh :
@@ -484,6 +490,7 @@ this.animate = () => {
    M.save();
       M.set(sceneMatrix);
       // M.set(CG.matrixMultiply(window.views[0].projectionMatrix, window.views[0].viewMatrix))
+      M.multiply(rm);
       implicitSurface.endBlobs();
    M.restore();
    setUniform('1f', 'uNoisy', 0);
