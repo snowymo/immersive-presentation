@@ -3,6 +3,8 @@ import { CG } from "../core/CG.js";
 import { m, renderList } from "../core/renderList.js";
 import { time, viewMatrix } from "../core/renderListScene.js";
 import { realsenseData } from "../../data/realsensedata.js";
+import { realsenseData_R } from "../../data/realsensedata_r.js";
+import { realsenseData_L } from "../../data/realsensedata_l.js";
 import { airfont } from "../core/airfont.js";
 import "../../third-party/corelink.browser.lib.js";
 
@@ -23,14 +25,14 @@ let positionOffsets = {};
 let rotationOffsets = {};
 let curPosIdx = 0;
 const availablePositions = [
-  [-0.2, 1.0, 0],
-  [-0.2, 1.0, 0],
-  [-0.2, 1.0, 0]
+  [-0.3, 1.0, -0.2],
+  [0.1, 1.0, -0.5],
+  [-0.5, 1.0, -0.7]
 ];
 const availableRotations = [
-  -1.047,
   0,
-  1.047
+  0.7854,
+  -0.7854
 ];
 
 
@@ -45,11 +47,11 @@ let DemoRealSense = function () {
        // fake an offset of time when reading from the same file.
        // later on, we may use 3 different avatars.
         let frame_idx1 = Math.floor(24 * time) % realsenseData.length;
-        let frame_idx2 = Math.floor(24 * time + realsenseData.length / 3) % realsenseData.length;
-        let frame_idx3 = Math.floor(24 * time + realsenseData.length / 3 * 2) % realsenseData.length;
+        let frame_idx2 = Math.floor(24 * time) % realsenseData_R.length;
+        let frame_idx3 = Math.floor(24 * time) % realsenseData_L.length;
         dataframe["user1"] = realsenseData[frame_idx1];
-        dataframe["user2"] = realsenseData[frame_idx2];
-        dataframe["user3"] = realsenseData[frame_idx3];
+        dataframe["user2"] = realsenseData_R[frame_idx2];
+        dataframe["user3"] = realsenseData_L[frame_idx3];
      } else {
        // data from the realsense channel
        dataframe = window.pointCloudData;
@@ -103,8 +105,8 @@ let DemoRealSense = function () {
             CG.particlesSetPositions(P[username], R, CG.matrixMultiply(viewMatrix[0], matrix));
             m.save();
             // apply offsets to position different users in different spots
-                m.rotateY(rotationOffsets[username]);
                 m.translate(positionOffsets[username][0], positionOffsets[username][1], positionOffsets[username][2]);
+                m.rotateY(rotationOffsets[username]);
                 renderList.mMesh(P[username]).size(.1).color([10, 10, 10]);
             m.restore();
           }
