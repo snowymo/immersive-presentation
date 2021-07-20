@@ -515,10 +515,13 @@ uniform float uTime;                // TIME, IN SECONDS
 uniform float uBlobby;              // BLOBBY FLAG
 uniform float uOpacity;
 uniform mat4  uPhong;               // MATERIAL
+uniform sampler2D uSampler;
+uniform float uTexture;
 
 in vec3  vPos, vNor, vRGB;     // POSITION, NORMAL, COLOR
 in float vWeights[6];          // BLOBBY WEIGHTS
 in mat4  vBlobPhong;           // BLOBBY MATERIAL
+in vec2 vUV;
 
 out vec4 fragColor; // RESULT WILL GO HERE
 
@@ -533,15 +536,16 @@ void main() {
   vec3 ambient  = phong[0].rgb;
   vec3 diffuse  = phong[1].rgb;
   vec4 specular = phong[2].rgba;
-  vec4 texture  = phong[3].rgba;
+  vec4 t        = phong[3].rgba;
 
-  vec3 color = ambient + texture.r * (.5 + dot(diffuse, diffuse));
+  vec3 color = ambient + t.r * (.5 + dot(diffuse, diffuse));
   vec3 N = normalize(vNor);
   for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
     vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
     color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
   }
-  //color *= 1. + sin(240. * vPos.x) * sin(240. * vPos.y) * texture.r;
+  vec4 texture = texture(uSampler, vUV);
+  color *= mix(vec3(1.), texture.rgb, texture.a * uTexture);
 
   fragColor = vec4(sqrt(color * vRGB), 1.0) * uOpacity;
 

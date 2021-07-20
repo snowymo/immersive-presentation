@@ -7,7 +7,7 @@ materials['green' ] = { ambient: [.0 ,.2 ,.0 ], diffuse: [0  ,1  ,0  ], specular
 materials['red'   ] = { ambient: [.2 ,.0 ,.0 ], diffuse: [1  ,0  ,0  ], specular: [.9,.9,.9,10] };
 materials['white' ] = { ambient: [.2 ,.2 ,.2 ], diffuse: [1  ,1  ,1  ], specular: [.9,.9,.9,10] };
 materials['yellow'] = { ambient: [.2 ,.2 ,.0 ], diffuse: [1  ,1  ,0  ], specular: [.9,.9,.9,10] };
-
+materials['trueBlack'] = { ambient: [0,0,0 ], diffuse: [0,0,0 ], specular: [0,0,0,1] };
  // BUILD THE PALETTE OF COLORS
     
  let colors = [
