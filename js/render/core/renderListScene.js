@@ -2,6 +2,7 @@
 import { mainScene } from "../scenes/mainScene.js";
 import { corelink_event } from "../../util/corelink_sender.js";
 
+export let ids = [];
 export let leftHandState = "released", rightHandState = "released";
 export let viewMatrix = [], time = 0;
 window.isPressed = false;
@@ -37,7 +38,7 @@ export let updateController = (avatar, buttonInfo) => {
   }
 };
 
-export let onPress = (hand, button) => {
+export let onPress = (hand, button, id) => {
 
   window.isPressed = true;
   window.isReleased = false;
@@ -47,31 +48,33 @@ export let onPress = (hand, button) => {
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "press" });
-  
+  updateIdState(id, hand, "pressed");
   if (hand === "left") leftHandState = "pressed";
   else if (hand === "right") rightHandState = "pressed";
 };
 
-export let onDrag = (hand, button) => {
+export let onDrag = (hand, button, id) => {
   // console.log("onDrag", hand, "button", button, isPressed, isReleased, isDragged);
   if (window.isPressed && window.justReleased) {
     window.isDragged = true;
     window.isReleased = false;
     window.isPressed = false;
     
+    updateIdState(id, hand, "dragged");
     if (hand === "left") leftHandState = "dragged";
     else if (hand === "right") rightHandState = "dragged";
   }
 };
 
-export let onRelease = (hand, button) => {
+export let onRelease = (hand, button, id) => {
   if (window.isDragged) {
     window.isReleased = true;
     window.isPressed = false;
     window.isDragged = false;
     console.log("onRelease", hand, "button", button,
       window.isPressed, window.isReleased, window.isDragged);
-    
+
+    updateIdState(id, hand, "released");
     if (hand === "left") leftHandState = "released";
     else if (hand === "right") rightHandState = "released";
   }
@@ -85,6 +88,22 @@ export let getViews = (views) => {
   viewMatrix = [];
   for (let view of views) viewMatrix.push(view.viewMatrix);
 };
+
+export let updateIdList = (id) => {
+  if (!ids.includes(id)) {
+    if (ids[0] === undefined) ids[0] = {id: id, lState: "released", rState: "released"};
+    else ids.push({id: id, lState: "released", rState: "released"});
+  }
+}
+
+let updateIdState = (id, hand, state) => {
+  for (let i=0; i<ids.length; i++) {
+    if (ids[i].id === id) {
+      if (hand === "left") ids[i].lState = state;
+      else if (hand === "right") ids[i].rState = state;
+    }
+  }
+}
 
 export function renderListScene(_time) {
   time = _time;

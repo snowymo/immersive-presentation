@@ -67,6 +67,48 @@ export let pHitTest = (index) => {
     return hm;
 }
 
+export let pHitTestNew = (index, uid) => {
+    let ray;
+    if (index === 0) ray = new Ray(window.avatars[uid].rightController.matrix);
+    if (index === 1) ray = new Ray(window.avatars[uid].leftController.matrix);
+
+    let items = renderList.getItems();
+    let t = -1, T = 100000;
+    let hm = null;
+    for (let i=0; i<items.length; i++) {
+        let matrix = items[i].matrix;
+        let mInv = [];
+        mat4.invert(mInv, matrix);
+
+        let rayOrigin = [];
+        let rayDir = [];
+        let objectRayOrigin = vec3.transformMat4(rayOrigin, ray.origin, mInv);
+        let objectRayDir = vec4.transformMat4(rayDir, [ray._dir[0], ray._dir[1], ray._dir[2], 0], mInv);
+        objectRayDir = [objectRayDir[0], objectRayDir[1], objectRayDir[2]];
+        vec3.normalize(objectRayDir, objectRayDir);
+        let objectRay = {V: objectRayOrigin, W: objectRayDir};
+        
+        switch (items[i].mesh) {
+            case "sphere": t = rayTraceToUnitSphere(objectRay);
+                            break;
+            case "cube": t = rayTraceToUnitCube(objectRay);
+                            break;
+            case "cylinder": t = rayTraceToCylinder(objectRay);
+                            break;
+            //default: t = -1;
+            default: t = rayTraceToUnitSphere(objectRay);
+        }
+        if (t >= 0) {
+            if (t < T) {
+                T = t;
+                hm = items[i];
+            }
+        }
+
+    }
+    return hm;
+}
+
 let rayTraceToUnitSphere = ray => {
     let B = vec3.dot(ray.V, ray.W);
     let C = vec3.dot(ray.V, ray.V) - 1;
