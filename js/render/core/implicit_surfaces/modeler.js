@@ -495,6 +495,10 @@ export function Modeler(gl) {
          }
       }
 
+      let rm = CG.matrixMultiply(CG.matrixRotateY(-time*.9),
+               CG.matrixMultiply(CG.matrixTranslate(.5,-.7,0),
+                                 CG.matrixScale(.3)));
+
       // SPECIFY THE BLOBS FOR THE MODEL
    
       for (let n = 0 ; n < S.length ; n++) {
@@ -526,7 +530,8 @@ export function Modeler(gl) {
                if (n == mn)
                   m.texture = [.5,0,0,0];
                M.save();
-                  M.set(CG.matrixMultiply(vm, S[n].M));
+                  let sm = CG.matrixMultiply(vm, rm);
+                  M.set(CG.matrixMultiply(sm, S[n].M));
                   if (S[n].type == 1) M.rotateY(Math.PI/2);
                   if (S[n].type == 2) M.rotateX(Math.PI/2);
                   draw(S[n].type==4 ? cubeMesh :
@@ -547,6 +552,7 @@ export function Modeler(gl) {
       setUniform('1f', 'uOpacity', isShowingJoints ? .3 : 1);
       M.save();
          M.set(vm);
+         M.multiply(rm);
          implicitSurface.endBlobs();
       M.restore();
       setUniform('1f', 'uNoisy'  , 0);
