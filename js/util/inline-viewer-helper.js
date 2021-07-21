@@ -53,6 +53,7 @@ export class InlineViewerHelper {
       if (event.buttons & 1) {
         if(window.interactMode == 0) this.rotateView(event.movementX, event.movementY);
       }
+      window.webrtc_start();
     });
 
     // Keep track of touch-related state so that users can touch and drag on
@@ -63,7 +64,12 @@ export class InlineViewerHelper {
 
     document.addEventListener("keydown", (event) => {
       keyboardInput.updateKeyState();
-      this.walk(event);
+      this.onKeyDown(event);
+    });
+
+    document.addEventListener("keyup", (event) => {
+      keyboardInput.updateKeyState();
+      this.onKeyUp(event);
     });
 
     canvas.addEventListener("touchstart", (event) => {
@@ -122,42 +128,52 @@ export class InlineViewerHelper {
     this.dirty = true;
   }
 
-  walk(e) {
-    if(keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
-      window.interactMode = (window.interactMode + 1) % 2;
+  onKeyDown(e) {
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
+      // console.log("strafe left");
+      this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
     }
-    if(window.interactMode == 0) {
-      if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
-        // console.log("left");
-        this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-        this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
-      } else if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
-        // console.log("right");
-        this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-        this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
-      }
-      if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
-        // console.log("forward");
-        this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw);
-        this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw);
-      } else if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
-        // console.log("back");
-        this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw);
-        this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw);
-      }
-      if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
-        this.walkPosition[1] -= WALK_SPEED;
-      } else if (keyboardInput.keyIsDown(keyboardInput.KEY_DOWN)) {
-        // console.log("back");
-        this.walkPosition[1] += WALK_SPEED;
-      }
-      if (keyboardInput.keyIsDown(keyboardInput.KEY_LEFT)) {
-        this.lookYaw += WALK_SPEED;
-      } else if (keyboardInput.keyIsDown(keyboardInput.KEY_RIGHT)) {
-        this.lookYaw -= WALK_SPEED;
-      }
-      this.dirty = true;
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
+      // console.log("strafe right");
+      this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+      this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
     }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
+      // console.log("move forward");
+      this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw);
+      this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw);
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
+      // console.log("move back");
+      this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw);
+      this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw);
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
+      // console.log("move forward");
+      this.walkPosition[1] += WALK_SPEED;
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_DOWN)) {
+      // console.log("move back");
+      this.walkPosition[1] -= WALK_SPEED;
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_LEFT)) {
+      // console.log("turn left");
+      this.lookYaw += WALK_SPEED;
+    }
+    if (keyboardInput.keyIsDown(keyboardInput.KEY_RIGHT)) {
+      // console.log("turn right");
+      this.lookYaw -= WALK_SPEED;
+    }
+  }
+
+  onKeyUp(e) {
+    switch (e.keyCode) {
+      case keyboardInput.KEY_Z:
+        window.isSlideShow = !window.isSlideShow;
+        break;
+    }
+    this.dirty = true;
   }
 
   reset() {
@@ -183,7 +199,7 @@ export class InlineViewerHelper {
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
       xform = new XRRigidTransform({ y: -this.viewerHeight });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
-      xform = new XRRigidTransform({x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1});
+      xform = new XRRigidTransform({ x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
       this.dirty = false;
     }

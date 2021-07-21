@@ -25,6 +25,7 @@ import { Node } from "./node.js";
 import { vec3, quat } from "../math/gl-matrix.js";
 import { Ray } from "../math/ray.js";
 import { getViews } from "./renderListScene.js";
+// import { corelink_event } from "../../util/corelink_sender.js";
 
 export class WebXRView extends RenderView {
   constructor(view, layer) {
