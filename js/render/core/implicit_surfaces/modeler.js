@@ -243,7 +243,7 @@ export function Modeler(gl) {
       // HANDLE FETCHING AND UPDATING THE CURRENT PROJECT
 
       if (frameCount == 0) {
-         // projectManager.load(loadFunction);
+         projectManager.load(loadFunction);
          setUniform('1f', 'uAspectRatio', canvas.width / canvas.height);
 	//  slideshow.setVisible(isSlideshow);
       }
