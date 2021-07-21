@@ -244,7 +244,7 @@ export function Modeler(gl) {
 
       if (frameCount == 0) {
          // projectManager.load(loadFunction);
-         setUniform('1f', 'uAspectRatio', screen.width / screen.height);
+         setUniform('1f', 'uAspectRatio', canvas.width / canvas.height);
 	//  slideshow.setVisible(isSlideshow);
       }
 
