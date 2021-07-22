@@ -126,6 +126,11 @@ export function init() {
     // }
   });
 
+  window.EventBus.subscribe("realsense", (json) => {
+    if (!window.pointCloudData) window.pointCloudData = {};
+    window.pointCloudData[json["username"]] = json["frame"];
+  });
+
   window.EventBus.subscribe("mute", (json) => {
     // a client wants to mute self
     console.log("receive webrtc", json["ts"], Date.now());
