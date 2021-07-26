@@ -32,14 +32,22 @@ let DemoText = function () {
 };
 
 let msg = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi at lobortis nulla. Nunc sed neque sem. Sed quis quam tortor.';
+//let msg = "brown dog jumped over the fence."
+// make array of words in a string
 let PT = new CG.ParticlesText(msg);
 
 let A = PT.layout(null, .5,.5), B = [], C = [];
 let len = ((-1 - msg.length) / 3) * -1;
 let spaceCount = msg.length / 3;
 let lineNum = 0;
+
+for (let n = 0 ; n < msg.length ; n++) {
+   B[n] = [n - (len*Math.floor(n/len)), 0 - Math.floor(n/len), 0];
+   C[n] = B[n].slice();
+}
 //centered
 //console.log(msg.length);
+/*
 for (let n = 0 ; n < msg.length ; n++) {
    
    if (msg[n] == " " && n >= spaceCount){
@@ -61,7 +69,7 @@ for (let n = 0 ; n < msg.length ; n++) {
    console.log("arr ", C[n])
    
 }
-
+*/
 /*
 TO DO:
 right align, left align
