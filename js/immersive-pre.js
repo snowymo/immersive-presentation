@@ -58,8 +58,8 @@ function initModels() {
     window.models["stereo"] = new Gltf2Node({
         url: "./media/gltf/stereo/stereo.gltf",
     });
-*/
     window.models["stereo"].visible = true;
+    */
     // window.scene.addNode(window.models['stereo']);
 }
 
