@@ -57,9 +57,10 @@ export function Modeler(gl) {
    let blur = 0.2;
    let cursor = [0,0,0];
    let defaultColor = 'color0';
-   let fl = 4;                                                          // CAMERA FOCAL LENGTH
+   let fl = 2;                                                          // CAMERA FOCAL LENGTH
    let flash = false;
    let frameCount = 0;
+   let id = '';
    let isCentering = false;
    let isClick = false;
    let isControl = false;
@@ -217,6 +218,19 @@ export function Modeler(gl) {
 
    // ANIMATE AND RENDER ONE FRAME
 
+   this.setModel = index => {
+      modelIndex = index;
+      let model  = scene[index];
+      id         = model.id;
+      S          = model.S;
+      isRubber   = false;
+      toRubber   = model.isRubber;
+      isWalking  = model.isWalking;
+      isWiggling = model.isWiggling;
+      noiseState = model.noiseState;
+      activeSet(true);
+   }
+
    this.animate = gl => {
       updatePgm();
       implicitSurface.updatePgm(window.modeler.implicitSurfacesPgm.program);
@@ -228,16 +242,7 @@ export function Modeler(gl) {
       if (scene_to_load) {
          scene = scene_to_load;
          scene_to_load = null;
-
-         modelIndex = 0;
-         let model = scene[modelIndex];
-         S          = model.S;
-         isRubber   = false;
-         toRubber   = model.isRubber;
-         isWalking  = model.isWalking;
-         isWiggling = model.isWiggling;
-         noiseState = model.noiseState;
-         activeSet(true);
+	 this.setModel(1);
       }
 
       // HANDLE FETCHING AND UPDATING THE CURRENT PROJECT
@@ -245,7 +250,7 @@ export function Modeler(gl) {
       if (frameCount == 0) {
          projectManager.load(loadFunction);
          setUniform('1f', 'uAspectRatio', canvas.width / canvas.height);
-	//  slideshow.setVisible(isSlideshow);
+        //  slideshow.setVisible(isSlideshow);
       }
 
       // if (frameCount % 100 == 99)
@@ -272,18 +277,20 @@ export function Modeler(gl) {
       M.translate(0,1.5,0);
       // HANDLE EXPERIMENTS
 
+      M.translate(0,0,.5);
+
       if (isExperiment) {
          let rMinSave = rMin;
-	 rMin = .02;
+         rMin = .02;
          let x = -.9, y = 0, z = 0;
-	 for (let i = 0 ; i < 100 ; i++) {
-	    let theta = Math.sin(i/4);
-	    let dx = .03 * Math.cos(theta);
-	    let dy = .03 * Math.sin(theta);
-	    createBegin(x,y);
-	    createDrag(x+dx,y+dy);
-	    x += dx * .8;
-	    y += dy * .8;
+         for (let i = 0 ; i < 100 ; i++) {
+            let theta = Math.sin(i/4);
+            let dx = .03 * Math.cos(theta);
+            let dy = .03 * Math.sin(theta);
+            createBegin(x,y);
+            createDrag(x+dx,y+dy);
+            x += dx * .8;
+            y += dy * .8;
          }
          rMin = rMinSave;
       }
@@ -375,8 +382,8 @@ export function Modeler(gl) {
          let wiggleRot = n =>
             CG.matrixMultiply(
             CG.matrixMultiply(CG.matrixRotateX(w * Math.sin(8 * time + S[n].id * 10)),
-                            CG.matrixRotateY(w * Math.sin(8 * time + S[n].id * 20))),
-                            CG.matrixRotateZ(w * Math.sin(8 * time + S[n].id * 30)));
+                              CG.matrixRotateY(w * Math.sin(8 * time + S[n].id * 20))),
+                              CG.matrixRotateZ(w * Math.sin(8 * time + S[n].id * 30)));
          rotateAboutPoint(0, wiggleRot(0), S[0].M.slice(12,15));
          for (let n = 0 ; n < S.length ; n++)
             if (S[n].jointPosition) {
@@ -495,9 +502,12 @@ export function Modeler(gl) {
          }
       }
 
-      let rm = CG.matrixMultiply(CG.matrixRotateY(-time*.9),
-               CG.matrixMultiply(CG.matrixTranslate(.5,-.7,0),
-                                 CG.matrixScale(.3)));
+      let ethane = id == 'ethane';
+      let rm = CG.matrixMultiply(CG.matrixRotateY(-time*1.1 + .03 * Math.sin(6*time)),
+               CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7,-.5,0),
+                                 CG.matrixScale(ethane ? .8 : .5)));
+      if (ethane)
+         rm = CG.matrixMultiply(CG.matrixTranslate(0,0,.5), rm);
 
       // SPECIFY THE BLOBS FOR THE MODEL
    
@@ -1139,14 +1149,14 @@ export function Modeler(gl) {
       if(window.interactMode == 0) return;
       if (mn >= 0) {
          if (isLengthening) {
-	    let isTranslatingSave = isTranslating;
-	    let isScalingSave = isScaling;
+            let isTranslatingSave = isTranslating;
+            let isScalingSave = isScaling;
 
             isTranslating = false;
             isScaling = true;
             transform(mn, 0, 0, y - yPrev);
 
-	    isTranslating = isTranslatingSave;
+            isTranslating = isTranslatingSave;
             isScaling = isScalingSave;
          }
          else
@@ -1410,9 +1420,9 @@ export function Modeler(gl) {
 
       if (isShift) {
          switch (ch) {
-	 case 'Q':
-	    console.log(JSON.stringify(saveFunction()));
-	    break;
+         case 'Q':
+            console.log(JSON.stringify(saveFunction()));
+            break;
          case 'R':
             isRoom = ! isRoom;
             break;
@@ -1420,13 +1430,13 @@ export function Modeler(gl) {
             isShakyCam = ! isShakyCam;
             break;
          case 'T':
-	    isTextureSrc = ! isTextureSrc;
+            isTextureSrc = ! isTextureSrc;
             break;
          case 'V':
-	    isRotatedView = ! isRotatedView;
+            isRotatedView = ! isRotatedView;
             break;
          case 'X':
-	    isExperiment = true;
+            isExperiment = true;
             break;
          case 'Z':
             slideshow.setVisible(isSlideshow = ! isSlideshow);

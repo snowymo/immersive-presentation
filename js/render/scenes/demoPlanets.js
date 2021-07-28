@@ -30,6 +30,8 @@ let DemoPlanets = function () {
 
       for (let n = 0 ; n < 8 ; n++) {
          m.save();
+	 m.translate(0,1.1,0);
+	 m.scale(.25);
          m.scale(n==0 ? 0.15 : 0.1);
 
 	 switch (n) {

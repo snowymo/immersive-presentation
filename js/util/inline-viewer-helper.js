@@ -33,7 +33,8 @@ const WALK_SPEED = 0.05;
 export class InlineViewerHelper {
 
   constructor(canvas, referenceSpace) {
-    this.theta = 2 * Math.PI * ((5 * window.playerid) % 8) / 8;
+    //this.theta = 2 * Math.PI * ((5 * window.playerid) % 8) / 8;
+    this.theta = Math.PI;
     this.lookYaw = this.theta;
     this.walkPosition = [-Math.sin(this.theta), 0, -Math.cos(this.theta)];
 
