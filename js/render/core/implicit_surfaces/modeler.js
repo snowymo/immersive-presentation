@@ -503,7 +503,7 @@ export function Modeler(gl) {
       }
 
       let ethane = id == 'ethane';
-      let rm = CG.matrixMultiply(CG.matrixRotateY(-time*1.1 + .03 * Math.sin(6*time)),
+      let rm = CG.matrixMultiply(CG.matrixRotateY(ethane ? -2*time : -1.1*time + .03 * Math.sin(6*time)),
                CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7,-.5,0),
                                  CG.matrixScale(ethane ? .8 : .5)));
       if (ethane)
