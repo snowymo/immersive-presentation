@@ -2,7 +2,7 @@
 
 import { CG, Matrix } from "./CG.js";
 import { ImprovedNoise } from "../math/improvedNoise.js";
-import { buttonState, controllerMatrix, leftHandState, rightHandState, ids } from "../core/renderListScene.js";
+import { buttonState, controllerMatrix, leftHandState, rightHandState, pressStates } from "../core/renderListScene.js";
 import { pHitTest, pHitTestNew } from "../../util/hitTest.js";
 
 export let m = new Matrix();
@@ -189,8 +189,8 @@ let RenderList = function () {
   this.beginBuild = () => ((n = 0), (this.num = 0));
   this.endBuild = () => {
     /* do something */
-    for (let i=0; i<ids.length; i++) {
-      let id = ids[i].id;
+    for (let i=0; i<pressStates.length; i++) {
+      let id = pressStates[i].id;
       let avt = window.avatars[id];
       if (avt.leftController.buttons === null) continue;
       let bst = {left: [], right: []};
@@ -220,12 +220,12 @@ let RenderList = function () {
         bst["right"][i] = bR[i].pressed;
       }
       */
-      let stL = ids[i].lState;
+      let stL = pressStates[i].lState;
       const bL = avt.leftController.buttons;
       for (let i = 0; i < 7; i++) {
         bst["left"][i] = bL[i].pressed;
       }
-      let stR = ids[i].rState;
+      let stR = pressStates[i].rState;
       const bR = avt.rightController.buttons;
       for (let i = 0; i < 7; i++) {
         bst["right"][i] = bR[i].pressed;

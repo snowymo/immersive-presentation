@@ -2,7 +2,7 @@
 import { mainScene } from "../scenes/mainScene.js";
 import { corelink_event } from "../../util/corelink_sender.js";
 
-export let ids = [];
+export let pressStates = [];
 export let leftHandState = "released", rightHandState = "released";
 export let viewMatrix = [], time = 0;
 window.isPressed = false;
@@ -48,7 +48,7 @@ export let onPress = (hand, button, id) => {
   //ZH
   // console.log("handleSelect");
   // corelink_event({ it: "lefttrigger", op: "press" });
-  updateIdState(id, hand, "pressed");
+  updatePressState(id, hand, "pressed");
   if (hand === "left") leftHandState = "pressed";
   else if (hand === "right") rightHandState = "pressed";
 };
@@ -60,7 +60,7 @@ export let onDrag = (hand, button, id) => {
     window.isReleased = false;
     window.isPressed = false;
     
-    updateIdState(id, hand, "dragged");
+    updatePressState(id, hand, "dragged");
     if (hand === "left") leftHandState = "dragged";
     else if (hand === "right") rightHandState = "dragged";
   }
@@ -74,7 +74,7 @@ export let onRelease = (hand, button, id) => {
     console.log("onRelease", hand, "button", button,
       window.isPressed, window.isReleased, window.isDragged);
 
-    updateIdState(id, hand, "released");
+    updatePressState(id, hand, "released");
     if (hand === "left") leftHandState = "released";
     else if (hand === "right") rightHandState = "released";
   }
@@ -89,18 +89,18 @@ export let getViews = (views) => {
   for (let view of views) viewMatrix.push(view.viewMatrix);
 };
 
-export let updateIdList = (id) => {
-  if (!ids.includes(id)) {
-    if (ids[0] === undefined) ids[0] = {id: id, lState: "released", rState: "released"};
-    else ids.push({id: id, lState: "released", rState: "released"});
+export let addToPressStates = (id) => {
+  if (!pressStates.includes(id)) {
+    if (pressStates[0] === undefined) pressStates[0] = {id: id, lState: "released", rState: "released"};
+    else pressStates.push({id: id, lState: "released", rState: "released"});
   }
 }
 
-let updateIdState = (id, hand, state) => {
-  for (let i=0; i<ids.length; i++) {
-    if (ids[i].id === id) {
-      if (hand === "left") ids[i].lState = state;
-      else if (hand === "right") ids[i].rState = state;
+let updatePressState = (id, hand, state) => {
+  for (let i=0; i<pressStates.length; i++) {
+    if (pressStates[i].id === id) {
+      if (hand === "left") pressStates[i].lState = state;
+      else if (hand === "right") pressStates[i].rState = state;
     }
   }
 }
