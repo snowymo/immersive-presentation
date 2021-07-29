@@ -172,6 +172,12 @@ export class InlineViewerHelper {
     if(keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
       window.interactMode = (window.interactMode + 1)%2;
     }
+    if(keyboardInput.keyIsDown(keyboardInput.KEY_ZERO)) {
+      window.model = 0;
+    }
+    if(keyboardInput.keyIsDown(keyboardInput.KEY_ONE)) {
+      window.model = 1;
+    }
   }
 
   onKeyUp(e) {

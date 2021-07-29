@@ -237,14 +237,6 @@ export function Modeler(gl) {
       // if (window.bgWindow)
       //    bgWindow.style.left = flash ? -screen.width : 0;
 
-      // HANDLE LOADING A NEW SCENE
-
-      if (scene_to_load) {
-         scene = scene_to_load;
-         scene_to_load = null;
-	 this.setModel(1);
-      }
-
       // HANDLE FETCHING AND UPDATING THE CURRENT PROJECT
 
       if (frameCount == 0) {
@@ -252,6 +244,15 @@ export function Modeler(gl) {
          setUniform('1f', 'uAspectRatio', canvas.width / canvas.height);
         //  slideshow.setVisible(isSlideshow);
       }
+
+        // HANDLE LOADING A NEW SCENE
+
+      if (scene_to_load) {
+         scene = scene_to_load;
+         scene_to_load = null;
+      }
+      this.setModel(window.model);
+
 
       // if (frameCount % 100 == 99)
       //    projectManager.save(saveFunction());

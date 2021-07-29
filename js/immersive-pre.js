@@ -29,6 +29,7 @@ import { Modeler } from "./render/core/implicit_surfaces/modeler.js";
 window.wsport = 8447;
 window.vr = false;
 window.interactMode = 0;
+window.model = 0;
 
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
