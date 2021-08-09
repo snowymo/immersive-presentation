@@ -422,7 +422,6 @@ CG.vertexArray = (p,n,t,uv,rgb, wts) => {
    let q = CG.XY2Q(n, t);
    return [
       p[0],p[1],p[2],
-      // q[0],q[1],q[2],
       CG.packAB(n[0],t[0]),
       CG.packAB(n[1],t[1]),
       CG.packAB(n[2],t[2]),

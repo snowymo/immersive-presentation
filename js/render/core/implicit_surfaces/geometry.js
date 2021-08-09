@@ -6,7 +6,6 @@ export const VERTEX_ROT  =  3;
 export const VERTEX_UV   =  6;
 export const VERTEX_RGB  =  8;
 export const VERTEX_WTS  =  9;
-export const VERTEX_NULL = 15;
 export const VERTEX_SIZE = 16;
 
 let packAB = (a,b) => {
@@ -36,7 +35,7 @@ let vertexArray = (pos, nor, tan, uv, rgb, wts) => {
       packRGB(rgb),
       wts[0],wts[1],wts[2],
       wts[3],wts[4],wts[5],
-      0,
+      0
    ];
 }
 

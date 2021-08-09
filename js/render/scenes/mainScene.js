@@ -58,6 +58,8 @@ export let mainScene = () => {
   //     renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
   // m.restore();
 
+  //renderList.mCube().move(0,1.1,0).size(.1).color([1,1,1]);
+
   //if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
   //if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
   //if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);

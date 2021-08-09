@@ -14,8 +14,10 @@ const READ_FROM_FILE = true;
 
 // expected dimensions of the incoming data texture, note this is from the cropped image.
 // TODO: perhaps we could infer this from the first frame of data?
-const pixelWidth = 384;
-const pixelHeight = 288;
+// const pixelWidth = 384;
+// const pixelHeight = 288;
+const pixelWidth = 1280;
+const pixelHeight = 720;
 
 // number of particles
 let P = {};
@@ -25,8 +27,8 @@ let positionOffsets = {};
 let rotationOffsets = {};
 let curPosIdx = 0;
 const availablePositions = [
-  [-0.3, 1.0, -0.2],
-  [0.1, 1.0, -0.5],
+  [-0.3, 1.0, -0.3],
+  [0.1, 1.1, -0.4],
   [-0.5, 1.0, -0.7]
 ];
 const availableRotations = [
@@ -60,7 +62,7 @@ let DemoRealSense = function () {
         for (const username in dataframe) {
           if (!P[username]) {
             // create a new particle cloud & assign it an offset
-            P[username] = CG.particlesCreateMesh(1800);
+            P[username] = CG.particlesCreateMesh(30000);
             positionOffsets[username] = availablePositions[curPosIdx];
             rotationOffsets[username] = availableRotations[curPosIdx];
             curPosIdx++;
@@ -88,7 +90,7 @@ let DemoRealSense = function () {
               // base z position on depth, which is given in cm
               let rz = d / 100;
               // fixed size for particles
-              let rrad = 0.008 * realWidth;
+              let rrad = 0.002 * realWidth;
 
               let rr = r / 256;
               let rg = g / 256;

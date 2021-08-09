@@ -54,7 +54,7 @@ const GL = WebGLRenderingContext; // For enums
 
 const DEF_LIGHT_DIR1 = new Float32Array([-0.1, -1, 1]);
 const DEF_LIGHT_DIR2 = new Float32Array([0, -2.5, 0]);
-const DEF_LIGHT_COLOR = new Float32Array([10.0, 10.0, 10.0]);
+const DEF_LIGHT_COLOR = new Float32Array([4.0, 4.0, 4.0]);
 
 const PRECISION_REGEX = new RegExp("precision (lowp|mediump|highp) float;");
 
@@ -152,6 +152,7 @@ vec3 unpackRGB(float rgb) {
 void main(void) {
   
   mat4 invModel = inverse(uModel);
+/*
   if(uBlobby < 0.) {
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
@@ -216,6 +217,65 @@ void main(void) {
    if(uBlobby > 0.) gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
    else gl_Position = pos * vec4(1.,1.,.1,1.);
   }
+*/
+  vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
+  vXY = pos.xy / pos.z;
+  vP = pos.xyz;
+  vPos = aPos;
+  vRGB = unpackRGB(aRGB);
+
+  vNor = unpack0(aRot);
+  vTan = unpack1(aRot);
+  vBin = cross(vNor, vTan);
+  vUV = (aUV) * vec2(1.,-1.) + vec2(0.,1.);
+
+  gl_Position = pos * vec4(1.,1.,.1,1.);
+
+  if (uBlobby > 0.) {
+     gl_Position = vec4(0.,0.,0.,0.);
+     return;
+  }
+
+  if (uBlobby > 0.) {
+    for (int i = 0 ; i < 3 ; i++) {
+      vWeights[i  ] = aWts0[i];
+      vWeights[3+i] = aWts1[i];
+    }
+    pos = vec4(0.);
+    vec4 nor = vec4(0.);
+    vec4 apos = vec4(aPos, 1.);
+    vec4 anor = vec4(vNor, 0.);
+    vBlobPhong = mat4(0.);
+    for (int i = 0 ; i < 6 ; i++) {
+      if (vWeights[i] > 0.) {
+        int   n = int(vWeights[i]);
+        float t = mod(vWeights[i], 1.);
+        pos += t * (uMatrices[n] * apos);
+        nor += t * (anor * uInvMatrices[n]);
+        t = t * t * (3. - 2. * t);
+        vBlobPhong += t * uBlobPhong[n];
+      }
+    }
+    pos = uProj * uView * uModel * pos;
+    nor = nor * invModel;
+    vNor = nor.xyz;
+    vPos = pos.xyz;
+
+//  if (uNoisy > 0.) {
+//    float t = .5 + noise(7. * aPos);
+//    t = t * t * (3. - t - t);
+//    t = t * t * (3. - t - t);
+//    vBlobPhong *= .8 + .2 * t;
+// }
+
+   if(uBlobby > 0.)
+      gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+   else
+      gl_Position = pos * vec4(1.,1.,.1,1.);
+
+//  gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
+  }
+
 }
 `;
 
@@ -419,6 +479,10 @@ out vec2  vUV;
 out mat4  vBlobPhong;
 out float vWeights[6];
 
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+
 // matrices
 uniform   float uTime;
 uniform   mat4  uMatrix, uInvMatrix, uPerspective;
@@ -473,20 +537,19 @@ void main() {
 
      pos = vec4(0.);
      nor = vec4(0.);
-vBlobPhong = mat4(0.);
+     vBlobPhong = mat4(0.);
      for (int i = 0 ; i < 6 ; i++)
-  if (vWeights[i] > 0.) {
-           int n = int(vWeights[i]);
-           float t = mod(vWeights[i], 1.);
-           pos += t * (uMatrices[n] * apos);
-           nor += t * (anor * uInvMatrices[n]);
-     t = t * t * (3. - 2. * t);
-     vBlobPhong += t * uBlobPhong[n];
-        }
+     if (vWeights[i] > 0.) {
+        int n = int(vWeights[i]);
+        float t = mod(vWeights[i], 1.);
+        pos += t * (uMatrices[n] * apos);
+        nor += t * (anor * uInvMatrices[n]);
+        t = t * t * (3. - 2. * t);
+        vBlobPhong += t * uBlobPhong[n];
+     }
   }
-  pos = uPerspective * uMatrix * pos;
-  nor = nor * uInvMatrix;
 
+  pos = uPerspective * uMatrix * pos;
   vPos = pos.xyz;
   vNor = nor.xyz;
   vRGB = unpackRGB(aRGB);
@@ -494,12 +557,12 @@ vBlobPhong = mat4(0.);
 
   if (uNoisy > 0.) {
      float t = .5 + noise(7. * aPos * uNoisy);
-      t = t * t * (3. - t - t);
-      t = t * t * (3. - t - t);
+     t = t * t * (3. - t - t);
+     t = t * t * (3. - t - t);
      vBlobPhong *= .8 + .2 * t;
   }
 
-  gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+  gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.) + vec4(0.,0.,0.,.5);
 }
 `;
 
@@ -1314,11 +1377,11 @@ export class Renderer {
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
     renderListScene(time);
+    window.modeler.display(time);
     if (renderList.num > 0) {
       // console.log('-------------------');
       for (let i = 0; i < renderList.num; i++) {
         this._drawRenderListPrimitive(views, ...renderList.endFrame(i));
-        // console.log(...renderList.endFrame(i));
       }
     }
     window.modeler.implicitSurfacesPgm.initBuffer(this._gl);
@@ -1481,6 +1544,13 @@ export class Renderer {
     renderList.program.use();
     let pgm = renderList.program;
     let drawArrays = () => {
+      if (triangleMode == 1) {
+         console.log('================================');
+         console.log('================================');
+         console.log('================================');
+         console.log('================================');
+         console.log('================================');
+      }
       gl.drawArrays(
         triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
         0,
@@ -1766,6 +1836,12 @@ export class Renderer {
     //   }
     // }
     // gl.cullFace(gl.BACK);
+
+    if (views.length == 1) {
+      setUniform('Matrix4fv', 'uProj', false, views[0].projectionMatrix);
+      setUniform('Matrix4fv', 'uView', false, views[0].viewMatrix);
+    }
+
     window.modeler.animate();
     gl.cullFace(gl.BACK);
   }

@@ -1,5 +1,9 @@
+
+import { ServerStorage } from "./serverStorage.js";
+
 export function ProjectManager() {
     let projectName = 'project 1';
+    let serverStorage = new ServerStorage();
  
     this.clearNames = () => {
        localStorage.setItem('projectNames', '');
@@ -35,8 +39,11 @@ export function ProjectManager() {
        let nameList = names.join('\n');
        localStorage.setItem('projectNames', nameList);
     }
+
+    let strPrev = '';
  
-    this.load = onLoad => {
+    this.load = async onLoad => {
+/*
        projectName = localStorage.getItem('projectName');
        if (! projectName) {
           projectName = 'project 1';
@@ -54,13 +61,21 @@ export function ProjectManager() {
          }
          rawFile.send(null);
      }
-     
+*/
+/*
      readTextFile("js/data/clayData.json", function(text){
          var data = JSON.parse(text);
          if (data) {
             onLoad(data);
           }
      });
+*/
+     let str = await serverStorage.getItem(projectName);
+     if (str && str.localeCompare(strPrev)) {
+        onLoad(str);
+        strPrev = str;
+     }
+
       //  let str = localStorage.getItem(projectName);
       //  if (str) {
       //    onLoad(str);

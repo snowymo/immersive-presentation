@@ -72,7 +72,6 @@ let RenderList = function () {
     };
     this.opacity = (opac) => {
       this.opac = opac;
-      // console.log("opac set to: " + this.opac);
       return this;
     };
     this.fx = (type) => {

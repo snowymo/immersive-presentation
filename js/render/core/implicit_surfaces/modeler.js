@@ -1,4 +1,5 @@
 import { CG, Matrix } from "../CG.js";
+import { m, renderList } from "../renderList.js";
 import { ImplicitSurface } from "./implicitSurface.js";
 import { materials } from "./materials.js";
 import { ProjectManager } from "./projectManager.js";
@@ -21,10 +22,10 @@ let ImplicitSurfacesPgm = function () {
    this.color = null;
    this.M = CG.matrixIdentity();
    this.initBuffer = (gl) => {
-   this.buffer = gl.createBuffer();
+      this.buffer = gl.createBuffer();
    };
    this.initVAO = (gl) => {
-   this.vao = gl.createVertexArray();
+      this.vao = gl.createVertexArray();
    };
 
    this.assignValues = (opacity, noisy, blobby, phongData, matrixData, invMatrixData, mesh, color, M) => {
@@ -57,10 +58,10 @@ export function Modeler(gl) {
    let blur = 0.2;
    let cursor = [0,0,0];
    let defaultColor = 'color0';
-   let fl = 2;                                                          // CAMERA FOCAL LENGTH
+   let fl = 1.5;
    let flash = false;
    let frameCount = 0;
-   let id = '';
+   let name = '';
    let isCentering = false;
    let isClick = false;
    let isControl = false;
@@ -86,11 +87,13 @@ export function Modeler(gl) {
    let isWalking = false, walkFactor = 0;
    let isWiggling = false, wiggleFactor = 0;
    let keyPressed = -1, keyChar;
-   let scene = [], modelIndex = 0;
+   let mesh = null;
    let mn = -1, mnPrev = -1;
+   let modelIndex = 0, scene = [];
    let noise = new Noise();
    let noiseState = 0;
    let projectManager = new ProjectManager();
+   let rm = CG.matrixIdentity();
    let rotatex = 0, rotatexState = 0;
    let rotatey = 0, rotateyState = 0;
    let startTime = Date.now(), time, prevTime = startTime, fps = 10;    // TO TRACK FRAME RATE
@@ -118,6 +121,43 @@ export function Modeler(gl) {
       (gl['uniform' + type])(loc, a, b, c, d, e, f);
    }
 
+   let rln = 0, rlist = [];
+   let renderListStart = () => rln = 0;
+   let renderListAdd = (matrix, shape, color) => rlist[rln++] = {matrix:matrix, shape:shape, color:color};
+
+   let xf = CG.matrixMultiply(CG.matrixRotateY(Math.PI),
+	    CG.matrixMultiply(CG.matrixTranslate(0,1.5,0),
+	    CG.matrixMultiply(CG.matrixScale(.5,.5,.5),
+	                      rm)));
+
+   this.display = time => {
+/*
+      renderList.mCube().move(0,.97,0).size(.5,.03,.5).color([.4,.2,.1]);
+      renderList.mCylinder().move(0,.48,0).turnX(Math.PI/2).size(.05,.05,.48).color([.4,.2,.1]);
+*/
+      for (let i = 0 ; i < rln ; i++) {
+         let item = rlist[i];
+	 m.save();
+	    m.set(CG.matrixMultiply(xf, item.matrix));
+            switch (item.shape) {
+	    case 'cube'    : renderList.mCube()    .color(item.color); break;
+	    case 'cylinder': renderList.mCylinder().color(item.color); break;
+	    case 'sphere'  : renderList.mSphere()  .color(item.color); break;
+	    }
+	 m.restore();
+      }
+/*
+      if (mesh) {
+	 m.save();
+	    m.set(xf);
+            setUniform('1f', 'uBlobby', 1.);
+            renderList.mMesh(mesh).color([1,1,1]).vtxMode(1);
+            setUniform('1f', 'uBlobby', 0.);
+	 m.restore();
+      }
+*/
+   }
+
    let drawMesh = (mesh, materialId, isTriangleMesh, textureSrc) => {
       let m = M.value();
       setUniform('Matrix4fv', 'uMatrix', false, m);
@@ -132,7 +172,7 @@ export function Modeler(gl) {
          if (! textures[textureSrc]) {                  // LOAD THE TEXTURE IF IT HAS NOT BEEN LOADED.
             let image = new Image();
             image.onload = function(event) {
-          try {
+               try {
                   textures[this.textureSrc] = gl.createTexture();
                   gl.bindTexture   (gl.TEXTURE_2D, textures[this.textureSrc]);
                   gl.texImage2D    (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this);
@@ -164,7 +204,9 @@ export function Modeler(gl) {
 
    let scene_to_load = null;
 
-   let loadFunction = arg => scene_to_load = arg;
+   let loadFunction = arg => {
+      scene_to_load = JSON.parse(arg);
+   }
 
    let saveFunction = () => {
       scene[modelIndex] = {
@@ -218,18 +260,18 @@ export function Modeler(gl) {
 
    // ANIMATE AND RENDER ONE FRAME
 
-   this.setModel = index => {
-      modelIndex = index;
-      let model  = scene[index];
-      id         = model.id;
-      S          = model.S;
+   this.setModel = () => {
+      name       = scene.name;
+      S          = scene.S;
       isRubber   = false;
-      toRubber   = model.isRubber;
-      isWalking  = model.isWalking;
-      isWiggling = model.isWiggling;
-      noiseState = model.noiseState;
+      toRubber   = scene.isRubber;
+      isWalking  = scene.isWalking;
+      isWiggling = scene.isWiggling;
+      noiseState = scene.noiseState;
       activeSet(true);
    }
+
+   let prevSceneData = '';
 
    this.animate = gl => {
       updatePgm();
@@ -245,13 +287,18 @@ export function Modeler(gl) {
         //  slideshow.setVisible(isSlideshow);
       }
 
+      if (frameCount % 100 == 0) {
+         projectManager.load(loadFunction);
+      }
+
         // HANDLE LOADING A NEW SCENE
 
       if (scene_to_load) {
          scene = scene_to_load;
          scene_to_load = null;
+         this.setModel(0);
       }
-      this.setModel(window.model);
+      //this.setModel(window.model);
 
 
       // if (frameCount % 100 == 99)
@@ -271,7 +318,8 @@ export function Modeler(gl) {
       // let r3 = Math.sqrt(1/3);
       // setUniform('3fv', 'uLDir', [r3,r3,r3, -r3,-r3,-r3]);              // SET GPU LIGHTS
       // setUniform('3fv', 'uLCol', [.6,.8,1, .4,.3,.2]);
-      setUniform('Matrix4fv', 'uPerspective', false, CG.matrixPerspective(fl)); // SET GPU CAMERA M.save();
+      //setUniform('Matrix4fv', 'uPerspective', false, CG.matrixPerspective(fl)); // SET GPU CAMERA M.save();
+      setUniform('Matrix4fv', 'uPerspective', false,  window.views[0].projectionMatrix); // SET GPU CAMERA M.save();
       viewMatrix = window.views[0].viewMatrix;
       M.set(window.views[0].viewMatrix);
       // M.scale(0.95);
@@ -339,6 +387,10 @@ export function Modeler(gl) {
          M.restore();
       }
 
+// DRAW A REFERENCE CUBE FOR DEBUGGING
+
+//////////////// draw(cubeMesh, 'white', null, null, null, [.1,.1,.1]);
+
       // DRAW THE CURSOR
 
       let cp = CG.mix(cursorTransform(xPrev,yPrev),
@@ -348,8 +400,8 @@ export function Modeler(gl) {
       // DRAW THE TABLE
 
       M.save();
-         draw(cubeMesh, 'color8', null, [0,-1.03,0], null, [1,.03,1]);
-         draw(tubeMesh, 'color8', null, [0,-2.35,0], [Math.PI/2,0,0], [.1,.1,1.35]);
+         draw(cubeMesh, '28,14,7', null, [0,-1.03,0], null, [1,.03,1]);
+         draw(tubeMesh, '28,14,7', null, [0,-2.35,0], [Math.PI/2,0,0], [.1,.1,1.35]);
       M.restore();
 
       // SHOW CENTERING INDICATOR
@@ -361,7 +413,7 @@ export function Modeler(gl) {
    
       implicitSurface.setBlobby(true);
       implicitSurface.setBlur(blur);
-      implicitSurface.setDivs(noiseState==2 ? 50 : isRubber ? 100 : activeState() ? 50 : 100);
+      implicitSurface.setDivs(noiseState==2 ? 30 : isRubber ? 100 : activeState() ? 50 : 100);
       implicitSurface.setFaceted(isFaceted);
       implicitSurface.setNoise(noiseState);
       implicitSurface.setTexture(isTextureSrc ? 'images/frl_texture.jpg' : '');
@@ -393,6 +445,17 @@ export function Modeler(gl) {
             }
       }
 
+      // HANDLE BLINKING
+
+      let blink = time > blinkTime - .1;
+      if (time > blinkTime)
+         blinkTime = time + 1 + 5 * Math.random();
+      for (let n = 0 ; n < S.length ; n++)
+         if (S[n].name == 'right_eye' || S[n].name == 'left_eye') {
+	     S[n].jointRotation = blink ? CG.matrixTranslate(0,1000,0) : CG.matrixIdentity();
+	     rotateAboutJoint(n);
+         }
+ 
       // HANDLE PROCEDURAL WALKING ANIMATION
 
       walkFactor = Math.max(0, Math.min(1, walkFactor + (isWalking ? .06 : -.06)));
@@ -400,13 +463,11 @@ export function Modeler(gl) {
 
          let bird = ! hasPart('left_upper_leg') || hasPart('right_lower_arm') && ! hasPart('right_hand');
          let w = CG.sCurve(walkFactor) * .7;
-         let tR = bird ? 8 * time : 4 * time;
+	 let t = time;
+	 let s = Math.sin(8 * t + .5);
+         let tR = bird ? 8 * t : 4 * t - .15 * s * Math.abs(s);
          let tL = tR + Math.PI;
 
-         let blink = time > blinkTime - .1;
-         if (time > blinkTime)
-            blinkTime = time + 1 + 5 * Math.random();
- 
          let walkRot = n => {
             let mm = CG.matrixMultiply, rx = CG.matrixRotateX, ry = CG.matrixRotateY, rz = CG.matrixRotateZ;
             let cos = Math.cos, sin = Math.sin;
@@ -415,9 +476,6 @@ export function Modeler(gl) {
             case 'belly': m = mm(CG.matrixTranslate(0, w * (bird ? .05 : -.05) * sin(2 * tR), 0), rz(w * .1 * cos(tR))); break;
             case 'chest': m = mm(rz(w * -.13 * cos(tR)), rx(w * -.05 * cos(2 * tR))); break;
             case 'head' : m = mm(rx(w *  .03 * cos(2 * tR)), rz(w *  .1  * cos(tR))); break;
-
-            case 'right_eye': m = blink ? CG.matrixTranslate(0,1000,0) : m; break;
-            case 'left_eye' : m = blink ? CG.matrixTranslate(0,1000,0) : m; break;
 
             case 'right_upper_arm': m = mm(ry(bird ? 0 : w *  (cos(tR)-.5)/2), rz(bird ? w* (cos(2*tR)+1)/4 :  w)); break;
             case 'left_upper_arm' : m = mm(ry(bird ? 0 : w * -(cos(tL)-.5)/2), rz(bird ? w*-(cos(2*tL)+1)/4 : -w)); break;
@@ -503,12 +561,19 @@ export function Modeler(gl) {
          }
       }
 
-      let ethane = id == 'ethane';
-      let rm = CG.matrixMultiply(CG.matrixRotateY(ethane ? -2*time : -1.1*time + .03 * Math.sin(6*time)),
-               CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7,-.5,0),
-                                 CG.matrixScale(ethane ? .8 : .5)));
+      let ethane = name == 'ethane';
+      let t = time;
+      rm = CG.matrixMultiply(CG.matrixRotateY(ethane ? -2*t : -t),
+           CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7,
+	                                        ethane ? -.8 : -.5, 0),
+                             CG.matrixScale(ethane ? .8 : .5)));
+      if (! ethane)
+         noiseState = 4;
+
       if (ethane)
          rm = CG.matrixMultiply(CG.matrixTranslate(0,0,.5), rm);
+
+      renderListStart();
 
       // SPECIFY THE BLOBS FOR THE MODEL
    
@@ -545,9 +610,14 @@ export function Modeler(gl) {
                   M.set(CG.matrixMultiply(sm, S[n].M));
                   if (S[n].type == 1) M.rotateY(Math.PI/2);
                   if (S[n].type == 2) M.rotateX(Math.PI/2);
+
                   draw(S[n].type==4 ? cubeMesh :
                        S[n].type> 0 ? cylinderMesh :
                                       sphereMesh, materialId);
+
+/*
+renderListAdd(CG.matrixMultiply(CG.matrixMultiply(CG.matrixRotateY(Math.PI), rm), S[n].M), S[n].type==4 ? 'cube' : S[n].type > 0 ? 'cylinder' : 'sphere', materials[materialId].diffuse);
+*/
                M.restore();
                if (m.texture)
                   delete m.texture;
@@ -564,7 +634,7 @@ export function Modeler(gl) {
       M.save();
          M.set(vm);
          M.multiply(rm);
-         implicitSurface.endBlobs();
+         mesh = implicitSurface.endBlobs();
       M.restore();
       setUniform('1f', 'uNoisy'  , 0);
       setUniform('1f', 'uOpacity', 1);
