@@ -32,47 +32,53 @@ let DemoText = function () {
 };
 
 let msg = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi at lobortis nulla. Nunc sed neque sem. Sed quis quam tortor.';
-//let msg = "brown dog jumped over the fence."
+
 // make array of words in a string
 let PT = new CG.ParticlesText(msg);
+let wordlst = [];
+let tempword = '';
+for (let i = 0; i < msg.length; i++){
+   if (msg[i] == ' '){
+      wordlst.push(tempword);
+      tempword = '';
+   }
+   else{
+      tempword += msg[i];
+   }
+
+}
+wordlst.push(tempword);
 
 let A = PT.layout(null, .5,.5), B = [], C = [];
 let len = ((-1 - msg.length) / 3) * -1;
-let spaceCount = msg.length / 3;
-let lineNum = 0;
 
+/*
+// Character by character count
 for (let n = 0 ; n < msg.length ; n++) {
+
    B[n] = [n - (len*Math.floor(n/len)), 0 - Math.floor(n/len), 0];
    C[n] = B[n].slice();
-}
-//centered
-//console.log(msg.length);
-/*
-for (let n = 0 ; n < msg.length ; n++) {
    
-   if (msg[n] == " " && n >= spaceCount){
-      lineNum++;
-      spaceCount *= 2;
-      //B[n] = [n - (len*Math.floor(n/len)), 0 - Math.floor(n/len), 0];
+}
+*/
+
+let lineNum = 0;
+let spaceCount = wordlst.length / 3;
+let msglen = 0;
+let wordlsttotLen = 0;
+
+// word by word count
+for (let n = 0 ; n < wordlst.length ; n++){
+   for (let i = 0; i < wordlst[n].length; i++){
+         B[msglen] = [i + wordlsttotLen, lineNum, 0];
+         C[msglen] = B[msglen].slice();
+         msglen++;
    }
-   console.log("n ",n);
-   console.log("lineNum ",lineNum);
-   console.log("spaceCount ", spaceCount);
-   console.log("mathfloor ",Math.floor(n/len));
-   console.log("len", len);
-   console.log("len* mathfloor ", len*Math.floor(n/len));
-   console.log(" n - len*mathfloor ",n - (len*Math.floor(n/len)));
-   console.log("n - len*linenum ", n - (len*lineNum));
-   //B[n] = [n - (len*Math.floor(n/len)), 0 - Math.floor(n/len), 0];
-   B[n] = [n - (len*lineNum), lineNum, 0];
-   C[n] = B[n].slice();
-   console.log("arr ", C[n])
-   
+   wordlsttotLen += wordlst[n].length;
+   if(n > spaceCount){
+      lineNum -= 1;
+      spaceCount *= 2;
+      wordlsttotLen = 0;
+   }
 }
-*/
-/*
-TO DO:
-right align, left align
-word based vs character baseds
-*/
 export let demoText = new DemoText();
