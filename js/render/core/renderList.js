@@ -2,6 +2,8 @@
 
 import { CG, Matrix } from "./CG.js";
 import { ImprovedNoise } from "../math/improvedNoise.js";
+import { buttonState, controllerMatrix, leftHandState, rightHandState, pressStates } from "../core/renderListScene.js";
+import { pHitTest, pHitTestNew } from "../../util/hitTest.js";
 
 export let m = new Matrix();
 
@@ -107,6 +109,25 @@ let RenderList = function () {
       return this;
     };
 
+    this.hitEvent = (f, isShared) => {
+      this.hit = f;
+      this.shared = isShared;
+      return this;
+    }
+
+    this.group = (n) => {
+      if (groups[n] === undefined) {
+        groups[n] = [this];
+        this.groupInd = 0;
+      }
+      else if (!groups[n].includes(this)) {
+        groups[n].push(this);
+        this.groupInd = groups[n].length - 1;
+      }
+      this.groupId = n;
+      return this;
+    }
+
     this.setBaseTexture = (url) => {
       this.texture = url;
     }
@@ -168,12 +189,124 @@ let RenderList = function () {
   this.beginBuild = () => ((n = 0), (this.num = 0));
   this.endBuild = () => {
     /* do something */
+    for (let i=0; i<pressStates.length; i++) {
+      let id = pressStates[i].id;
+      let avt = window.avatars[id];
+      if (avt.leftController.buttons === null) continue;
+      let bst = {left: [], right: []};
+      
+      //prevButtons do not seem to update correctly
+      /*
+      let stL = "released";
+      const bL = avt.leftController.buttons;
+      const bLPrev = avt.leftController.prevButtons;
+      for (let i = 0; i < 7; i++) {
+        if (bL[i].pressed && !bLPrev[i].pressed) stL = "pressed";
+        else
+          if (bL[i].pressed && bLPrev[i].pressed) stL = "dragged";
+          else
+            if (!bL[i].pressed) stL = "released";
+        bst["left"][i] = bL[i].pressed;
+      }
+      let stR = "released";
+      const bR = avt.rightController.buttons;
+      const bRPrev = avt.rightController.prevButtons;
+      for (let i = 0; i < 7; i++) {
+        if (bR[i].pressed && !bRPrev[i].pressed) stR = "pressed";
+        else
+          if (bR[i].pressed && bRPrev[i].pressed) stR = "dragged";
+          else
+            if (!bR[i].pressed) stR = "released";
+        bst["right"][i] = bR[i].pressed;
+      }
+      */
+      let stL = pressStates[i].lState;
+      const bL = avt.leftController.buttons;
+      for (let i = 0; i < 7; i++) {
+        bst["left"][i] = bL[i].pressed;
+      }
+      let stR = pressStates[i].rState;
+      const bR = avt.rightController.buttons;
+      for (let i = 0; i < 7; i++) {
+        bst["right"][i] = bR[i].pressed;
+      }
+
+      let hmR = pHitTestNew(0, id);
+      let evR = {handedness: "right",
+                state: stR,
+                buttonState: bst.right,
+                hitItem: hmR};
+      let hmL = pHitTestNew(1, id);
+      let evL = {handedness: "left",
+                state: stL,
+                buttonState: bst.left,
+                hitItem: hmL};
+      if (hmR && hmR.hit !== undefined) {
+        hmR.hit(evR);
+        if (hmR.shared && hmR.groupId !== undefined) {
+          evR.indirect = true;
+          for (let i=0; i<groups[hmR.groupId].length; i++) {
+            if (i === hmR.groupInd) continue;
+            let obj = groups[hmR.groupId][i];
+            evR.hitItem = obj;
+            obj.hit(evR);
+          }
+        }
+      }
+      if (hmL && hmL.hit !== undefined) {
+        hmL.hit(evL);
+        if (hmL.shared && hmL.groupId !== undefined) {
+          evL.indirect = true;
+          for (let i=0; i<groups[hmL.groupId].length; i++) {
+            if (i === hmL.groupInd) continue;
+            let obj = groups[hmL.groupId][i];
+            evL.hitItem = obj;
+            obj.hit(evL);
+          }
+        }
+      }
+    }
+    let hmR = pHitTest(0);
+    let evR = {handedness: "right",
+              state: rightHandState,
+              buttonState: buttonState.right,
+              hitItem: hmR};
+    let hmL = pHitTest(1);
+    let evL = {handedness: "left",
+              state: leftHandState,
+              buttonState: buttonState.left,
+              hitItem: hmL};
+    if (hmR && hmR.hit !== undefined) {
+      hmR.hit(evR);
+      if (hmR.shared && hmR.groupId !== undefined) {
+        evR.indirect = true;
+        for (let i=0; i<groups[hmR.groupId].length; i++) {
+          if (i === hmR.groupInd) continue;
+          let obj = groups[hmR.groupId][i];
+          evR.hitItem = obj;
+          obj.hit(evR);
+        }
+      }
+    }
+    if (hmL && hmL.hit !== undefined) {
+      hmL.hit(evL);
+      if (hmL.shared && hmL.groupId !== undefined) {
+        evL.indirect = true;
+        for (let i=0; i<groups[hmL.groupId].length; i++) {
+          if (i === hmL.groupInd) continue;
+          let obj = groups[hmL.groupId][i];
+          evL.hitItem = obj;
+          obj.hit(evL);
+        }
+      }
+    }
   };
-  this.add = (shape) => {
+  this.add = (shape, name) => {
     if (items[n]) items[n].init();
     else items[n] = new Item();
     items[n].shape = shape;
     items[n].matrix = m.value().slice();
+    if (name) items[n].mesh = name;
     this.num++;
     return items[n++];
   };
@@ -245,6 +378,7 @@ let RenderList = function () {
         item.sz
       )
     );
+    item.matrix = mat;
     switch (item.type) {
       // render list
       case 1: {
@@ -322,7 +456,7 @@ let RenderList = function () {
           item.sz
         )
       );
-
+      items[i].matrix = mat;
       switch (item.type) {
         // render list
         case 1: {
@@ -366,16 +500,21 @@ let RenderList = function () {
   this.program = null;
   this.num = 0;
 
+  this.getItems = () => {
+    return items;
+  }
+
   let items = [],
     n = 0,
     improvedNoise = new ImprovedNoise();
+  let groups = [];
 };
 
 RenderList.prototype.mMesh = function (V) {
   return this.add(V);
 };
 RenderList.prototype.mCube = function () {
-  return this.add(CG.cube);
+  return this.add(CG.cube, "cube");
 };
 RenderList.prototype.mPoly4 = function (V) {
   return this.add(CG.createPoly4Vertices(V));
@@ -390,10 +529,10 @@ RenderList.prototype.mSquare = function () {
   return this.add(CG.quad);
 };
 RenderList.prototype.mSphere = function () {
-  return this.add(CG.sphere);
+  return this.add(CG.sphere, "sphere");
 };
 RenderList.prototype.mCylinder = function () {
-  return this.add(CG.cylinder);
+  return this.add(CG.cylinder, "cylinder");
 };
 RenderList.prototype.mRoundedCylinder = function () {
   return this.add(CG.roundedCylinder);

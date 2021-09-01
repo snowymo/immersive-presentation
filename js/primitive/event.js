@@ -5,6 +5,7 @@ import { SyncObject, updateObject } from "../util/object-sync.js";
 import { corelink_message } from "../util/corelink_sender.js";
 import { metaroomSyncSender, metaroomWebrtcSender, metaroomEventSender, metaroomInitSender } from "../corelink_handler.js"
 import { left_controller_trigger, right_controller_trigger } from "../util/input_event_handler.js"
+import { addToPressStates } from "../render/core/renderListScene.js"
 
 export function initSelfAvatar(id) {
   if (!window.avatars) {
@@ -121,6 +122,7 @@ export function init() {
         console.log("left already");
       } else {
         initAvatar(payload["user"]);
+        addToPressStates(payload["user"]);
       }
     }
     // }
@@ -363,11 +365,11 @@ export function init() {
       case "lefttrigger":
         //left trigger
         // console.log("call left_controller_trigger", json["state"]['operation']);
-        left_controller_trigger(json["state"]['operation']);
+        left_controller_trigger(json["state"]['operation'],json["uid"]);
         break;
       case "righttrigger":
         //left trigger
-        right_controller_trigger(json["state"]['operation']);
+        right_controller_trigger(json["state"]['operation'],json["uid"]);
         break;
       default:
         break;

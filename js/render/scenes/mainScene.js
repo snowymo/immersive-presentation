@@ -34,6 +34,7 @@ import { demoPlanets } from "./demoPlanets.js";
 import { demoRealSense } from "./demoRealSense.js";
 //import { demoSyncTest } from "./demoSyncTest.js";
 //import { demoDraw } from "./demoDraw.js";
+//import { demoHittest } from "./demoHittest.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -74,6 +75,7 @@ export let mainScene = () => {
   //if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
   //if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
   //if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
+  //if (demoHittestState % 2) loadScene(demoHittest); else stopScene(demoHittest);
 };
 
 function loadScene(demo) {
@@ -161,7 +163,7 @@ function showNameTag() {
   }
 }
 
-//window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,RealSense,Speak,Text,SyncTest,Draw";
+//window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,RealSense,Speak,Text,SyncTest,Draw,Hittest";
 window.demoNames = "Planets,RealSense";
 addDemoButtons(window.demoNames);
 window.addNameField();
