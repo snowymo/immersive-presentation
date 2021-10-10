@@ -5,7 +5,7 @@ import { ProjectManager } from "./projectManager.js";
 import { Noise } from "./noise.js";
 import { addEventListenersToCanvas } from "./eventListener.js";
 import { VERTEX_SIZE, VERTEX_WTS } from "./geometry.js";
-import { squareMesh,cubeMesh,sphereMesh,tubeMesh,cylinderMesh } from "./geometry.js";
+import { squareMesh, cubeMesh, sphereMesh, tubeMesh, cylinderMesh } from "./geometry.js";
 
 let ImplicitSurfacesPgm = function () {
    this.program = null;
@@ -21,22 +21,22 @@ let ImplicitSurfacesPgm = function () {
    this.color = null;
    this.M = CG.matrixIdentity();
    this.initBuffer = (gl) => {
-   this.buffer = gl.createBuffer();
+      this.buffer = gl.createBuffer();
    };
    this.initVAO = (gl) => {
-   this.vao = gl.createVertexArray();
+      this.vao = gl.createVertexArray();
    };
 
    this.assignValues = (opacity, noisy, blobby, phongData, matrixData, invMatrixData, mesh, color, M) => {
-       this.opacity = opacity;
-       this.noisy = noisy;
-       this.blobby = blobby;
-       this.phongData = phongData;
-       this.matrixData = matrixData;
-       this.invMatrixData = invMatrixData;
-       this.mesh = mesh;
-       this.color = color;
-       this.M = M;
+      this.opacity = opacity;
+      this.noisy = noisy;
+      this.blobby = blobby;
+      this.phongData = phongData;
+      this.matrixData = matrixData;
+      this.invMatrixData = invMatrixData;
+      this.mesh = mesh;
+      this.color = color;
+      this.M = M;
    }
 
    this.assignMeshValues = (mesh, materialId, isTriangleMesh, M) => {
@@ -55,7 +55,7 @@ export function Modeler(gl) {
    let activeCount = -1;
    let blinkTime = 0;
    let blur = 0.2;
-   let cursor = [0,0,0];
+   let cursor = [0, 0, 0];
    let defaultColor = 'color0';
    let fl = 2;                                                          // CAMERA FOCAL LENGTH
    let flash = false;
@@ -104,7 +104,7 @@ export function Modeler(gl) {
 
    // HANDLE SETTING WHETHER THE MODEL IS ACTIVELY CHANGING
 
-   let activeSet   = isActive => activeCount = isActive ? 4 : -1;
+   let activeSet = isActive => activeCount = isActive ? 4 : -1;
    let activeState = () => activeCount >= 0;
    let activeTimer = () => activeCount--;
    this.implicitSurfacesPgm = new ImplicitSurfacesPgm();
@@ -122,22 +122,22 @@ export function Modeler(gl) {
       let m = M.value();
       setUniform('Matrix4fv', 'uMatrix', false, m);
       setUniform('Matrix4fv', 'uInvMatrix', false, CG.matrixInvert(m));
-   
+
       let material = materials[materialId];
       let a = material.ambient, d = material.diffuse, s = material.specular, t = material.texture;
-      if (t === undefined) t = [0,0,0,0];
-      setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], t[0],t[1],t[2],t[3]]);
-   
+      if (t === undefined) t = [0, 0, 0, 0];
+      setUniform('Matrix4fv', 'uPhong', false, [a[0], a[1], a[2], 0, d[0], d[1], d[2], 0, s[0], s[1], s[2], s[3], t[0], t[1], t[2], t[3]]);
+
       if (textureSrc) {
-         if (! textures[textureSrc]) {                  // LOAD THE TEXTURE IF IT HAS NOT BEEN LOADED.
+         if (!textures[textureSrc]) {                  // LOAD THE TEXTURE IF IT HAS NOT BEEN LOADED.
             let image = new Image();
-            image.onload = function(event) {
-          try {
+            image.onload = function (event) {
+               try {
                   textures[this.textureSrc] = gl.createTexture();
-                  gl.bindTexture   (gl.TEXTURE_2D, textures[this.textureSrc]);
-                  gl.texImage2D    (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this);
-                  gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                  gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                  gl.bindTexture(gl.TEXTURE_2D, textures[this.textureSrc]);
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this);
+                  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
                   gl.generateMipmap(gl.TEXTURE_2D);
                } catch (e) { textures[textureSrc + '_error'] = true; }
             }
@@ -150,8 +150,8 @@ export function Modeler(gl) {
          }
       }
       setUniform('1i', 'uSampler', 0);                            // SPECIFY TEXTURE INDEX.
-      setUniform('1f', 'uTexture', isTexture(textureSrc)? 1 : 0); // ARE WE RENDERING A TEXTURE?
-   
+      setUniform('1f', 'uTexture', isTexture(textureSrc) ? 1 : 0); // ARE WE RENDERING A TEXTURE?
+
       gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
       gl.drawArrays(isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, mesh.length / VERTEX_SIZE);
    }
@@ -159,7 +159,7 @@ export function Modeler(gl) {
    let updatePgm = () => {
       pgm = window.modeler.implicitSurfacesPgm.program;
    }
- 
+
    // HANDLE LOADING AND SAVING
 
    let scene_to_load = null;
@@ -168,9 +168,9 @@ export function Modeler(gl) {
 
    let saveFunction = () => {
       scene[modelIndex] = {
-         S         : S,
-         isRubber  : isRubber,
-         isWalking : isWalking,
+         S: S,
+         isRubber: isRubber,
+         isWalking: isWalking,
          isWiggling: isWiggling,
          noiseState: noiseState,
       };
@@ -179,18 +179,20 @@ export function Modeler(gl) {
 
    // DRAW ROUTINE THAT ALLOWS CUSTOM COLORS, TEXTURES AND TRANSFORMATIONS
 
-   let draw = (mesh,color,texture,move,turn,size) => {
+   let draw = (mesh, color, texture, move, turn, size) => {
       // fl = 1/window.views[0].projectionMatrix[0];
       // IF color IS A STRING LIKE "100,120,80", THEN CREATE A NEW MATERIAL.
 
-      if (! materials[color]) {
+      if (!materials[color]) {
          let rgb = color.split(',');
          let r = parseInt(rgb[0]) / 255,
-             g = parseInt(rgb[1]) / 255,
-             b = parseInt(rgb[2]) / 255;
-         materials[color] = { ambient: [.2*r ,.2*g ,.2*b ],
-                              diffuse: [.8*r ,.8*g ,.8*b ],
-                              specular: [.9,.9,.9,20] };
+            g = parseInt(rgb[1]) / 255,
+            b = parseInt(rgb[2]) / 255;
+         materials[color] = {
+            ambient: [.2 * r, .2 * g, .2 * b],
+            diffuse: [.8 * r, .8 * g, .8 * b],
+            specular: [.9, .9, .9, 20]
+         };
       }
 
       // TRANSFORM BEFORE DRAWING IF ANY TRANSLATE, ROTATE OR SCALE ARGS.
@@ -214,21 +216,26 @@ export function Modeler(gl) {
          M.restore();
    }
 
-   let cursorTransform = (x,y) => CG.matrixTransform(viewMatrixInverse, [x, y, 0]);
+   let cursorTransform = (x, y) => CG.matrixTransform(viewMatrixInverse, [x, y, 0]);
 
    // ANIMATE AND RENDER ONE FRAME
 
    this.setModel = index => {
-      modelIndex = index;
-      let model  = scene[index];
-      id         = model.id;
-      S          = model.S;
-      isRubber   = false;
-      toRubber   = model.isRubber;
-      isWalking  = model.isWalking;
-      isWiggling = model.isWiggling;
-      noiseState = model.noiseState;
-      activeSet(true);
+      if (scene.length > index) {
+         modelIndex = index;
+         let model = scene[index];
+         id = model.id;
+         S = model.S;
+         isRubber = false;
+         toRubber = model.isRubber;
+         isWalking = model.isWalking;
+         isWiggling = model.isWiggling;
+         noiseState = model.noiseState;
+         activeSet(true);
+      }
+      else {
+         console.log("[warning] scene.length", scene.length);
+      }
    }
 
    this.animate = gl => {
@@ -242,10 +249,10 @@ export function Modeler(gl) {
       if (frameCount == 0) {
          projectManager.load(loadFunction);
          setUniform('1f', 'uAspectRatio', canvas.width / canvas.height);
-        //  slideshow.setVisible(isSlideshow);
+         //  slideshow.setVisible(isSlideshow);
       }
 
-        // HANDLE LOADING A NEW SCENE
+      // HANDLE LOADING A NEW SCENE
 
       if (scene_to_load) {
          scene = scene_to_load;
@@ -260,13 +267,13 @@ export function Modeler(gl) {
       frameCount++;
 
       // SET ALL UNIFORM VARIABLES ON THE GPU
-   
+
       time = (Date.now() - startTime) / 1000;
       setUniform('1f', 'uTime', time);                                  // SET GPU TIME
       let elapsed = time - prevTime;
       fps = .1 * fps + .9 / elapsed;
       prevTime = time;
-   
+
       setUniform('1f', 'uOpacity', 1);
       // let r3 = Math.sqrt(1/3);
       // setUniform('3fv', 'uLDir', [r3,r3,r3, -r3,-r3,-r3]);              // SET GPU LIGHTS
@@ -275,21 +282,21 @@ export function Modeler(gl) {
       viewMatrix = window.views[0].viewMatrix;
       M.set(window.views[0].viewMatrix);
       // M.scale(0.95);
-      M.translate(0,1.5,0);
+      M.translate(0, 1.5, 0);
       // HANDLE EXPERIMENTS
 
-      M.translate(0,0,.5);
+      M.translate(0, 0, .5);
 
       if (isExperiment) {
          let rMinSave = rMin;
          rMin = .02;
          let x = -.9, y = 0, z = 0;
-         for (let i = 0 ; i < 100 ; i++) {
-            let theta = Math.sin(i/4);
+         for (let i = 0; i < 100; i++) {
+            let theta = Math.sin(i / 4);
             let dx = .03 * Math.cos(theta);
             let dy = .03 * Math.sin(theta);
-            createBegin(x,y);
-            createDrag(x+dx,y+dy);
+            createBegin(x, y);
+            createDrag(x + dx, y + dy);
             x += dx * .8;
             y += dy * .8;
          }
@@ -321,47 +328,47 @@ export function Modeler(gl) {
       if (isRoom) {
          let D = 21;
          M.save();
-            M.translate(0,.1,0);
-            M.scale(.4);
-            draw(squareMesh, '90,90,100'  , null, [  0   ,  -6,-D/2 ], [Math.PI/2,0,0], [2*D,D,.01]);
-            draw(squareMesh, '60,20,10'   , null, [  0   , 7  ,-D/2 ], [Math.PI/2,0,0], [2*D,D/2,.01]);
-            draw(squareMesh, '40,35,35'   , null, [  0   , 0  ,-D-.1], null, [2*D  ,D    ,.01]);
-            draw(squareMesh, '200,150,120', null, [  0   ,-.95,-D   ], null, [  .3 , 5.05,.01]);
-            draw(squareMesh, '200,150,120', null, [  0   , 4.1,-D   ], null, [11.7,   .15,.01]);
-            draw(squareMesh, '200,150,120', null, [  5.2 ,-.95,-D   ], null, [  .1 , 5.05,.01]);
-            draw(squareMesh, '200,150,120', null, [ -5.2 ,-.95,-D   ], null, [  .1 , 5.05,.01]);
-            draw(squareMesh, ' 50, 30, 20', null, [  8.37,-4.7,-D+.1], null, [ 3.08, 1.9 ,.02]);
-            draw(squareMesh, ' 50, 30, 20', null, [ -8.37,-4.7,-D+.1], null, [ 3.08, 1.9 ,.02]);
-            draw(squareMesh, '200,150,120', null, [ 11.4 ,-.95,-D   ], null, [  .09, 5.05,.01]);
-            draw(squareMesh, '200,150,120', null, [ 11.6 ,-.95,-D   ], null, [  .09, 5.05,.01]);
-            draw(squareMesh, '200,150,120', null, [-11.4 ,-.95,-D   ], null, [  .09, 5.05,.01]);
-            draw(squareMesh, '200,150,120', null, [-11.6 ,-.95,-D   ], null, [  .09, 5.05,.01]);
+         M.translate(0, .1, 0);
+         M.scale(.4);
+         draw(squareMesh, '90,90,100', null, [0, -6, -D / 2], [Math.PI / 2, 0, 0], [2 * D, D, .01]);
+         draw(squareMesh, '60,20,10', null, [0, 7, -D / 2], [Math.PI / 2, 0, 0], [2 * D, D / 2, .01]);
+         draw(squareMesh, '40,35,35', null, [0, 0, -D - .1], null, [2 * D, D, .01]);
+         draw(squareMesh, '200,150,120', null, [0, -.95, -D], null, [.3, 5.05, .01]);
+         draw(squareMesh, '200,150,120', null, [0, 4.1, -D], null, [11.7, .15, .01]);
+         draw(squareMesh, '200,150,120', null, [5.2, -.95, -D], null, [.1, 5.05, .01]);
+         draw(squareMesh, '200,150,120', null, [-5.2, -.95, -D], null, [.1, 5.05, .01]);
+         draw(squareMesh, ' 50, 30, 20', null, [8.37, -4.7, -D + .1], null, [3.08, 1.9, .02]);
+         draw(squareMesh, ' 50, 30, 20', null, [-8.37, -4.7, -D + .1], null, [3.08, 1.9, .02]);
+         draw(squareMesh, '200,150,120', null, [11.4, -.95, -D], null, [.09, 5.05, .01]);
+         draw(squareMesh, '200,150,120', null, [11.6, -.95, -D], null, [.09, 5.05, .01]);
+         draw(squareMesh, '200,150,120', null, [-11.4, -.95, -D], null, [.09, 5.05, .01]);
+         draw(squareMesh, '200,150,120', null, [-11.6, -.95, -D], null, [.09, 5.05, .01]);
          M.restore();
       }
 
       // DRAW THE CURSOR
 
-      let cp = CG.mix(cursorTransform(xPrev,yPrev),
-                   CG.matrixTransform(viewMatrixInverse, [0,0,fl]), .5);
-      draw(sphereMesh, 'trueBlack', null, cp, null, [.01,.01,.01]);
+      let cp = CG.mix(cursorTransform(xPrev, yPrev),
+         CG.matrixTransform(viewMatrixInverse, [0, 0, fl]), .5);
+      draw(sphereMesh, 'trueBlack', null, cp, null, [.01, .01, .01]);
 
       // DRAW THE TABLE
 
       M.save();
-         draw(cubeMesh, 'color8', null, [0,-1.03,0], null, [1,.03,1]);
-         draw(tubeMesh, 'color8', null, [0,-2.35,0], [Math.PI/2,0,0], [.1,.1,1.35]);
+      draw(cubeMesh, 'color8', null, [0, -1.03, 0], null, [1, .03, 1]);
+      draw(tubeMesh, 'color8', null, [0, -2.35, 0], [Math.PI / 2, 0, 0], [.1, .1, 1.35]);
       M.restore();
 
       // SHOW CENTERING INDICATOR
 
-      if (! isRubber && isCentering)
-         draw(cubeMesh, 'black', null, null, null, [.0025,2,.0025]);
+      if (!isRubber && isCentering)
+         draw(cubeMesh, 'black', null, null, null, [.0025, 2, .0025]);
 
       // SET IMPLICIT SURFACE PROPERTIES
-   
+
       implicitSurface.setBlobby(true);
       implicitSurface.setBlur(blur);
-      implicitSurface.setDivs(noiseState==2 ? 50 : isRubber ? 100 : activeState() ? 50 : 100);
+      implicitSurface.setDivs(noiseState == 2 ? 50 : isRubber ? 100 : activeState() ? 50 : 100);
       implicitSurface.setFaceted(isFaceted);
       implicitSurface.setNoise(noiseState);
       implicitSurface.setTexture(isTextureSrc ? 'images/frl_texture.jpg' : '');
@@ -372,7 +379,7 @@ export function Modeler(gl) {
 
       // SAVE MATRICES BEFORE DOING ANY JOINT ROTATION
 
-      for (let n = 0 ; n < S.length ; n++)
+      for (let n = 0; n < S.length; n++)
          S[n].M_save = S[n].M.slice();
 
       // HANDLE WIGGLING ANIMATION
@@ -382,11 +389,11 @@ export function Modeler(gl) {
          let w = .1 * wiggleFactor;
          let wiggleRot = n =>
             CG.matrixMultiply(
-            CG.matrixMultiply(CG.matrixRotateX(w * Math.sin(8 * time + S[n].id * 10)),
-                              CG.matrixRotateY(w * Math.sin(8 * time + S[n].id * 20))),
-                              CG.matrixRotateZ(w * Math.sin(8 * time + S[n].id * 30)));
-         rotateAboutPoint(0, wiggleRot(0), S[0].M.slice(12,15));
-         for (let n = 0 ; n < S.length ; n++)
+               CG.matrixMultiply(CG.matrixRotateX(w * Math.sin(8 * time + S[n].id * 10)),
+                  CG.matrixRotateY(w * Math.sin(8 * time + S[n].id * 20))),
+               CG.matrixRotateZ(w * Math.sin(8 * time + S[n].id * 30)));
+         rotateAboutPoint(0, wiggleRot(0), S[0].M.slice(12, 15));
+         for (let n = 0; n < S.length; n++)
             if (S[n].jointPosition) {
                S[n].jointRotation = wiggleRot(n);
                rotateAboutJoint(n);
@@ -398,7 +405,7 @@ export function Modeler(gl) {
       walkFactor = Math.max(0, Math.min(1, walkFactor + (isWalking ? .06 : -.06)));
       if (S.length > 0 && walkFactor > 0) {
 
-         let bird = ! hasPart('left_upper_leg') || hasPart('right_lower_arm') && ! hasPart('right_hand');
+         let bird = !hasPart('left_upper_leg') || hasPart('right_lower_arm') && !hasPart('right_hand');
          let w = CG.sCurve(walkFactor) * .7;
          let tR = bird ? 8 * time : 4 * time;
          let tL = tR + Math.PI;
@@ -406,41 +413,41 @@ export function Modeler(gl) {
          let blink = time > blinkTime - .1;
          if (time > blinkTime)
             blinkTime = time + 1 + 5 * Math.random();
- 
+
          let walkRot = n => {
             let mm = CG.matrixMultiply, rx = CG.matrixRotateX, ry = CG.matrixRotateY, rz = CG.matrixRotateZ;
             let cos = Math.cos, sin = Math.sin;
             let m = CG.matrixIdentity();
             switch (S[n].name) {
-            case 'belly': m = mm(CG.matrixTranslate(0, w * (bird ? .05 : -.05) * sin(2 * tR), 0), rz(w * .1 * cos(tR))); break;
-            case 'chest': m = mm(rz(w * -.13 * cos(tR)), rx(w * -.05 * cos(2 * tR))); break;
-            case 'head' : m = mm(rx(w *  .03 * cos(2 * tR)), rz(w *  .1  * cos(tR))); break;
+               case 'belly': m = mm(CG.matrixTranslate(0, w * (bird ? .05 : -.05) * sin(2 * tR), 0), rz(w * .1 * cos(tR))); break;
+               case 'chest': m = mm(rz(w * -.13 * cos(tR)), rx(w * -.05 * cos(2 * tR))); break;
+               case 'head': m = mm(rx(w * .03 * cos(2 * tR)), rz(w * .1 * cos(tR))); break;
 
-            case 'right_eye': m = blink ? CG.matrixTranslate(0,1000,0) : m; break;
-            case 'left_eye' : m = blink ? CG.matrixTranslate(0,1000,0) : m; break;
+               case 'right_eye': m = blink ? CG.matrixTranslate(0, 1000, 0) : m; break;
+               case 'left_eye': m = blink ? CG.matrixTranslate(0, 1000, 0) : m; break;
 
-            case 'right_upper_arm': m = mm(ry(bird ? 0 : w *  (cos(tR)-.5)/2), rz(bird ? w* (cos(2*tR)+1)/4 :  w)); break;
-            case 'left_upper_arm' : m = mm(ry(bird ? 0 : w * -(cos(tL)-.5)/2), rz(bird ? w*-(cos(2*tL)+1)/4 : -w)); break;
+               case 'right_upper_arm': m = mm(ry(bird ? 0 : w * (cos(tR) - .5) / 2), rz(bird ? w * (cos(2 * tR) + 1) / 4 : w)); break;
+               case 'left_upper_arm': m = mm(ry(bird ? 0 : w * -(cos(tL) - .5) / 2), rz(bird ? w * -(cos(2 * tL) + 1) / 4 : -w)); break;
 
-            case 'right_lower_arm': m = mm(rx(bird ? 0 : w * (-sin(tR)-1)/2), rz(bird ?  sin(2*tR)/8 :  w)); break;
-            case 'left_lower_arm' : m = mm(rx(bird ? 0 : w * (-sin(tL)-1)/2), rz(bird ? -sin(2*tL)/8 : -w)); break;
+               case 'right_lower_arm': m = mm(rx(bird ? 0 : w * (-sin(tR) - 1) / 2), rz(bird ? sin(2 * tR) / 8 : w)); break;
+               case 'left_lower_arm': m = mm(rx(bird ? 0 : w * (-sin(tL) - 1) / 2), rz(bird ? -sin(2 * tL) / 8 : -w)); break;
 
-            case 'right_hand'     : m = rx(w * -sin(tR)/4); break;
-            case 'left_hand'      : m = rx(w * -cos(tR)/4); break;
+               case 'right_hand': m = rx(w * -sin(tR) / 4); break;
+               case 'left_hand': m = rx(w * -cos(tR) / 4); break;
 
-            case 'right_upper_leg': m = mm(rz(w* .05 * (sin(tR)-.5)), rx(w*(bird ? -cos(tR)+1.5 : 1.5*cos(tR)-.5)/2)); break;
-            case 'left_upper_leg' : m = mm(rz(w*-.05 * (sin(tL)+.5)), rx(w*(bird ? -cos(tL)+1.5 : 1.5*cos(tL)-.5)/2)); break;
+               case 'right_upper_leg': m = mm(rz(w * .05 * (sin(tR) - .5)), rx(w * (bird ? -cos(tR) + 1.5 : 1.5 * cos(tR) - .5) / 2)); break;
+               case 'left_upper_leg': m = mm(rz(w * -.05 * (sin(tL) + .5)), rx(w * (bird ? -cos(tL) + 1.5 : 1.5 * cos(tL) - .5) / 2)); break;
 
-            case 'right_lower_leg': m = rx(w * (bird ? sin(tR) - 1 : (sin(tR) + 1)*1.5)); break;
-            case 'left_lower_leg' : m = rx(w * (bird ? sin(tL) - 1 : (sin(tL) + 1)*1.5)); break;
+               case 'right_lower_leg': m = rx(w * (bird ? sin(tR) - 1 : (sin(tR) + 1) * 1.5)); break;
+               case 'left_lower_leg': m = rx(w * (bird ? sin(tL) - 1 : (sin(tL) + 1) * 1.5)); break;
 
-            case 'right_foot'     : m = rx(w * (bird ? cos(tR)/2 - sin(tR)/2 : -cos(tR)/2)); break;
-            case 'left_foot'      : m = rx(w * (bird ? cos(tL)/2 - sin(tL)/2 : -cos(tL)/2)); break;
+               case 'right_foot': m = rx(w * (bird ? cos(tR) / 2 - sin(tR) / 2 : -cos(tR) / 2)); break;
+               case 'left_foot': m = rx(w * (bird ? cos(tL) / 2 - sin(tL) / 2 : -cos(tL) / 2)); break;
             }
             return m;
          }
-         rotateAboutPoint(0, walkRot(0), S[0].M.slice(12,15));
-         for (let n = 0 ; n < S.length ; n++)
+         rotateAboutPoint(0, walkRot(0), S[0].M.slice(12, 15));
+         for (let n = 0; n < S.length; n++)
             if (S[n].jointPosition) {
                S[n].jointRotation = walkRot(n);
                rotateAboutJoint(n);
@@ -448,7 +455,7 @@ export function Modeler(gl) {
       }
 
       // DRAW THE MODEL
-   
+
       implicitSurface.beginBlobs();
 
       // SHOW JOINTS IF IN JOINT SHOWING MODE
@@ -459,133 +466,133 @@ export function Modeler(gl) {
 
          let drawLink = (p1, p2, r) => {       // DRAW A LINK BETWEEEN TWO JOINTS
             M.save();
-               M.set(vm);
-               M.translate(CG.mix(p1, p2, 0.5));
-               let dp = [p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]];
-               M.aimZ(dp);
-               M.scale(r,r,CG.norm(dp) / 2);
-               draw(tubeMesh, 'white');
+            M.set(vm);
+            M.translate(CG.mix(p1, p2, 0.5));
+            let dp = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+            M.aimZ(dp);
+            M.scale(r, r, CG.norm(dp) / 2);
+            draw(tubeMesh, 'white');
             M.restore();
             linkCount++;
          }
 
-         for (let n = 0 ; n < S.length ; n++) {
+         for (let n = 0; n < S.length; n++) {
             let s = S[n];
             if (s.jointPosition) {
 
                // SHOW JOINT
 
                M.save();
-                  M.set(CG.matrixMultiply(vm, s.M));
-                  M.translate(s.jointPosition);
-                  let sc = i => .02 / CG.norm(M.value().slice(4*i,4*i+3));
-                  M.scale(sc(0), sc(1), sc(2));
-                  draw(sphereMesh, 'white');
+               M.set(CG.matrixMultiply(vm, s.M));
+               M.translate(s.jointPosition);
+               let sc = i => .02 / CG.norm(M.value().slice(4 * i, 4 * i + 3));
+               M.scale(sc(0), sc(1), sc(2));
+               draw(sphereMesh, 'white');
                M.restore();
 
                // CONNECT PARENT AND CHILD JOINT
 
                if (parent(s) && parent(s).jointPosition)
                   drawLink(CG.matrixTransform(parent(s).M, parent(s).jointPosition),
-                           CG.matrixTransform(s.M, s.jointPosition), .01);
+                     CG.matrixTransform(s.M, s.jointPosition), .01);
             }
 
             // CONNECT TOGETHER THE CHILD JOINTS OF FIRST BLOB
 
             if (n == 0) {
                let P = [];
-               for (let i = 0 ; i < S.length ; i++)
+               for (let i = 0; i < S.length; i++)
                   if (S[i].parentID == s.id)
                      P.push(CG.matrixTransform(S[i].M, S[i].jointPosition));
-               for (let j = 0 ; j < P.length ; j++)
+               for (let j = 0; j < P.length; j++)
                   drawLink(P[j], P[(j + 1) % P.length], .005);
             }
          }
       }
 
       let ethane = id == 'ethane';
-      let rm = CG.matrixMultiply(CG.matrixRotateY(ethane ? -2*time : -1.1*time + .03 * Math.sin(6*time)),
-               CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7,-.5,0),
-                                 CG.matrixScale(ethane ? .8 : .5)));
+      let rm = CG.matrixMultiply(CG.matrixRotateY(ethane ? -2 * time : -1.1 * time + .03 * Math.sin(6 * time)),
+         CG.matrixMultiply(CG.matrixTranslate(ethane ? 0 : .7, -.5, 0),
+            CG.matrixScale(ethane ? .8 : .5)));
       if (ethane)
-         rm = CG.matrixMultiply(CG.matrixTranslate(0,0,.5), rm);
+         rm = CG.matrixMultiply(CG.matrixTranslate(0, 0, .5), rm);
 
       // SPECIFY THE BLOBS FOR THE MODEL
-   
-      for (let n = 0 ; n < S.length ; n++) {
+
+      for (let n = 0; n < S.length; n++) {
          M.save();
 
-            let materialId = S[n].color;
+         let materialId = S[n].color;
+         let m = materials[materialId];
+         m.specular = isRubber ? [0, 0, 0, 20] : [.4, .4, .4, 8];
+
+         // ADD TO ARRAY OF BLOBS
+
+         implicitSurface.addBlob(
+            S[n].type == 4 ? implicitSurface.CUBE :
+               S[n].type == 3 ? implicitSurface.CYLINDERZ :
+                  S[n].type == 2 ? implicitSurface.CYLINDERY :
+                     S[n].type == 1 ? implicitSurface.CYLINDERX :
+                        implicitSurface.SPHERE,
+            S[n].rounded,
+            S[n].M,
+            materialId,
+            S[n].isBlobby ? S[n].sign : 0,
+            n == mn);
+
+         // IF NOT IN BLOBBY MODE, DRAW THE SHAPE
+
+         if (!S[n].isBlobby) {
             let m = materials[materialId];
-            m.specular = isRubber ? [0,0,0,20] : [.4,.4,.4,8];
-
-            // ADD TO ARRAY OF BLOBS
-
-            implicitSurface.addBlob(
-               S[n].type==4 ? implicitSurface.CUBE :
-               S[n].type==3 ? implicitSurface.CYLINDERZ :
-               S[n].type==2 ? implicitSurface.CYLINDERY :
-               S[n].type==1 ? implicitSurface.CYLINDERX :
-                              implicitSurface.SPHERE,
-               S[n].rounded,
-               S[n].M,
-               materialId,
-               S[n].isBlobby ? S[n].sign : 0,
-               n==mn);
-
-            // IF NOT IN BLOBBY MODE, DRAW THE SHAPE
-
-            if (! S[n].isBlobby) {
-               let m = materials[materialId];
-               m.specular = [.9,.9,.9,30];
-               if (n == mn)
-                  m.texture = [.5,0,0,0];
-               M.save();
-                  let sm = CG.matrixMultiply(vm, rm);
-                  M.set(CG.matrixMultiply(sm, S[n].M));
-                  if (S[n].type == 1) M.rotateY(Math.PI/2);
-                  if (S[n].type == 2) M.rotateX(Math.PI/2);
-                  draw(S[n].type==4 ? cubeMesh :
-                       S[n].type> 0 ? cylinderMesh :
-                                      sphereMesh, materialId);
-               M.restore();
-               if (m.texture)
-                  delete m.texture;
-               m.specular = [.1,.1,.1,2];
-            }
+            m.specular = [.9, .9, .9, 30];
+            if (n == mn)
+               m.texture = [.5, 0, 0, 0];
+            M.save();
+            let sm = CG.matrixMultiply(vm, rm);
+            M.set(CG.matrixMultiply(sm, S[n].M));
+            if (S[n].type == 1) M.rotateY(Math.PI / 2);
+            if (S[n].type == 2) M.rotateX(Math.PI / 2);
+            draw(S[n].type == 4 ? cubeMesh :
+               S[n].type > 0 ? cylinderMesh :
+                  sphereMesh, materialId);
+            M.restore();
+            if (m.texture)
+               delete m.texture;
+            m.specular = [.1, .1, .1, 2];
+         }
 
          M.restore();
       }
 
       // IF SHOWING JOINTS, MAKE BLOB MODEL TRANSPARENT
 
-      setUniform('1f', 'uNoisy'  , isRubber ? 1 : 0);
+      setUniform('1f', 'uNoisy', isRubber ? 1 : 0);
       setUniform('1f', 'uOpacity', isShowingJoints ? .3 : 1);
       M.save();
-         M.set(vm);
-         M.multiply(rm);
-         implicitSurface.endBlobs();
+      M.set(vm);
+      M.multiply(rm);
+      implicitSurface.endBlobs();
       M.restore();
-      setUniform('1f', 'uNoisy'  , 0);
+      setUniform('1f', 'uNoisy', 0);
       setUniform('1f', 'uOpacity', 1);
 
       // SHOW VISUAL HINT OF ANY NEGATIVE SHAPES
 
-      if (! isRubber) {
+      if (!isRubber) {
          setUniform('1f', 'uOpacity', .25);
-         for (let n = 0 ; n < S.length ; n++)
+         for (let n = 0; n < S.length; n++)
             if (S[n].sign == -1) {
                M.save();
-                  M.set(CG.matrixMultiply(vm, S[n].M));
-                  let m = materials[S[n].color],
-                      type = S[n].type;
-                  if (n == mn)
-                     m.texture = [.5,0,0,0];
-                  if (type==1) M.rotateY(Math.PI/2);
-                  if (type==2) M.rotateX(Math.PI/2);
-                  draw(type==0 ? sphereMesh : type< 4 ? cylinderMesh : cubeMesh, S[n].color);
-                  if (m.texture)
-                     delete m.texture;
+               M.set(CG.matrixMultiply(vm, S[n].M));
+               let m = materials[S[n].color],
+                  type = S[n].type;
+               if (n == mn)
+                  m.texture = [.5, 0, 0, 0];
+               if (type == 1) M.rotateY(Math.PI / 2);
+               if (type == 2) M.rotateX(Math.PI / 2);
+               draw(type == 0 ? sphereMesh : type < 4 ? cylinderMesh : cubeMesh, S[n].color);
+               if (m.texture)
+                  delete m.texture;
                M.restore();
             }
          setUniform('1f', 'uOpacity', 1);
@@ -593,35 +600,35 @@ export function Modeler(gl) {
 
       // OPTIONALLY SHOW BOUNDING BOXES AROUND BLOBS
 
-      if (! isRubber && isShowingBounds) {
+      if (!isRubber && isShowingBounds) {
          let drawBoundsCube = (b, matrix, t) => {
             let x0 = b[0][0], x1 = b[0][1];
             let y0 = b[1][0], y1 = b[1][1];
             let z0 = b[2][0], z1 = b[2][1];
             M.save();
-               M.set(matrix);
-               M.translate((x0+x1)/2, (y0+y1)/2, (z0+z1)/2);
-               M.scale((x1-x0)/2, (y1-y0)/2, (z1-z0)/2);
-               setUniform('1f', 'uOpacity', t ? t : 0.3);
-               draw(cubeMesh, 'white');
-               setUniform('1f', 'uOpacity', 1);
+            M.set(matrix);
+            M.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+            M.scale((x1 - x0) / 2, (y1 - y0) / 2, (z1 - z0) / 2);
+            setUniform('1f', 'uOpacity', t ? t : 0.3);
+            draw(cubeMesh, 'white');
+            setUniform('1f', 'uOpacity', 1);
             M.restore();
          }
 
          let bounds = implicitSurface.bounds();
-         let b = [[100,-100],[100,-100],[100,-100]];
-         for (let n = 0 ; n < bounds.length ; n++) {
+         let b = [[100, -100], [100, -100], [100, -100]];
+         for (let n = 0; n < bounds.length; n++) {
             drawBoundsCube(bounds[n], vm);
-            for (let j = 0 ; j < 3 ; j++) {
+            for (let j = 0; j < 3; j++) {
                b[j][0] = Math.min(b[j][0], bounds[n][j][0]);
                b[j][1] = Math.max(b[j][1], bounds[n][j][1]);
             }
          }
          drawBoundsCube(b, vm, .1);
-         drawBoundsCube([[-1,-.99],[-1,1],[-1,1]], vm, .1);
-         drawBoundsCube([[ .99, 1],[-1,1],[-1,1]], vm, .1);
-         drawBoundsCube([[-1,1],[-1,-.99],[-1,1]], vm, .1);
-         drawBoundsCube([[-1,1],[ .99, 1],[-1,1]], vm, .1);
+         drawBoundsCube([[-1, -.99], [-1, 1], [-1, 1]], vm, .1);
+         drawBoundsCube([[.99, 1], [-1, 1], [-1, 1]], vm, .1);
+         drawBoundsCube([[-1, 1], [-1, -.99], [-1, 1]], vm, .1);
+         drawBoundsCube([[-1, 1], [.99, 1], [-1, 1]], vm, .1);
       }
 
       M.restore();
@@ -631,7 +638,7 @@ export function Modeler(gl) {
 
       // POSSIBLY REBUILD THE IMPLICIT SURFACE
 
-      if (noiseState==2 || ! isRubber && activeState() && frameCount % 4 == 0) {
+      if (noiseState == 2 || !isRubber && activeState() && frameCount % 4 == 0) {
          implicitSurface.remesh();
          if (toRubber) {
             isRubber = true;
@@ -641,11 +648,11 @@ export function Modeler(gl) {
 
       // RESTORE MATRICES TO BEFORE JOINT ROTATIONS
 
-      for (let n = 0 ; n < S.length ; n++)
+      for (let n = 0; n < S.length; n++)
          S[n].M = S[n].M_save;
 
       // HANDLE ROTATING THE MODEL
-   
+
       let delta = 2 * elapsed;
 
       let rotatexTarget = Math.PI / 2 * rotatexState;
@@ -671,38 +678,38 @@ export function Modeler(gl) {
       modelMatrix = CG.matrixMultiply(CG.matrixRotateY(rotatey), CG.matrixRotateX(rotatex));
       modelMatrixInverse = CG.matrixInvert(modelMatrix);
 
-      vm  = CG.matrixMultiply(viewMatrix, modelMatrix);
+      vm = CG.matrixMultiply(viewMatrix, modelMatrix);
       vmi = CG.matrixMultiply(modelMatrixInverse, viewMatrixInverse);
    }
 
    // FIND OUT WHETHER THE MODEL HAS A PARTICULAR NAMED PART
 
    let hasPart = partName => {
-      for (let i = 0 ; i < S.length ; i++)
+      for (let i = 0; i < S.length; i++)
          if (S[i].name === partName)
             return true;
       return false;
    }
 
    // INSERT A BLOB INTO THE ARRAY OF BLOBS
-   
+
    let insertBlob = (nInsert, s) => {
-      for (let n = S.length ; n > nInsert ; n--)
-         S[n] = S[n-1];
+      for (let n = S.length; n > nInsert; n--)
+         S[n] = S[n - 1];
       S[nInsert] = s;
       activeSet(true);
    }
 
    // DELETE A BLOB
-   
+
    let deleteBlob = nDelete => {
       let s = S[nDelete];
 
-      for (let n = nDelete ; n < S.length - 1 ; n++)
-         S[n] = S[n+1];
+      for (let n = nDelete; n < S.length - 1; n++)
+         S[n] = S[n + 1];
       S.pop();
 
-      for (let n = 0 ; n < S.length ; n++)
+      for (let n = 0; n < S.length; n++)
          if (S[n].parentID == s.id) {
             delete S[n].parentID;
             delete S[n].jointPosition;
@@ -716,14 +723,14 @@ export function Modeler(gl) {
 
    let findBlobIndex = s => {
       if (s)
-         for (let n = 0 ; n < S.length ; n++)
+         for (let n = 0; n < S.length; n++)
             if (s.id == S[n].id)
                return n;
       return -1;
    }
 
    let findBlobFromID = id => {
-      for (let n = 0 ; n < S.length ; n++)
+      for (let n = 0; n < S.length; n++)
          if (S[n].id == id)
             return S[n];
       return null;
@@ -744,7 +751,7 @@ export function Modeler(gl) {
       if (isCreating)
          createEnd();
       let S2 = [];
-      for (let n = 0 ; n < S.length ; n++)
+      for (let n = 0; n < S.length; n++)
          S2.push(blobDuplicate(S[n]));
       undoStack[++undoStackPointer] = S2;
    }
@@ -761,12 +768,12 @@ export function Modeler(gl) {
    }
 
    let redo = () => {
-      if (undoStackPointer < undoStack.length-1) {
+      if (undoStackPointer < undoStack.length - 1) {
          S = undoStack[++undoStackPointer];
          activeSet(true);
       }
-      if (undoStackPointer == undoStack.length-1)
-         undoStackPointer = undoStack.length-2;
+      if (undoStackPointer == undoStack.length - 1)
+         undoStackPointer = undoStack.length - 2;
    }
 
    // DUPLICATE A BLOB
@@ -795,35 +802,35 @@ export function Modeler(gl) {
 
    let computeMatrix = s => {
       let C = CG.mix(s.A, s.B, 0.5),
-          R = [ Math.max(rMin, Math.abs(s.A[0] - s.B[0]) / 2),
-                Math.max(rMin, Math.abs(s.A[1] - s.B[1]) / 2),
-                Math.max(rMin, Math.abs(s.A[2] - s.B[2]) / 2) ];
-      s.M = [ R[0], 0   , 0   , 0 ,
-              0   , R[1], 0   , 0 ,
-              0   , 0   , R[2], 0 ,
-              C[0], C[1], C[2], 1 ];
+         R = [Math.max(rMin, Math.abs(s.A[0] - s.B[0]) / 2),
+         Math.max(rMin, Math.abs(s.A[1] - s.B[1]) / 2),
+         Math.max(rMin, Math.abs(s.A[2] - s.B[2]) / 2)];
+      s.M = [R[0], 0, 0, 0,
+         0, R[1], 0, 0,
+         0, 0, R[2], 0,
+      C[0], C[1], C[2], 1];
       s.M = CG.matrixMultiply(vmi, s.M);
       computeQuadric(s);
    }
 
    // COMPUTE THE QUADRIC EQUATION FOR RAY TRACING TO A BLOB
-   
+
    let computeQuadric = s => {
       let IM = CG.matrixInvert(s.M);
       s.Q = CG.matrixMultiply(CG.matrixTranspose(IM),
-                            CG.matrixMultiply([1, 0, 0, 0,
-                                             0, 1, 0, 0,
-                                             0, 0, 1, 0,
-                                             0, 0, 0,-1], IM));
+         CG.matrixMultiply([1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, -1], IM));
    }
 
    // RAY TRACE TO A BLOB
-   
-   let raytraceToQuadric = (Q,p,u) => {
+
+   let raytraceToQuadric = (Q, p, u) => {
       let A = CG.dot(u, CG.matrixTransform(Q, u)),
-          B = CG.dot(u, CG.matrixTransform(Q, p)),
-          C = CG.dot(p, CG.matrixTransform(Q, p)),
-          D = B*B - A*C;
+         B = CG.dot(u, CG.matrixTransform(Q, p)),
+         C = CG.dot(p, CG.matrixTransform(Q, p)),
+         D = B * B - A * C;
       return D < 0 ? 10000 : (-B - Math.sqrt(D)) / A;
    }
 
@@ -835,12 +842,12 @@ export function Modeler(gl) {
          activeSet(true);
       mnPrev = mn;
    }
-   
-   let findBlob = (x,y) => {
-      let p = CG.matrixTransform(vmi, [0,0,fl,1]);
-      let u = CG.matrixTransform(vmi, CG.normalize([x,y,-fl,0]));
+
+   let findBlob = (x, y) => {
+      let p = CG.matrixTransform(vmi, [0, 0, fl, 1]);
+      let u = CG.matrixTransform(vmi, CG.normalize([x, y, -fl, 0]));
       let tMin = 1000, nMin = -1;
-      for (let n = 0 ; n < S.length ; n++) {
+      for (let n = 0; n < S.length; n++) {
          let t = raytraceToQuadric(S[n].Q, p, u);
          if (t < tMin) {
             tMin = t;
@@ -852,19 +859,19 @@ export function Modeler(gl) {
 
    // GET THE DISTANCE TO THE BLOB AT A PIXEL
 
-   let blobZ = (n, x,y) => {
-      let p = [0,0,fl,1];
-      let u = CG.normalize([x,y,-fl,0]);
+   let blobZ = (n, x, y) => {
+      let p = [0, 0, fl, 1];
+      let u = CG.normalize([x, y, -fl, 0]);
       let t = raytraceToQuadric(S[n].Q, p, u);
       return p[2] + t * u[2];
    }
 
    let rotateAboutPoint = (nn, rot, p) => {
       let s = S[nn];
-      move(s,-p[0],-p[1],-p[2]);
+      move(s, -p[0], -p[1], -p[2]);
       s.M = CG.matrixMultiply(rot, s.M);
       move(s, p[0], p[1], p[2]);
-      for (let n = 1 ; n < S.length ; n++)
+      for (let n = 1; n < S.length; n++)
          if (S[n].parentID == s.id)
             rotateAboutPoint(n, rot, p);
    }
@@ -874,53 +881,53 @@ export function Modeler(gl) {
       rotateAboutPoint(nn, S[nn].jointRotation, p);
    }
 
-   let move = (s,x,y,z) => { s.M[12]+=x; s.M[13]+=y; s.M[14]+=z; }
+   let move = (s, x, y, z) => { s.M[12] += x; s.M[13] += y; s.M[14] += z; }
 
    // MOVE, ROTATE OR SCALE A BLOB
 
-   let xfBlob = (s, matrix, x,y,z, isTransformingChildren) => {
-      move(s,-x,-y,-z);
-      s.M = CG.matrixMultiply(vm    , s.M);
+   let xfBlob = (s, matrix, x, y, z, isTransformingChildren) => {
+      move(s, -x, -y, -z);
+      s.M = CG.matrixMultiply(vm, s.M);
       s.M = CG.matrixMultiply(matrix, s.M);
-      s.M = CG.matrixMultiply(vmi   , s.M);
+      s.M = CG.matrixMultiply(vmi, s.M);
       move(s, x, y, z);
       if (isTransformingChildren)
-         for (let i = 0 ; i < S.length ; i++)
+         for (let i = 0; i < S.length; i++)
             if (S[i].parentID == s.id)
-               xfBlob(S[i], matrix, x,y,z, true);
+               xfBlob(S[i], matrix, x, y, z, true);
    }
 
-   let transformBlob = (n, x,y,z) => {
+   let transformBlob = (n, x, y, z) => {
       let s = S[n];
       activeSet(true);
       let mx = s.M[12], my = s.M[13], mz = s.M[14];
       if (isUniformScaling)
          xfBlob(s,
-                CG.matrixScale(1+4*y, 1+4*y, 1+4*y),
-                mx,my,mz,
-                isPressed);
+            CG.matrixScale(1 + 4 * y, 1 + 4 * y, 1 + 4 * y),
+            mx, my, mz,
+            isPressed);
       if (isScaling)
          xfBlob(s,
-                CG.matrixScale(1+4*x, 1+4*y, 1+4*z),
-                mx,my,mz,
-                isPressed);
+            CG.matrixScale(1 + 4 * x, 1 + 4 * y, 1 + 4 * z),
+            mx, my, mz,
+            isPressed);
       if (isRotating)
          xfBlob(s,
-                CG.matrixMultiply(CG.matrixRotateX(-y), CG.matrixRotateY( x)),
-                mx,my,mz,
-                isPressed);
+            CG.matrixMultiply(CG.matrixRotateX(-y), CG.matrixRotateY(x)),
+            mx, my, mz,
+            isPressed);
       if (isTranslating) {
-         s.M[12] += vmi[0] * x + vmi[4] * y + vmi[ 8] * z;
-         s.M[13] += vmi[1] * x + vmi[5] * y + vmi[ 9] * z;
+         s.M[12] += vmi[0] * x + vmi[4] * y + vmi[8] * z;
+         s.M[13] += vmi[1] * x + vmi[5] * y + vmi[9] * z;
          s.M[14] += vmi[2] * x + vmi[6] * y + vmi[10] * z;
-         if (! isRubber && rotatexState % 4 == 0 && rotateyState % 4 == 0 && (n == mn || I(n) == mn)) {
+         if (!isRubber && rotatexState % 4 == 0 && rotateyState % 4 == 0 && (n == mn || I(n) == mn)) {
             let b = implicitSurface.bounds();
             let bn = b[n];
-            for (let i = 0 ; i < S.length ; i++) {
+            for (let i = 0; i < S.length; i++) {
                if (S[i].isBlobby) {
                   let bi = b[i];
                   if (bi[0][0] < bn[0][0] && bi[0][1] > bn[0][1] &&
-                      bi[1][0] < bn[1][0] && bi[1][1] > bn[1][1]) {
+                     bi[1][0] < bn[1][0] && bi[1][1] > bn[1][1]) {
                      s.M[14] = blobZ(i, xPrev, yPrev);
                      break;
                   }
@@ -928,84 +935,84 @@ export function Modeler(gl) {
             }
          }
          if (isPressed)
-            for (let i = 0 ; i < S.length ; i++)
+            for (let i = 0; i < S.length; i++)
                if (S[i].parentID == s.id)
                   if (isDraggingFromCenter || S[i].symmetry < 2)
-                     transform2(i, x,y,z);
+                     transform2(i, x, y, z);
       }
       computeQuadric(s);
    }
 
    let isDraggingFromCenter = false;
 
-   let I = n => S[n].symmetry==2 ? n-1 : n;
-   
+   let I = n => S[n].symmetry == 2 ? n - 1 : n;
+
    let transform = (n, dx, dy, dz) => {
       isDraggingFromCenter = isPressed && S[n].symmetry == 0;
       if (isDraggingFromCenter)
-         for (let i = 0 ; i < S.length ; i++) {
-             S[i].saveSymmetry = S[i].symmetry;
-             S[i].symmetry = 0;
+         for (let i = 0; i < S.length; i++) {
+            S[i].saveSymmetry = S[i].symmetry;
+            S[i].symmetry = 0;
          }
       transform2(n, dx, dy, dz);
       if (isDraggingFromCenter)
-         for (let i = 0 ; i < S.length ; i++) {
+         for (let i = 0; i < S.length; i++) {
             S[i].symmetry = S[i].saveSymmetry;
             delete S[i].saveSymmetry;
          }
    }
    let transform2 = (n, dx, dy, dz) => {
       let sym = S[n].symmetry ? 1 : 0;
-      for (let i = 0 ; i <= sym ; i++) {
+      for (let i = 0; i <= sym; i++) {
          let sgn = isScaling || isUniformScaling || i == 0 ? 1 : -1;
-         if (! isScaling && ! isUniformScaling && I(n) == n-1) sgn *= -1;
+         if (!isScaling && !isUniformScaling && I(n) == n - 1) sgn *= -1;
          let r = rotateyState % 2;
-         let sx = ! isRotating || i==0 ? 1 : -1;
-         transformBlob(I(n)+i, r ?  sx*dx : dx*sgn,
-                               r ?  sx*dy : dy,
-                               r ? sgn*dz : dz);
+         let sx = !isRotating || i == 0 ? 1 : -1;
+         transformBlob(I(n) + i, r ? sx * dx : dx * sgn,
+            r ? sx * dy : dy,
+            r ? sgn * dz : dz);
       }
    }
 
    let nameBipedParts = () => {
-      for (let i = 0 ; i < S.length ; i++)
+      for (let i = 0; i < S.length; i++)
          if (S[i].name == 'right_foot') {
-            for (let n = 0 ; n < S.length ; n++) {
+            for (let n = 0; n < S.length; n++) {
                let s = S[n], m = s.symmetry;
-               if (isChildOf(s, 'chest')) s.name = m==0 ? 'head' : m==1 ? 'right_upper_arm' : 'left_upper_arm';
-               if (isChildOf(s, 'left_upper_arm' )) s.name = 'left_lower_arm' ;
+               if (isChildOf(s, 'chest')) s.name = m == 0 ? 'head' : m == 1 ? 'right_upper_arm' : 'left_upper_arm';
+               if (isChildOf(s, 'left_upper_arm')) s.name = 'left_lower_arm';
                if (isChildOf(s, 'right_upper_arm')) s.name = 'right_lower_arm';
-               if (isChildOf(s, 'left_upper_arm' )) s.name = 'left_lower_arm' ;
+               if (isChildOf(s, 'left_upper_arm')) s.name = 'left_lower_arm';
                if (isChildOf(s, 'right_lower_arm')) s.name = 'right_hand';
-               if (isChildOf(s, 'left_lower_arm' )) s.name = 'left_hand' ;
+               if (isChildOf(s, 'left_lower_arm')) s.name = 'left_hand';
             }
             return;
          }
 
       S[0].name = 'belly';
-      for (let n = 1 ; n < S.length ; n++) {
+      for (let n = 1; n < S.length; n++) {
          let s = S[n], m = s.symmetry;
-         if      (isChildOf(s, 'belly')) s.name = m==0 ? 'chest' : m==1 ? 'right_upper_leg' : 'left_upper_leg';
-         else if (isChildOf(s, 'chest')) s.name = m==0 ? 'head'  : m==1 ? 'right_upper_arm' : 'left_upper_arm';
-         else if (isChildOf(s, 'head' )) s.name = m==0 ? 'nose'  : m==1 ? 'right_eye'       : 'left_eye'      ;
+         if (isChildOf(s, 'belly')) s.name = m == 0 ? 'chest' : m == 1 ? 'right_upper_leg' : 'left_upper_leg';
+         else if (isChildOf(s, 'chest')) s.name = m == 0 ? 'head' : m == 1 ? 'right_upper_arm' : 'left_upper_arm';
+         else if (isChildOf(s, 'head')) s.name = m == 0 ? 'nose' : m == 1 ? 'right_eye' : 'left_eye';
          else if (isChildOf(s, 'right_upper_leg')) s.name = 'right_lower_leg';
-         else if (isChildOf(s, 'right_lower_leg')) s.name = 'right_foot'     ;
+         else if (isChildOf(s, 'right_lower_leg')) s.name = 'right_foot';
          else if (isChildOf(s, 'right_upper_arm')) s.name = 'right_lower_arm';
-         else if (isChildOf(s, 'right_lower_arm')) s.name = 'right_hand'     ;
-         else if (isChildOf(s, 'left_upper_leg' )) s.name = 'left_lower_leg' ;
-         else if (isChildOf(s, 'left_lower_leg' )) s.name = 'left_foot'      ;
-         else if (isChildOf(s, 'left_upper_arm' )) s.name = 'left_lower_arm' ;
-         else if (isChildOf(s, 'left_lower_arm' )) s.name = 'left_hand'      ;
+         else if (isChildOf(s, 'right_lower_arm')) s.name = 'right_hand';
+         else if (isChildOf(s, 'left_upper_leg')) s.name = 'left_lower_leg';
+         else if (isChildOf(s, 'left_lower_leg')) s.name = 'left_foot';
+         else if (isChildOf(s, 'left_upper_arm')) s.name = 'left_lower_arm';
+         else if (isChildOf(s, 'left_lower_arm')) s.name = 'left_hand';
       }
    }
 
    // INTERACTION TO CREATE A NEW BLOB
 
-   let createBegin = (x,y) => {
+   let createBegin = (x, y) => {
       mn = S.length;
       S.push({
-         A: [x,y,0],
-         B: [x+.01,y+.01,0],
+         A: [x, y, 0],
+         B: [x + .01, y + .01, 0],
          color: defaultColor,
          id: CG.uniqueID(),
          isBlobby: true,
@@ -1020,11 +1027,11 @@ export function Modeler(gl) {
       yPrev = y;
    }
 
-   let createDrag = (x,y) => {
+   let createDrag = (x, y) => {
       activeSet(true);
       let s = S[mn];
 
-      if (!s || ! s.B) {
+      if (!s || !s.B) {
          mn = -1;
          keyChar = null;
          return;
@@ -1033,11 +1040,11 @@ export function Modeler(gl) {
       s.B[0] = x;
       s.B[1] = y;
       let rz = Math.max(rMin, Math.min(Math.abs(s.A[0] - s.B[0]),
-                                       Math.abs(s.A[1] - s.B[1])) / 2);
+         Math.abs(s.A[1] - s.B[1])) / 2);
       s.A[2] = -rz;
       s.B[2] = +rz;
 
-// We need to transform here so that mouse movement makes changes in view coords.
+      // We need to transform here so that mouse movement makes changes in view coords.
 
       computeMatrix(s);
       xyTravel += Math.abs(x - xPrev) + Math.abs(y - yPrev);
@@ -1058,9 +1065,9 @@ export function Modeler(gl) {
    let deleteSelectedBlob = () => {
       if (S.length > 0) {               // DELETE A BLOB
          let n = ns(), sym = S[n].symmetry;
-         if (sym == 1) deleteBlob(n+1);
-                       deleteBlob(n);
-         if (sym == 2) deleteBlob(n-1);
+         if (sym == 1) deleteBlob(n + 1);
+         deleteBlob(n);
+         if (sym == 2) deleteBlob(n - 1);
       }
    }
 
@@ -1068,15 +1075,15 @@ export function Modeler(gl) {
 
    let handleJoint = nn => {
       if (nn >= 1) {
-         let intersection = (a,b) => {
-            return [ [ Math.max(a[0][0],b[0][0]), Math.min(a[0][1],b[0][1]) ],
-                     [ Math.max(a[1][0],b[1][0]), Math.min(a[1][1],b[1][1]) ],
-                     [ Math.max(a[2][0],b[2][0]), Math.min(a[2][1],b[2][1]) ] ];
+         let intersection = (a, b) => {
+            return [[Math.max(a[0][0], b[0][0]), Math.min(a[0][1], b[0][1])],
+            [Math.max(a[1][0], b[1][0]), Math.min(a[1][1], b[1][1])],
+            [Math.max(a[2][0], b[2][0]), Math.min(a[2][1], b[2][1])]];
          }
          let computeJointPosition = (s, I) =>
-            s.jointPosition = CG.matrixTransform(CG.matrixInvert(s.M), [ (I[0][0] + I[0][1]) / 2,
-                                                                      (I[1][0] + I[1][1]) / 2,
-                                                                      (I[2][0] + I[2][1]) / 2 ]);
+            s.jointPosition = CG.matrixTransform(CG.matrixInvert(s.M), [(I[0][0] + I[0][1]) / 2,
+            (I[1][0] + I[1][1]) / 2,
+            (I[2][0] + I[2][1]) / 2]);
 
          if (S[nn].parentID) {                          // REPOSITION EXISTING JOINT
             let b = implicitSurface.bounds();
@@ -1085,7 +1092,7 @@ export function Modeler(gl) {
                let I = intersection(b[n], b[nn]);
                computeJointPosition(S[nn], I);
                if (S[nn].symmetry) {
-                  let nn2 = S[nn].symmetry==1 ? nn+1 : nn-1;
+                  let nn2 = S[nn].symmetry == 1 ? nn + 1 : nn - 1;
                   let n2 = findBlobIndex(parent(S[nn2]));
                   let I = intersection(b[n2], b[nn2]);
                   computeJointPosition(S[nn2], I);
@@ -1094,12 +1101,12 @@ export function Modeler(gl) {
          }
          else {                                         // CREATE NEW JOINT
             let b = implicitSurface.bounds();
-            for (let n = 0 ; n < b.length ; n++) {
+            for (let n = 0; n < b.length; n++) {
                if (n != nn) {
                   let I = intersection(b[nn], b[n]);
-                  if ( I[0][0] < I[0][1] &&
-                       I[1][0] < I[1][1] &&
-                       I[2][0] < I[2][1] ) {
+                  if (I[0][0] < I[0][1] &&
+                     I[1][0] < I[1][1] &&
+                     I[2][0] < I[2][1]) {
                      S[nn].parentID = S[n].id;
                      computeJointPosition(S[nn], I);
                      S[nn].jointRotation = CG.matrixIdentity();
@@ -1115,12 +1122,12 @@ export function Modeler(gl) {
    }
 
    let createMirrorJoint = n1 => {
-      let n2 = S[n1].symmetry==1 ? n1+1 : n1-1,
-          s1 = S[n1],
-          s2 = S[n2];
+      let n2 = S[n1].symmetry == 1 ? n1 + 1 : n1 - 1,
+         s1 = S[n1],
+         s2 = S[n2];
       s2.jointPosition = [-s1.jointPosition[0],
-                           s1.jointPosition[1],
-                           s1.jointPosition[2]];
+      s1.jointPosition[1],
+      s1.jointPosition[2]];
       s2.parentID = s1.parentID;
       s2.jointRotation = CG.matrixIdentity();
       if (parent(s1) && parent(s1).symmetry) {
@@ -1134,20 +1141,20 @@ export function Modeler(gl) {
       let M = s.M;
       let x = CG.norm(M.slice(0, 3));
       let y = CG.norm(M.slice(4, 7));
-      let z = CG.norm(M.slice(8,11));
-      s.M = CG.matrixMultiply(M, CG.matrixScale(1, 1, Math.max(x,y)/z));
+      let z = CG.norm(M.slice(8, 11));
+      s.M = CG.matrixMultiply(M, CG.matrixScale(1, 1, Math.max(x, y) / z));
    }
 
    // RESPOND TO MOUSE/CURSOR EVENTS
 
-   canvas.onPress = (x,y) => {
-      if(window.interactMode == 0) return;
+   canvas.onPress = (x, y) => {
+      if (window.interactMode == 0) return;
       isPressed = true;
       xyTravel = 0;
    }
 
-   canvas.onDrag = (x,y) => {
-      if(window.interactMode == 0) return;
+   canvas.onDrag = (x, y) => {
+      if (window.interactMode == 0) return;
       if (mn >= 0) {
          if (isLengthening) {
             let isTranslatingSave = isTranslating;
@@ -1168,42 +1175,42 @@ export function Modeler(gl) {
       xPrev = x;
       yPrev = y;
    }
-   
-   canvas.onRelease = (x,y) => {
-      if(window.interactMode == 0) return;
+
+   canvas.onRelease = (x, y) => {
+      if (window.interactMode == 0) return;
       isPressed = false;
       switch (keyChar) {
-      case 'A':
-      case 'B':
-      case 'X':
-      case 'V':
-      case 'Z':
-         createEnd();                      // ADD A BLOB
-         break;
+         case 'A':
+         case 'B':
+         case 'X':
+         case 'V':
+         case 'Z':
+            createEnd();                      // ADD A BLOB
+            break;
 
-      case 'L':
-         isLengthening = false;
-         break;
+         case 'L':
+            isLengthening = false;
+            break;
 
-      case 'R':
-      case 'S':
-      case 'T':
-      case 'U':
-         isRotating = isScaling = isTranslating = isUniformScaling = false;
-         if (mn >= 0 && keyChar == 'T') {
-            handleJoint(mn);
-            for (let n = 0 ; n < S.length ; n++)
-               if (S[n].parentID == S[mn].id)
-                  handleJoint(n);
-         }
-         activeSet(false);
-         break;
+         case 'R':
+         case 'S':
+         case 'T':
+         case 'U':
+            isRotating = isScaling = isTranslating = isUniformScaling = false;
+            if (mn >= 0 && keyChar == 'T') {
+               handleJoint(mn);
+               for (let n = 0; n < S.length; n++)
+                  if (S[n].parentID == S[mn].id)
+                     handleJoint(n);
+            }
+            activeSet(false);
+            break;
       }
       keyChar = null;
    }
 
-   canvas.onMove = (x,y) => {
-      if(window.interactMode == 0) return;
+   canvas.onMove = (x, y) => {
+      if (window.interactMode == 0) return;
       if (isCreating)
          createDrag(x, y);
       else if (mn >= 0 && (isRotating || isScaling || isTranslating || isUniformScaling))
@@ -1222,48 +1229,48 @@ export function Modeler(gl) {
       xPrev = x;
       yPrev = y;
    }
-   
+
    // RESPOND TO THE KEYBOARD
 
    canvas.onKeyPress = key => {
-      if(window.interactMode == 0) return;
+      if (window.interactMode == 0) return;
       if (key != keyPressed) {
          switch (key) {
-         case 16:
-            isShift = true;
-            return;
-         case 17:
-            isControl = true;
-            return;
-         case 189: // '-'
-            if (isRubber)
-               flash = true;
-            return;
+            case 16:
+               isShift = true;
+               return;
+            case 17:
+               isControl = true;
+               return;
+            case 189: // '-'
+               if (isRubber)
+                  flash = true;
+               return;
          }
 
          let ch = String.fromCharCode(key);
 
          if (isControl) {
             switch (ch) {
-            case 'Y':
-            case 'Z':
-               return;
+               case 'Y':
+               case 'Z':
+                  return;
             }
          }
 
          switch (ch) {
-         case 'A':
-         case 'B':
-         case 'X':
-         case 'V':
-         case 'Z':
-            if (isRubber)
-               flash = true;
-            break;
-         case 'D':
-            if (isRubber)
-               flash = true;
-            break;
+            case 'A':
+            case 'B':
+            case 'X':
+            case 'V':
+            case 'Z':
+               if (isRubber)
+                  flash = true;
+               break;
+            case 'D':
+               if (isRubber)
+                  flash = true;
+               break;
          }
       }
       keyPressed = key;
@@ -1272,7 +1279,7 @@ export function Modeler(gl) {
    let ns = () => mn >= 0 ? mn : S.length - 1;
 
    canvas.onKeyRelease = key => {
-      if(window.interactMode == 0) return;
+      if (window.interactMode == 0) return;
 
       flash = false;
       keyPressed = -1;
@@ -1291,8 +1298,8 @@ export function Modeler(gl) {
 
          if (mn < 0) {
             defaultColor = color;
-            for (let n = 0 ; n < S.length ; n++)
-               if (! S[n].isColored)
+            for (let n = 0; n < S.length; n++)
+               if (!S[n].isColored)
                   S[n].color = defaultColor;
          }
 
@@ -1300,9 +1307,9 @@ export function Modeler(gl) {
 
          else {
             let sym = S[ns()].symmetry ? 1 : 0;
-            for (let i = 0 ; i <= sym ; i++) {
-               S[I(ns())+i].color = color;
-               S[I(ns())+i].isColored = true;
+            for (let i = 0; i <= sym; i++) {
+               S[I(ns()) + i].color = color;
+               S[I(ns()) + i].isColored = true;
             }
          }
 
@@ -1310,284 +1317,284 @@ export function Modeler(gl) {
          return;
       }
       switch (key) {
-      case 8: // DELETE
-         if (isRubber)
+         case 8: // DELETE
+            if (isRubber)
+               break;
+            if (S.length > 0) {
+               saveForUndo();
+               deleteSelectedBlob();          // DELETE THE SELECTED BLOB
+            }
             break;
-         if (S.length > 0) {
-            saveForUndo();
-            deleteSelectedBlob();          // DELETE THE SELECTED BLOB
-         }
-         break;
-      case 16:
-         isShift = false;
-         break;
-      case 17:
-         isControl = false;
-         break;
-      case 37: // LEFT ARROW
-         if (isSlideshow)
-            slideshow.prev();
-         else
-            rotateyState--;                  // ROTATE LEFT
-         return;
-      case 38: // UP ARROW
-         rotatexState--;                     // ROTATE UP
-         return;
-      case 39: // RIGHT ARROW
-         if (isSlideshow)
-            slideshow.next();
-         else
-            rotateyState++;                  // ROTATE RIGHT
-         return;
-      case 40: // DOWN ARROW
-         rotatexState++;                     // ROTATE DOWN
-         return;
-      case 187: // EQUALS SIGN
-         if (S.length > 0) {
-            saveForUndo();
-            let sym = S[ns()].symmetry ? 1 : 0;
-            for (let i = 0 ; i <= sym ; i++)
-               setDepthToMaxOfWidthAndHeight(S[I(ns())+i]);
-            activeSet(true);
-         }
-         return;
-      case 189: // '-'
-         if (isRubber)
+         case 16:
+            isShift = false;
             break;
-         if (S.length > 0) {               // MAKE NEGATIVE
+         case 17:
+            isControl = false;
+            break;
+         case 37: // LEFT ARROW
+            if (isSlideshow)
+               slideshow.prev();
+            else
+               rotateyState--;                  // ROTATE LEFT
+            return;
+         case 38: // UP ARROW
+            rotatexState--;                     // ROTATE UP
+            return;
+         case 39: // RIGHT ARROW
+            if (isSlideshow)
+               slideshow.next();
+            else
+               rotateyState++;                  // ROTATE RIGHT
+            return;
+         case 40: // DOWN ARROW
+            rotatexState++;                     // ROTATE DOWN
+            return;
+         case 187: // EQUALS SIGN
+            if (S.length > 0) {
+               saveForUndo();
+               let sym = S[ns()].symmetry ? 1 : 0;
+               for (let i = 0; i <= sym; i++)
+                  setDepthToMaxOfWidthAndHeight(S[I(ns()) + i]);
+               activeSet(true);
+            }
+            return;
+         case 189: // '-'
+            if (isRubber)
+               break;
+            if (S.length > 0) {               // MAKE NEGATIVE
+               saveForUndo();
+               let sym = S[ns()].symmetry ? 1 : 0;
+               for (let i = 0; i <= sym; i++)
+                  S[I(ns()) + i].sign = -S[I(ns()) + i].sign;
+               activeSet(true);
+            }
+            break;
+         case 190: // '.'
+            if (S.length > 0) {               // TOGGLE IS BLOBBY
+               saveForUndo();
+               let sym = S[ns()].symmetry ? 1 : 0;
+               for (let i = 0; i <= sym; i++)
+                  S[I(ns()) + i].isBlobby = !S[I(ns()) + i].isBlobby;
+               activeSet(true);
+            }
+            break;
+         case 191: // '/'
+            isRubber = !isRubber;
+            break;
+         case 192: // '`'
+            isLightColor = !isLightColor;    // LIGHT COLOR
+            break;
+         case 219: // '['
             saveForUndo();
-            let sym = S[ns()].symmetry ? 1 : 0;
-            for (let i = 0 ; i <= sym ; i++)
-               S[I(ns())+i].sign = -S[I(ns())+i].sign;
-            activeSet(true);
-         }
-         break;
-      case 190: // '.'
-         if (S.length > 0) {               // TOGGLE IS BLOBBY
+            if (S.length > 0) {
+               isTranslating = true;
+               transform(ns(), 0, 0, -.05);     // AWAY
+               isTranslating = false;
+            }
+            break;
+         case 220: // '\'
             saveForUndo();
-            let sym = S[ns()].symmetry ? 1 : 0;
-            for (let i = 0 ; i <= sym ; i++)
-               S[I(ns())+i].isBlobby = ! S[I(ns())+i].isBlobby;
+            isRubber = false;
+            isWiggling = false;
+            isWalking = false;
+            noiseState = 0;
+            rotatexState = 0;
+            rotateyState = 0;
+            S = [];                           // NEW: DELETE ALL BLOBS
+            mn = -1;
             activeSet(true);
-         }
-         break;
-      case 191: // '/'
-         isRubber = ! isRubber;
-         break;
-      case 192: // '`'
-         isLightColor = ! isLightColor;    // LIGHT COLOR
-         break;
-      case 219: // '['
-         saveForUndo();
-         if (S.length > 0) {
-            isTranslating = true;
-            transform(ns(), 0,0,-.05);     // AWAY
-            isTranslating = false;
-         }
-         break;
-      case 220: // '\'
-         saveForUndo();
-         isRubber = false;
-         isWiggling = false;
-         isWalking = false;
-         noiseState = 0;
-         rotatexState = 0;
-         rotateyState = 0;
-         S = [];                           // NEW: DELETE ALL BLOBS
-         mn = -1;
-         activeSet(true);
-         break;
-      case 221: // ']'
-         saveForUndo();
-         if (S.length > 0) {
-            isTranslating = true;
-            transform(ns(), 0,0,.05);      // FORWARD
-            isTranslating = false;
-         }
-         break;
+            break;
+         case 221: // ']'
+            saveForUndo();
+            if (S.length > 0) {
+               isTranslating = true;
+               transform(ns(), 0, 0, .05);      // FORWARD
+               isTranslating = false;
+            }
+            break;
       }
 
       if (isControl) {
          switch (ch) {
-         case 'Y':
-            redo();
-            break;
-         case 'Z':
-            undo();
-            break;
+            case 'Y':
+               redo();
+               break;
+            case 'Z':
+               undo();
+               break;
          }
          return;
       }
 
       if (isShift) {
          switch (ch) {
-         case 'Q':
-            console.log(JSON.stringify(saveFunction()));
-            break;
-         case 'R':
-            isRoom = ! isRoom;
-            break;
-         case 'S':
-            isShakyCam = ! isShakyCam;
-            break;
-         case 'T':
-            isTextureSrc = ! isTextureSrc;
-            break;
-         case 'V':
-            isRotatedView = ! isRotatedView;
-            break;
-         case 'X':
-            isExperiment = true;
-            break;
-         case 'Z':
-            slideshow.setVisible(isSlideshow = ! isSlideshow);
-            break;
+            case 'Q':
+               console.log(JSON.stringify(saveFunction()));
+               break;
+            case 'R':
+               isRoom = !isRoom;
+               break;
+            case 'S':
+               isShakyCam = !isShakyCam;
+               break;
+            case 'T':
+               isTextureSrc = !isTextureSrc;
+               break;
+            case 'V':
+               isRotatedView = !isRotatedView;
+               break;
+            case 'X':
+               isExperiment = true;
+               break;
+            case 'Z':
+               slideshow.setVisible(isSlideshow = !isSlideshow);
+               break;
          }
          return;
       }
 
       switch (ch) {
-      case 'A':
-      case 'B':
-      case 'X':
-      case 'V':
-      case 'Z':
-         if (isRubber)
-            break;
+         case 'A':
+         case 'B':
+         case 'X':
+         case 'V':
+         case 'Z':
+            if (isRubber)
+               break;
 
-         saveForUndo();
-         if (! isCreating) {
-            createBegin(xPrev, yPrev);
-            if (ch == 'X') S[mn].type = implicitSurface.CYLINDERX;
-            if (ch == 'V') S[mn].type = implicitSurface.CYLINDERY;
-            if (ch == 'Z') S[mn].type = implicitSurface.CYLINDERZ;
-            if (ch == 'B') S[mn].type = implicitSurface.CUBE;
-            isCreating = true;
-         }
-         break;
-
-      case 'C':
-         if (mn >= 0 && S[mn] && S[mn].M) {
             saveForUndo();
-            S[mn].M[12] = 0;                    // CENTER BLOB AT CURSOR
-            computeQuadric(S[mn]);
-         }
-         else                                   // BUT IF OVER BACKGROUND
-            isCentering = ! isCentering;        // TOGGLE CENTERING MODE
-         break;
-      case 'D':
-         if (isRubber)
-            break;
-         saveForUndo();
-         deleteSelectedBlob();
-         break;
-      case 'E':
-         if (S.length > 0) {                    // BLUR EDGES
-            saveForUndo();
-            S[ns()].rounded = ! S[ns()].rounded;
-            activeSet(true);
-         }
-         break;
-      case 'F':
-         noiseState = noiseState == 4 ? 0 : 4;
-         break;
-      case 'G':
-         isWalking = ! isWalking;
-         break;
-      case 'H':
-         isFaceted = ! isFaceted;
-         break;
-      case 'I':
-         helpWindow.style.zIndex = 1 - helpWindow.style.zIndex;
-         break;
-      case 'J':
-         isShowingJoints = ! isShowingJoints;
-         break;
-      case 'K':
-         isShowingBounds = ! isShowingBounds;
-         break;
-      case 'L':
-         isLengthening = true;
-         break;
-      case 'M':
-         if (S.length > 0) {                   // CHANGE MIRROR SYMMETRY
-            saveForUndo();
-            let n1 = ns(),
-                s1 = S[n1];
-            switch (s1.symmetry) {
-            case 0:                            // CREATE MIRROR SYMMETRY
-               let d = s1.M[12] < 0 ? 1 : 0;
-               s1.symmetry = 2 - d;
-               let s2 = {
-                  M: s1.M.slice(),
-                  color: s1.color,
-                  id: CG.uniqueID(),
-                  isBlobby: s1.isBlobby,
-                  isColored: s1.isColored,
-                  rounded: s1.rounded,
-                  sign: s1.sign,
-                  symmetry: 1 + d,
-                  type: s1.type,
-               };
-               s2.M[12] = -s1.M[12];
-               computeQuadric(s2);
-               insertBlob(n1 + d, s2);
-               if (s1.jointPosition)
-                  createMirrorJoint(n1 + 1 - d);
-               break;
-            case 1:                            // REMOVE MIRROR SYMMETRY
-               s1.symmetry = 0;
-               deleteBlob(n1+1);
-               break;
-            case 2:
-               s1.symmetry = 0;
-               deleteBlob(n1-1);
-               break;
+            if (!isCreating) {
+               createBegin(xPrev, yPrev);
+               if (ch == 'X') S[mn].type = implicitSurface.CYLINDERX;
+               if (ch == 'V') S[mn].type = implicitSurface.CYLINDERY;
+               if (ch == 'Z') S[mn].type = implicitSurface.CYLINDERZ;
+               if (ch == 'B') S[mn].type = implicitSurface.CUBE;
+               isCreating = true;
             }
-         }
-         break;
-      case 'N':
-         noiseState = noiseState == 1 ? 0 : 1;
-         break;
-      case 'O':
-         if (isShift)
-            projectManager.clearAll();        // CLEAR ALL PROJECT DATA
-         else
-            projectManager.clearNames();      // CLEAR PROJECT NAMES
-         activeSet(true);
-         break;
-      case 'P':
-         projectManager.choice(loadFunction); // USER CHOOSES PROJECT
-         break;
-      case 'Q':
-         noiseState = noiseState == 2 ? 0 : 2;
-         break;
-      case 'R':
-         saveForUndo();
-         isRotating = true;
-         break;
-      case 'S':
-         saveForUndo();
-         isScaling = true;
-         break;
-      case 'T':
-         saveForUndo();
-         isTranslating = true;
-         break;
-      case 'U':
-         saveForUndo();
-         isUniformScaling = true;
-         break;
-      case 'T':
-      case 'W':
-         isWiggling = ! isWiggling;
-         break;
-      case 'Y':
-         noiseState = noiseState == 3 ? 0 : 3;
-         break;
+            break;
+
+         case 'C':
+            if (mn >= 0 && S[mn] && S[mn].M) {
+               saveForUndo();
+               S[mn].M[12] = 0;                    // CENTER BLOB AT CURSOR
+               computeQuadric(S[mn]);
+            }
+            else                                   // BUT IF OVER BACKGROUND
+               isCentering = !isCentering;        // TOGGLE CENTERING MODE
+            break;
+         case 'D':
+            if (isRubber)
+               break;
+            saveForUndo();
+            deleteSelectedBlob();
+            break;
+         case 'E':
+            if (S.length > 0) {                    // BLUR EDGES
+               saveForUndo();
+               S[ns()].rounded = !S[ns()].rounded;
+               activeSet(true);
+            }
+            break;
+         case 'F':
+            noiseState = noiseState == 4 ? 0 : 4;
+            break;
+         case 'G':
+            isWalking = !isWalking;
+            break;
+         case 'H':
+            isFaceted = !isFaceted;
+            break;
+         case 'I':
+            helpWindow.style.zIndex = 1 - helpWindow.style.zIndex;
+            break;
+         case 'J':
+            isShowingJoints = !isShowingJoints;
+            break;
+         case 'K':
+            isShowingBounds = !isShowingBounds;
+            break;
+         case 'L':
+            isLengthening = true;
+            break;
+         case 'M':
+            if (S.length > 0) {                   // CHANGE MIRROR SYMMETRY
+               saveForUndo();
+               let n1 = ns(),
+                  s1 = S[n1];
+               switch (s1.symmetry) {
+                  case 0:                            // CREATE MIRROR SYMMETRY
+                     let d = s1.M[12] < 0 ? 1 : 0;
+                     s1.symmetry = 2 - d;
+                     let s2 = {
+                        M: s1.M.slice(),
+                        color: s1.color,
+                        id: CG.uniqueID(),
+                        isBlobby: s1.isBlobby,
+                        isColored: s1.isColored,
+                        rounded: s1.rounded,
+                        sign: s1.sign,
+                        symmetry: 1 + d,
+                        type: s1.type,
+                     };
+                     s2.M[12] = -s1.M[12];
+                     computeQuadric(s2);
+                     insertBlob(n1 + d, s2);
+                     if (s1.jointPosition)
+                        createMirrorJoint(n1 + 1 - d);
+                     break;
+                  case 1:                            // REMOVE MIRROR SYMMETRY
+                     s1.symmetry = 0;
+                     deleteBlob(n1 + 1);
+                     break;
+                  case 2:
+                     s1.symmetry = 0;
+                     deleteBlob(n1 - 1);
+                     break;
+               }
+            }
+            break;
+         case 'N':
+            noiseState = noiseState == 1 ? 0 : 1;
+            break;
+         case 'O':
+            if (isShift)
+               projectManager.clearAll();        // CLEAR ALL PROJECT DATA
+            else
+               projectManager.clearNames();      // CLEAR PROJECT NAMES
+            activeSet(true);
+            break;
+         case 'P':
+            projectManager.choice(loadFunction); // USER CHOOSES PROJECT
+            break;
+         case 'Q':
+            noiseState = noiseState == 2 ? 0 : 2;
+            break;
+         case 'R':
+            saveForUndo();
+            isRotating = true;
+            break;
+         case 'S':
+            saveForUndo();
+            isScaling = true;
+            break;
+         case 'T':
+            saveForUndo();
+            isTranslating = true;
+            break;
+         case 'U':
+            saveForUndo();
+            isUniformScaling = true;
+            break;
+         case 'T':
+         case 'W':
+            isWiggling = !isWiggling;
+            break;
+         case 'Y':
+            noiseState = noiseState == 3 ? 0 : 3;
+            break;
       }
    }
 }
 
 export let textures = [];
-export let isTexture = file => textures[file] && ! textures[file + '_error'];
+export let isTexture = file => textures[file] && !textures[file + '_error'];
