@@ -15,6 +15,9 @@ export var metaroomEventSender = "";
 export var metaroomInitSender = "";
 export var metaroomReceiver = "";
 
+var assembled_packets = {}
+var last_assembled_frame = 0;
+
 window.offlineMode = false;
 function checkInternet() {
     var ifConnected = window.navigator.onLine;
@@ -39,8 +42,8 @@ const run = async () => {
     var config = {}
     config.username = 'Testuser'
     config.password = 'Testpassword'
-    config.host = 'corelink.hpc.nyu.edu'
-    // config.host = 'localhost'
+    // config.host = 'corelink.hpc.nyu.edu'
+    config.host = 'localhost'
     config.port = 20012
     corelink.debug = false;
 
@@ -156,10 +159,53 @@ const run = async () => {
             }
         })
 
-        corelink.on('data', (streamID, data, header) => {
-            receiverdata = ab2str(data)
-            window[streamID + '_data'] = ab2str(data)
-            window.EventBus.publish(receiverdata["type"], receiverdata);
+        corelink.on('data', async (streamID, data, header) => {
+            if (header && header["packet"] && header["frame"]) {
+                let packet_info = header["packet"];
+                let frame = parseInt(header["frame"]);
+                if (frame > last_assembled_frame) {
+                    let breakpos = packet_info.indexOf("/");
+                    if (breakpos > -1) {
+                        let packnum = parseInt(packet_info.substring(0, breakpos));
+                        let packtotal = parseInt(packet_info.substring(breakpos + 1));
+                        if (packnum != NaN && packtotal != NaN) {
+                            if (!assembled_packets[streamID]) {
+                                assembled_packets[streamID] = {};
+                            }
+                            if (!assembled_packets[streamID][frame]) {
+                                assembled_packets[streamID][frame] = new Array(packtotal);
+                            }
+                            assembled_packets[streamID][frame][packnum - 1] = data;
+                            let packet_ready = true;
+                            for (let i = 0; i < packtotal; i++) {
+                                if (!assembled_packets[streamID][frame][i]) {
+                                    packet_ready = false;
+                                }
+                            }
+                            if (packet_ready) {
+                                let complete_packet = "";
+                                for (let i = 0; i < packtotal; i++) {
+                                    complete_packet += String.fromCharCode.apply(null, new Uint8Array(assembled_packets[streamID][frame][i]));
+                                }
+                                // console.log("receive frame " + frame);
+                                receiverdata = JSON.parse(complete_packet);
+                                window[streamID + '_data'] = receiverdata;
+                                window.EventBus.publish(receiverdata["type"], receiverdata);
+                                delete assembled_packets[streamID][frame];
+                                last_assembled_frame = frame;
+                            }
+                        } 
+                    }
+                } else {
+                    if (assembled_packets[streamID] && assembled_packets[streamID][frame]) {
+                        delete assembled_packets[streamID][frame];
+                    }
+                }
+            } else {
+                receiverdata = ab2str(data);
+                window[streamID + '_data'] = receiverdata;
+                window.EventBus.publish(receiverdata["type"], receiverdata);
+            }
             // if (receiverdata["type"] != "avatar" && receiverdata["type"] != "realsense")
             //     console.log("corelink.on('data', (streamID, data, header)", streamID, window[streamID + '_data']["type"], window[streamID + '_data'])
 
