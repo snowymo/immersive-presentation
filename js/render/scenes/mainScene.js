@@ -32,6 +32,7 @@ import { rokokoData } from "../../data/RokokoData.js";
 import { demoPlanets } from "./demoPlanets.js";
 //import { demoRohail } from "./demoRohail.js";
 import { demoRealSense } from "./demoRealSense.js";
+import { demoTemplate } from "./demoTemplate.js";
 //import { demoSyncTest } from "./demoSyncTest.js";
 //import { demoDraw } from "./demoDraw.js";
 
@@ -71,6 +72,7 @@ export let mainScene = () => {
   if (demoPlanetsState % 2) loadScene(demoPlanets); else stopScene(demoPlanets);
   //if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
   if (demoRealSenseState % 2) loadScene(demoRealSense); else stopScene(demoRealSense);
+  if (demoTemplateState % 2) loadScene(demoTemplate); else stopScene(demoTemplate);
   //if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
   //if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
   //if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
@@ -162,6 +164,6 @@ function showNameTag() {
 }
 
 //window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,RealSense,Speak,Text,SyncTest,Draw";
-window.demoNames = "Planets,RealSense";
+window.demoNames = "Planets,RealSense,Template";
 addDemoButtons(window.demoNames);
 window.addNameField();
