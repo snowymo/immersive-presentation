@@ -183,14 +183,30 @@ const run = async () => {
                                 }
                             }
                             if (packet_ready) {
-                                let complete_packet = "";
-                                for (let i = 0; i < packtotal; i++) {
-                                    complete_packet += String.fromCharCode.apply(null, new Uint8Array(assembled_packets[streamID][frame][i]));
-                                }
+                                // let complete_packet = "";
+                                // for (let i = 0; i < packtotal; i++) {
+                                //     complete_packet += String.fromCharCode.apply(null, new Uint8Array(assembled_packets[streamID][frame][i]));
+                                // }
+                                // console.log(complete_packet);
                                 // console.log("receive frame " + frame);
-                                receiverdata = JSON.parse(complete_packet);
-                                window[streamID + '_data'] = receiverdata;
-                                window.EventBus.publish(receiverdata["type"], receiverdata);
+                                // receiverdata = JSON.parse(complete_packet);
+                                // window[streamID + '_data'] = receiverdata;
+                                // window.EventBus.publish(receiverdata["type"], receiverdata);
+                                // delete assembled_packets[streamID][frame];
+                                // last_assembled_frame = frame;
+                                let totalLen = 0;
+                                for (let i = 0; i < packtotal; i++) {
+                                    totalLen += assembled_packets[streamID][frame][i].byteLength;
+                                }
+                                let complete_packet = new Uint16Array(totalLen / 2); // divide by 2 since we have 2B per int
+                                let pos = 0;
+                                for (let i = 0; i < packtotal; i++) {
+                                    complete_packet.set(new Uint16Array(assembled_packets[streamID][frame][i]), pos);
+                                    pos += assembled_packets[streamID][frame][i].byteLength / 2;
+                                }
+                                console.log("receive frame " + frame + " total packets: " + packtotal);
+                                window[streamID + '_data'] = complete_packet;
+                                window.EventBus.publish("realsense", complete_packet);
                                 delete assembled_packets[streamID][frame];
                                 last_assembled_frame = frame;
                             }

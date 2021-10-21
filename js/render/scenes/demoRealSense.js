@@ -56,7 +56,20 @@ let DemoRealSense = function () {
         dataframe["user3"] = realsenseData[frame_idx3];
      } else {
        // data from the realsense channel
-       dataframe = window.pointCloudData;
+       let rawdata = window.pointCloudData["Testuser1"];
+       // console.log(rawdata);
+       dataframe = {};
+       dataframe["Testuser1"] = [];
+       for (let i = 0; i < rawdata.length; i+=6) {
+         dataframe["Testuser1"].push([
+           rawdata[i  ],
+           rawdata[i+1],
+           rawdata[i+2],
+           rawdata[i+3],
+           rawdata[i+4],
+           rawdata[i+5],
+         ]);
+       }
      }
       if (dataframe) {
         for (const username in dataframe) {
@@ -77,15 +90,14 @@ let DemoRealSense = function () {
             for (let i = 0; i < dataPoints.length; i++) {
               // idx is the index of the point in a 1D-resizing of the texture array
               // this tells us the coordinates of the point.
-              let idx = dataPoints[i][0];
-              let rx = (idx % pixelWidth) / pixelWidth * realWidth;
-              let ry = (1 - Math.floor(idx / pixelWidth) / pixelHeight) * realHeight;
+              let rx = dataPoints[i][0] / pixelWidth * realWidth;
+              let ry = dataPoints[i][1] / pixelHeight * realHeight;
 
               // d is depth, r,g,b is color
-              let d = dataPoints[i][1];
-              let r = dataPoints[i][2];
-              let g = dataPoints[i][3];
-              let b = dataPoints[i][4];
+              let d = dataPoints[i][2];
+              let r = dataPoints[i][3];
+              let g = dataPoints[i][4];
+              let b = dataPoints[i][5];
               
               // base z position on depth, which is given in cm
               let rz = d / 100;

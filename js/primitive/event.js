@@ -126,9 +126,9 @@ export function init() {
     // }
   });
 
-  window.EventBus.subscribe("realsense", (json) => {
+  window.EventBus.subscribe("realsense", (data) => {
     if (!window.pointCloudData) window.pointCloudData = {};
-    window.pointCloudData[json["username"]] = json["frame"];
+    window.pointCloudData["Testuser1"] = data;
   });
 
   window.EventBus.subscribe("mute", (json) => {
