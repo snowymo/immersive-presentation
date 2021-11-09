@@ -23,9 +23,9 @@ let DemoText = function () {
 
        m.save();
           let t = Math.max(0, Math.min(1, .5 + Math.sin(time)));
-          
 
-          m.rotateY(time);
+
+          
           m.scale(.6);
 	  PT.render(renderList, m, [10,0,10]);
        m.restore();
@@ -34,12 +34,12 @@ let DemoText = function () {
   };
 };
 
-let msg = 'These are\nsome Metaroom\nobjects.';
+let msg = '';
 let PT = new CG.ParticlesText(msg);
 let A = PT.layout(null, .5,.5), B = [], C = [];
 
 document.addEventListener("keydown", (event) => {
-   if ((37 <= event.keyCode <= 97) && (keyboardInput.keyWentUp(event.keyCode))) {
+   if ((32 <= event.keyCode <= 97) && (keyboardInput.keyIsUp(event.keyCode))) {
      msg += event.key;
    }
     console.log(msg);
@@ -50,6 +50,7 @@ for (let n = 0 ; n < msg.length ; n++) {
    let theta = Math.PI - 2 * Math.PI * n / msg.length;
    B[n] = [10 * Math.cos(theta), 5 * Math.sin(theta), 0];
    C[n] = B[n].slice();
+
 }
 
 export let demoText = new DemoText();
