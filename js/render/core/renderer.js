@@ -112,8 +112,8 @@ uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform float uBlobby;
-uniform mat4  uMatrices[64], uInvMatrices[64];
-uniform mat4  uBlobPhong[64];
+uniform mat4  uMatrices[8], uInvMatrices[8];
+uniform mat4  uBlobPhong[8];
 uniform float uAspectRatio;
 uniform float uNoisy;
 
@@ -423,8 +423,8 @@ out float vWeights[6];
 uniform   float uTime;
 uniform   mat4  uMatrix, uInvMatrix, uPerspective;
 uniform   float uBlobby, uNoisy;
-uniform   mat4  uMatrices[64], uInvMatrices[64];
-uniform   mat4  uBlobPhong[64];
+uniform   mat4  uMatrices[8], uInvMatrices[8];
+uniform   mat4  uBlobPhong[8];
 uniform   float uAspectRatio;
 
 vec3 unpack0(vec3 ab) {
