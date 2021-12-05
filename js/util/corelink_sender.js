@@ -3,15 +3,15 @@
 import { metaroomEventSender, metaroomSyncSender } from "../corelink_handler.js"
 
 export function ab2str(buf) {
-    var rawBuf = String.fromCharCode.apply(null, new Uint16Array(buf));
+    var rawBuf = String.fromCharCode.apply(null, new Uint8Array(buf));
     // we are using json objects everywhere
     var jsonObj = JSON.parse(rawBuf);
     return jsonObj;
 }
 
 function str2ab(str) {
-    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-    var bufView = new Uint16Array(buf);
+    var buf = new ArrayBuffer(str.length * 1); // 2 bytes for each char
+    var bufView = new Uint8Array(buf);
     for (var i = 0, strLen = str.length; i < strLen; i++) {
         bufView[i] = str.charCodeAt(i);
     }
@@ -66,6 +66,7 @@ export function corelink_message(type, data) {
                     state: data,
                 };
             }
+            console.log("corelink.send object", message);
             break;
         case "objectInit":
             {
@@ -94,6 +95,7 @@ export function corelink_message(type, data) {
                     state: data,
                 };
             }
+            console.log("corelink.send mute", message);
             break;
         case "demo":
             message = {
@@ -117,6 +119,14 @@ export function corelink_message(type, data) {
                 }
             };
             // console.log("event", message);
+            break;
+        case "init":
+            message = {
+                type: "init",
+                uid: window.playerid,
+                state: data,
+            };
+            console.log("init", message);
             break;
         default:
             break;

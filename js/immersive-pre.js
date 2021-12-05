@@ -24,9 +24,12 @@ import { InputController } from "./util/input_controller.js";
 
 import { corelink_message } from "./util/corelink_sender.js"
 import { metaroomSyncSender } from "./corelink_handler.js"
+import { Modeler } from "./render/core/implicit_surfaces/modeler.js";
 
 window.wsport = 8447;
 window.vr = false;
+window.interactMode = 0;
+window.model = 0;
 
 // If requested, use the polyfill to provide support for mobile devices
 // and devices which only support WebVR.
@@ -40,20 +43,24 @@ if (QueryArgs.getBool("usePolyfill", true)) {
 let xrButton = null;
 let xrImmersiveRefSpace = null;
 let inlineViewerHelper = null;
+// export let modeler = null;
 let inputController = null;
 let time = 0;
 
 // WebGL scene globals.
 let gl = null;
 let renderer = null;
+// modeler = null;
 window.scene = new Scene();
 
 function initModels() {
     window.models = {};
+/*
     window.models["stereo"] = new Gltf2Node({
         url: "./media/gltf/stereo/stereo.gltf",
     });
     window.models["stereo"].visible = true;
+    */
     // window.scene.addNode(window.models['stereo']);
 }
 
@@ -119,7 +126,7 @@ function initGL() {
         webgl2: true,
     });
     document.body.appendChild(gl.canvas);
-
+    window.canvas = gl.canvas;
     function onResize() {
         gl.canvas.width = gl.canvas.clientWidth * window.devicePixelRatio;
         gl.canvas.height = gl.canvas.clientHeight * window.devicePixelRatio;
@@ -139,6 +146,9 @@ function initGL() {
         new Gltf2Node({ url: "./media/gltf/controller/controller-left.gltf" }),
         "left"
     );
+    window.modeler = new Modeler(gl);
+    console.log(window.modeler.gl)
+    
 }
 
 function onRequestSession() {
@@ -453,7 +463,7 @@ function updateObjects() {
         let type = window.objects[id]["type"];
         let matrix = window.objects[id]["matrix"];
         // create the model if model is null
-        if (!window.objects[id].node) {
+        if (!window.objects[id].node && type in window.models) {
             // create the model, this is the sample by gltf model
             // we may need other model style like CG.js later
             window.objects[id].node = new Gltf2Node({

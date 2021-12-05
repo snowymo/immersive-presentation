@@ -18,20 +18,23 @@ import {
 
 import { rokokoData } from "../../data/RokokoData.js";
 
-import { demoText } from "./demoText.js";
-import { demoAirText } from "./demoAirText.js";
-import { demoBill } from "./demoBill.js";
-import { demoChris } from "./demoChris.js";
-import { demoHands } from "./demoHands.js";
-import { demoKen } from "./demoKen.js";
-import { demoMocap } from "./demoMocap.js";
-import { demoNoiseGrid } from "./demoNoiseGrid.js";
-import { demoObjects } from "./demoObjects.js";
-import { demoParticles } from "./demoParticles.js";
-import { demoPrajval } from "./demoPrajval.js";
-import { demoRohail } from "./demoRohail.js";
-import { demoSyncTest } from "./demoSyncTest.js";
-import { demoDraw } from "./demoDraw.js";
+//import { demoText } from "./demoText.js";
+//import { demoAirText } from "./demoAirText.js";
+//import { demoBill } from "./demoBill.js";
+//import { demoChris } from "./demoChris.js";
+//import { demoHands } from "./demoHands.js";
+//import { demoKen } from "./demoKen.js";
+//import { demoMocap } from "./demoMocap.js";
+//import { demoNoiseGrid } from "./demoNoiseGrid.js";
+//import { demoObjects } from "./demoObjects.js";
+//import { demoParticles } from "./demoParticles.js";
+//import { demoPrajval } from "./demoPrajval.js";
+import { demoPlanets } from "./demoPlanets.js";
+//import { demoRohail } from "./demoRohail.js";
+import { demoRealSense } from "./demoRealSense.js";
+import { demoTemplate } from "./demoTemplate.js";
+//import { demoSyncTest } from "./demoSyncTest.js";
+//import { demoDraw } from "./demoDraw.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -50,26 +53,29 @@ export let mainScene = () => {
   showNameTag();
 
   // add the procedural objects you wish to have all the time here
-  m.save();
-  renderList.mCylinder().move(0, .74, 0).turnX(Math.PI / 2).size(.8, .8, .01).color([.25, .15, .05]);
-  renderList.mCylinder().move(0, .37, 0).turnX(Math.PI / 2).size(.07, .07, .37).color([.25, .15, .05]);
-  renderList.mCylinder().move(0, .005, 0).turnX(Math.PI / 2).size(.25, .25, .005).color([.25, .15, .05]);
-  m.restore();
+  // m.save();
+  //     renderList.mCylinder().move(0,.74,0).turnX(Math.PI/2).size(.8,.8,.01).color([.25, .15, .05]);
+  //     renderList.mCylinder().move(0,.37,0).turnX(Math.PI/2).size(.07,.07,.37).color([.25, .15, .05]);
+  //     renderList.mCylinder().move(0,.005,0).turnX(Math.PI/2).size(.25,.25,.005).color([.25, .15, .05]);
+  // m.restore();
 
-  if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
-  if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
-  if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);
-  if (demoHandsState % 2) loadScene(demoHands); else stopScene(demoHands);
-  if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
-  if (demoMocapState % 2) loadScene(demoMocap); else stopScene(demoMocap);
-  if (demoNoiseGridState % 2) loadScene(demoNoiseGrid); else stopScene(demoNoiseGrid);
-  if (demoObjectsState % 2) loadScene(demoObjects); else stopScene(demoObjects);
-  if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
-  if (demoPrajvalState % 2) loadScene(demoPrajval); else stopScene(demoPrajval);
-  if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
-  if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
-  if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
-  if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
+  //if (demoAirTextState % 2) loadScene(demoAirText); else stopScene(demoAirText);
+  //if (demoBillState % 2) loadScene(demoBill); else stopScene(demoBill);
+  //if (demoChrisState % 2) loadScene(demoChris); else stopScene(demoChris);
+  //if (demoHandsState % 2) loadScene(demoHands); else stopScene(demoHands);
+  //if (demoKenState % 2) loadScene(demoKen); else stopScene(demoKen);
+  //if (demoMocapState % 2) loadScene(demoMocap); else stopScene(demoMocap);
+  //if (demoNoiseGridState % 2) loadScene(demoNoiseGrid); else stopScene(demoNoiseGrid);
+  //if (demoObjectsState % 2) loadScene(demoObjects); else stopScene(demoObjects);
+  //if (demoParticlesState % 2) loadScene(demoParticles); else stopScene(demoParticles);
+  //if (demoPrajvalState % 2) loadScene(demoPrajval); else stopScene(demoPrajval);
+  if (demoPlanetsState % 2) loadScene(demoPlanets); else stopScene(demoPlanets);
+  //if (demoRohailState % 2) loadScene(demoRohail); else stopScene(demoRohail);
+  if (demoRealSenseState % 2) loadScene(demoRealSense); else stopScene(demoRealSense);
+  if (demoTemplateState % 2) loadScene(demoTemplate); else stopScene(demoTemplate);
+  //if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
+  //if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
+  //if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
 };
 
 function loadScene(demo) {
@@ -157,6 +163,7 @@ function showNameTag() {
   }
 }
 
-window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Rohail,Speak,Text,SyncTest,Draw";
+//window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,RealSense,Speak,Text,SyncTest,Draw";
+window.demoNames = "Planets,RealSense,Template";
 addDemoButtons(window.demoNames);
 window.addNameField();

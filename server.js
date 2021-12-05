@@ -377,6 +377,11 @@ wss.on("connection", function (ws, req) {
                     send("*", ws.index, response);
                 }
                 break;
+            case "3d":
+                {
+                    console.log("recv 3d data");
+                }
+                break;
             default:
                 break;
         }
