@@ -33,7 +33,8 @@ const WALK_SPEED = 0.05;
 export class InlineViewerHelper {
 
   constructor(canvas, referenceSpace) {
-    this.theta = 2 * Math.PI * ((5 * window.playerid) % 8) / 8;
+    //this.theta = 2 * Math.PI * ((5 * window.playerid) % 8) / 8;
+    this.theta = Math.PI;
     this.lookYaw = this.theta;
     this.walkPosition = [-Math.sin(this.theta), 0, -Math.cos(this.theta)];
 
@@ -51,8 +52,9 @@ export class InlineViewerHelper {
     canvas.addEventListener("mousemove", (event) => {
       // Only rotate when the left button is pressed
       if (event.buttons & 1) {
-        this.rotateView(event.movementX, event.movementY);
+        if(window.interactMode == 0) this.rotateView(event.movementX, event.movementY);
       }
+      window.webrtc_start();
     });
 
     // Keep track of touch-related state so that users can touch and drag on
@@ -84,7 +86,7 @@ export class InlineViewerHelper {
       for (let touch of event.changedTouches) {
         if (primaryTouch == touch.identifier) {
           primaryTouch = undefined;
-          this.rotateView(touch.pageX - prevTouchX, touch.pageY - prevTouchY);
+          if(window.interactMode == 0) this.rotateView(touch.pageX - prevTouchX, touch.pageY - prevTouchY);
         }
       }
     });
@@ -99,7 +101,7 @@ export class InlineViewerHelper {
 
     canvas.addEventListener("touchmove", (event) => {
       for (let touch of event.changedTouches) {
-        if (primaryTouch == touch.identifier) {
+        if (primaryTouch == touch.identifier && window.interactMode == 0) {
           this.rotateView(touch.pageX - prevTouchX, touch.pageY - prevTouchY);
           prevTouchX = touch.pageX;
           prevTouchY = touch.pageY;
@@ -128,50 +130,61 @@ export class InlineViewerHelper {
   }
 
   onKeyDown(e) {
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
-      // console.log("strafe left");
-      this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-      this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
+    if(interactMode == 0) {
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_A)) {
+        // console.log("strafe left");
+        this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+        this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
+        // console.log("strafe right");
+        this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw + 0.5 * Math.PI);
+        this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw + 0.5 * Math.PI);
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
+        // console.log("move forward");
+        this.walkPosition[2] += WALK_SPEED * Math.cos(this.lookYaw);
+        this.walkPosition[0] += WALK_SPEED * Math.sin(this.lookYaw);
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
+        // console.log("move back");
+        this.walkPosition[2] -= WALK_SPEED * Math.cos(this.lookYaw);
+        this.walkPosition[0] -= WALK_SPEED * Math.sin(this.lookYaw);
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
+        // console.log("move forward");
+        this.walkPosition[1] += WALK_SPEED;
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_DOWN)) {
+        // console.log("move back");
+        this.walkPosition[1] -= WALK_SPEED;
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_LEFT)) {
+        // console.log("turn left");
+        this.lookYaw += WALK_SPEED;
+      }
+      if (keyboardInput.keyIsDown(keyboardInput.KEY_RIGHT)) {
+        // console.log("turn right");
+        this.lookYaw -= WALK_SPEED;
+      }
     }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_D)) {
-      // console.log("strafe right");
-      this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw + 0.5 * Math.PI);
-      this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw + 0.5 * Math.PI);
+  
+    if(keyboardInput.keyIsDown(keyboardInput.KEY_SPACE)) {
+      window.interactMode = (window.interactMode + 1)%2;
     }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_W)) {
-      // console.log("move forward");
-      this.walkPosition[2] += WALK_SPEED*Math.cos(this.lookYaw);
-      this.walkPosition[0] += WALK_SPEED*Math.sin(this.lookYaw);
+    if(keyboardInput.keyIsDown(keyboardInput.KEY_ZERO)) {
+      window.model = 0;
     }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_S)) {
-      // console.log("move back");
-      this.walkPosition[2] -= WALK_SPEED*Math.cos(this.lookYaw);
-      this.walkPosition[0] -= WALK_SPEED*Math.sin(this.lookYaw);
+    if(keyboardInput.keyIsDown(keyboardInput.KEY_ONE)) {
+      window.model = 1;
     }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_UP)) {
-      // console.log("move forward");
-      this.walkPosition[1] += WALK_SPEED;
-    }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_DOWN)) {
-      // console.log("move back");
-      this.walkPosition[1] -= WALK_SPEED;
-    }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_LEFT)) {
-      // console.log("turn left");
-      this.lookYaw += WALK_SPEED;
-    }
-    if (keyboardInput.keyIsDown(keyboardInput.KEY_RIGHT)) {
-      // console.log("turn right");
-      this.lookYaw -= WALK_SPEED;
-    }
-    this.dirty = true;
   }
 
   onKeyUp(e) {
     switch (e.keyCode) {
-    case keyboardInput.KEY_Z:
-       window.isSlideShow = ! window.isSlideShow;
-       break;
+      case keyboardInput.KEY_Z:
+        window.isSlideShow = !window.isSlideShow;
+        break;
     }
     this.dirty = true;
   }
@@ -199,7 +212,7 @@ export class InlineViewerHelper {
       this.refSpace = this.baseRefSpace.getOffsetReferenceSpace(xform);
       xform = new XRRigidTransform({ y: -this.viewerHeight });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
-      xform = new XRRigidTransform({x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1});
+      xform = new XRRigidTransform({ x: this.walkPosition[0], y: this.walkPosition[1], z: this.walkPosition[2], w: 1 });
       this.refSpace = this.refSpace.getOffsetReferenceSpace(xform);
       this.dirty = false;
     }

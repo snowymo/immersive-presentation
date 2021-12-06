@@ -28,6 +28,8 @@ import { m, renderList } from "./renderList.js";
 import { renderListScene } from "./renderListScene.js";
 import * as Img from "../../util/image.js";
 import * as Tex from "../../util/webgl_texture_util.js";
+// import { drawImplicitSurfaceObj, implicitSurfacesPgm} from "../core/implicitSurfaceObj.js";
+import { materials } from "../core/implicit_surfaces/materials.js";
 // import { loadImage } from "../../immersive-pre.js"
 
 export const ATTRIB = {
@@ -83,10 +85,11 @@ precision highp float;
 // input vertex
 in  vec3  aPos;
 in  vec3  aRot;
-
 in  vec2  aUV;
 in  vec4  aUVOff;
 in  float aRGB;
+// in vec3 aNor;
+in  vec3  aWts0, aWts1;
 
 // interpolated vertex
 out vec3 vP;
@@ -101,14 +104,40 @@ out vec3 vRGB;
 out vec3 vCursor;
 
 out vec2 vXY;
+out mat4 vBlobPhong;
+out float vWeights[6];
 
 // matrices
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform float uBlobby;
+uniform mat4  uMatrices[8], uInvMatrices[8];
+uniform mat4  uBlobPhong[8];
+uniform float uAspectRatio;
+uniform float uNoisy;
 
 uniform float uTime;     // time in seconds
 uniform float uToon;     // control toon shading
+
+vec3 unpack0(vec3 ab) {
+  return ab / 40000. * 2. - 1.;
+}
+
+vec3 unpack1(vec3 ab) {
+  return mod(ab, 1.) * 2. - 1.;
+}
+
+float noise(vec3 point) { 
+  float r = 0.; for (int i=0;i<16;i++) {
+  vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+       1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+  C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+  D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+  r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+  } 
+  return .5 * sin(r); 
+}
 
 mat2x3 quaternionToXY(vec4 Q) {
   vec3 X = 2.*vec3(.5-Q.y*Q.y-Q.z*Q.z,   Q.z*Q.w+Q.x*Q.y, Q.x*Q.z-Q.y*Q.w);
@@ -121,16 +150,20 @@ vec3 unpackRGB(float rgb) {
 }
 
 void main(void) {
+  
+  mat4 invModel = inverse(uModel);
+  if(uBlobby < 0.) {
     vec4 pos = uProj * uView * uModel * vec4(aPos, 1.);
     vXY = pos.xy / pos.z;
     vP = pos.xyz;
     vPos = aPos;
     vRGB = unpackRGB(aRGB);
-    mat4 invModel = inverse(uModel);
 
-    mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
-    vNor = (vec4(rotXY[0],0.) * invModel).xyz;
-    vTan = (vec4(rotXY[1],0.) * invModel).xyz;
+    // mat2x3 rotXY = quaternionToXY(vec4(aRot, sqrt(1. - dot(aRot,aRot))));
+    // vNor = (vec4(rotXY[0],0.) * invModel).xyz;
+    vNor = unpack0(aRot);
+    // vTan = (vec4(rotXY[1],0.) * invModel).xyz;
+    vTan = unpack1(aRot);
     vBin = cross(vNor, vTan);
 
     // image_uv + mesh_uv * (image_dimensions / atlas_dimensions)
@@ -138,8 +171,51 @@ void main(void) {
     // formula for atlas
     //vUV = (aUVOff.xy + (aUV.xy * aUVOff.zw)) * vec2(1.,-1.) + vec2(0.,1.);
     vUV = (aUV) * vec2(1.,-1.) + vec2(0.,1.);
-    
+
     gl_Position = pos + uToon * vec4(normalize(vNor).xy, 0.,0.);
+    // gl_Position = pos;
+  } else {
+    for (int i = 0 ; i < 3 ; i++) {
+      vWeights[i  ] = aWts0[i];
+      vWeights[3+i] = aWts1[i];
+    }
+    vec4 apos = vec4(aPos, 1.);
+    vec3 aNor = unpack0(aRot);
+    vec4 anor = vec4(aNor, 0.);
+    // vec4 nor = anor;
+    // vec4 pos = apos;
+    // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
+    // AND COLORS FROM COMPONENT OBJECTS
+    vec4 pos = vec4(0.);
+    vec4 nor = vec4(0.);
+    vBlobPhong = mat4(0.);
+    for (int i = 0 ; i < 6 ; i++) {
+      if (vWeights[i] > 0.) {
+        int   n = int(vWeights[i]);
+        float t = mod(vWeights[i], 1.);
+        pos += t * (uMatrices[n] * apos);
+        nor += t * (anor * uInvMatrices[n]);
+        t = t * t * (3. - 2. * t);
+        vBlobPhong += t * uBlobPhong[n];
+      }
+    }
+    pos = uModel * pos;
+    nor = nor * invModel;
+    vNor = nor.xyz;
+    vPos = pos.xyz;
+    vRGB = unpackRGB(aRGB);
+    vUV  = aUV;
+
+    if (uNoisy > 0.) {
+      float t = .5 + noise(7. * aPos);
+      t = t * t * (3. - t - t);
+      t = t * t * (3. - t - t);
+      vBlobPhong *= .8 + .2 * t;
+   }
+
+   if(uBlobby > 0.) gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+   else gl_Position = pos * vec4(1.,1.,.1,1.);
+  }
 }
 `;
 
@@ -149,6 +225,10 @@ precision highp float; // HIGH PRECISION FLOATS
 uniform vec4 uColor;
 uniform vec3 uCursor; // CURSOR: xy=pos, z=mouse up/down
 uniform float uTime; // TIME, IN SECONDS
+uniform float uBlobby;
+uniform float uOpacity;
+uniform mat4  uPhong; // MATERIAL
+
 
 in vec2 vXY; // POSITION ON IMAGE
 in vec3 vP;
@@ -158,7 +238,8 @@ in vec3 vTan; // TANGENT
 in vec3 vBin; // BINORMAL
 in vec2 vUV ; // U,V
 in vec3 vRGB; // R,G,B
-
+in float vWeights[6]; // BLOBBY WEIGHTS
+in mat4  vBlobPhong; // BLOBBY MATERIAL
 
 #define LDIR_MAX_COUNT (1)
 
@@ -235,75 +316,239 @@ vec3 phongRub(vec3 Ldir, vec3 Lrgb, vec3 normal, vec3 diffuse, vec3 specular, fl
 }
 
 void main() {
-  vec4 texture0 = texture(uTex0, vUV * uTexScale);
-  vec4 texture1 = texture(uTex1, vUV * uTexScale);
-  vec4 texture2 = texture(uTex2, vUV * uTexScale);
-  vec3 ambient = .1 * uColor.rgb;
-  vec3 diffuse = .5 * uColor.rgb;
-  vec3 specular = vec3(.4, .4, .4);
-  float p = 30.;
-  float pMet = 40.;
-
   Ldir[0] = -1. * normalize(uWindowDir);
-//  Ldir[1] = normalize(vec3(-1., -.5, -2.));
-//  Ldir[2] = normalize(vec3(-1., 0, 0.5));
-  Lrgb[0] = vec3(0.85, .75, .7);
-//  Lrgb[1] = vec3(.8, .75, .7);
-//  Lrgb[2] = vec3(.1, .15, .2);
+  //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
+  //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
+    Lrgb[0] = vec3(0.85, .75, .7);
+  //  Lrgb[1] = vec3(.8, .75, .7);
+  //  Lrgb[2] = vec3(.1, .15, .2);
 
-  vec3 normal = normalize(vNor);
-  vec3 color = ambient;
+  if(uBlobby > 0.) {
+    mat4 phong = vBlobPhong;
+    vec3 ambient  = phong[0].rgb;
+    vec3 diffuse  = phong[1].rgb;
+    vec4 specular = phong[2].rgba;
+    vec4 texture  = phong[3].rgba;
 
-  float alpha = uColor.a;
-/*
-  {
-     float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
-     float t = max(0., 1. - u*u - v*v);
-     alpha *= mix(1., t, uParticles);
-  }
-*/
-
-  if (uTexIndex < 0) {
-    if (uFxMode == 0) {      //default
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 1) {      // plaster
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-    } else if (uFxMode == 2) {      // metallic
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-    } else if (uFxMode == 3) {      // glossy rubber
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 4) {      // 2D
-        color += uColor.rgb;
+    vec3 color = ambient + texture.r * (.5 + dot(diffuse, diffuse));
+    vec3 N = normalize(vNor);
+    for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
+      vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
+      color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
     }
-    color.rgb *= vRGB;
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+    // color *= 1. + sin(160. * vPos.x) * sin(160. * vPos.y) * texture.r;
+    fragColor = vec4(sqrt(color), 1.0) * uOpacity;
   } else {
-    normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
-
-    if (uFxMode == 0) {      //default
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 1) {      // plaster
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
-    } else if (uFxMode == 2) {      // metallic
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
-    } else if (uFxMode == 3) {      // glossy rubber
-      for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
-        color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
-    } else if (uFxMode == 4) {      // 2D
-        color += uColor.rgb;
+    vec4 texture0 = texture(uTex0, vUV * uTexScale);
+    vec4 texture1 = texture(uTex1, vUV * uTexScale);
+    vec4 texture2 = texture(uTex2, vUV * uTexScale);
+    vec3 ambient = .1 * uColor.rgb;
+    vec3 diffuse = .5 * uColor.rgb;
+    vec3 specular = vec3(.4, .4, .4);
+    float p = 30.;
+    float pMet = 40.;
+  
+    vec3 normal = normalize(vNor);
+    vec3 color = ambient;
+  
+    float alpha = uColor.a;
+  /*
+    {
+        float u = 2. * vUV.x - 1., v = 2. * vUV.y - 1.;
+        float t = max(0., 1. - u*u - v*v);
+        alpha *= mix(1., t, uParticles);
     }
+  */
+  
+    if (uTexIndex < 0) {
+      if (uFxMode == 0) {      //default
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 1) {      // plaster
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+      } else if (uFxMode == 2) {      // metallic
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+      } else if (uFxMode == 3) {      // glossy rubber
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 4) {      // 2D
+          color += uColor.rgb;
+      }
+      color.rgb *= vRGB;
+      fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+    } else {
+      normal = (uBumpIndex < 0) ? normal : bumpTexture(normal, texture(uTex1, vUV));
+  
+      if (uFxMode == 0) {      //default
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 1) {      // plaster
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongPlaster(Ldir[i], Lrgb[i], normal, diffuse, specular, 5.);
+      } else if (uFxMode == 2) {      // metallic
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phong(Ldir[i], Lrgb[i], normal, vec3(0., 0., 0.), ambient * 150., pMet);
+      } else if (uFxMode == 3) {      // glossy rubber
+        for (int i = 0; i < LDIR_MAX_COUNT; i += 1)
+          color += phongRub(Ldir[i], Lrgb[i], normal, diffuse, specular, p);
+      } else if (uFxMode == 4) {      // 2D
+          color += uColor.rgb;
+      }
+  
+      fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+  
+      fragColor *= texture(uTex0, vUV);
+    }
+  } 
+}
+`; 
 
-    fragColor = vec4(sqrt(color.rgb) * (uToon == 0. ? 1. : 0.), alpha) * uBrightness;
+const ImplicitSurface_VERTEX_SOURCE = `#version 300 es
+precision highp float;
 
-    fragColor *= texture(uTex0, vUV);
+// input vertex
+in vec3  aPos, aRot, aWts0, aWts1;
+in vec2  aUV;
+in float aRGB;
+
+// interpolated vertex
+out vec3  vPos, vNor, vRGB;
+out vec2  vUV;
+out mat4  vBlobPhong;
+out float vWeights[6];
+
+// matrices
+uniform   float uTime;
+uniform   mat4  uMatrix, uInvMatrix, uPerspective;
+uniform   float uBlobby, uNoisy;
+uniform   mat4  uMatrices[8], uInvMatrices[8];
+uniform   mat4  uBlobPhong[8];
+uniform   float uAspectRatio;
+
+vec3 unpack0(vec3 ab) {
+  return ab / 40000. * 2. - 1.;
+}
+
+vec3 unpack1(vec3 ab) {
+  return mod(ab, 1.) * 2. - 1.;
+}
+
+vec3 unpackRGB(float rgb) {
+  return mod(vec3(rgb, rgb / 256., rgb / 65536.), 1.);
+}
+
+float noise(vec3 point) { 
+  float r = 0.; for (int i=0;i<16;i++) {
+  vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+       1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+  C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+  D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+  r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+  } 
+  return .5 * sin(r); 
+}
+
+void main() {
+
+  for (int i = 0 ; i < 3 ; i++) {
+     vWeights[i  ] = aWts0[i];
+     vWeights[3+i] = aWts1[i];
   }
+
+  vec4 apos = vec4(aPos, 1.);
+  vec4 pos = apos;
+
+  vec3 aNor = unpack0(aRot);
+  vec4 anor = vec4(aNor, 0.);
+  vec4 nor = anor;
+
+  // IF THIS IS A BLOBBY OBJECT
+
+  if (uBlobby > 0.) {
+
+     // BLEND TOGETHER WEIGHTED POSITIONS, NORMALS
+     // AND COLORS FROM COMPONENT OBJECTS
+
+     pos = vec4(0.);
+     nor = vec4(0.);
+vBlobPhong = mat4(0.);
+     for (int i = 0 ; i < 6 ; i++)
+  if (vWeights[i] > 0.) {
+           int n = int(vWeights[i]);
+           float t = mod(vWeights[i], 1.);
+           pos += t * (uMatrices[n] * apos);
+           nor += t * (anor * uInvMatrices[n]);
+     t = t * t * (3. - 2. * t);
+     vBlobPhong += t * uBlobPhong[n];
+        }
+  }
+  pos = uPerspective * uMatrix * pos;
+  nor = nor * uInvMatrix;
+
+  vPos = pos.xyz;
+  vNor = nor.xyz;
+  vRGB = unpackRGB(aRGB);
+  vUV  = aUV;
+
+  if (uNoisy > 0.) {
+     float t = .5 + noise(7. * aPos * uNoisy);
+      t = t * t * (3. - t - t);
+      t = t * t * (3. - t - t);
+     vBlobPhong *= .8 + .2 * t;
+  }
+
+  gl_Position = pos * vec4(1./uAspectRatio,1.,.1,1.);
+}
+`;
+
+const ImplicitSurface_FRAG_SOURCE = `#version 300 es // NEWER VERSION OF GLSL
+precision highp float; // HIGH PRECISION FLOATS
+
+#define LDIR_MAX_COUNT (1)
+
+vec3 Ldir[LDIR_MAX_COUNT];
+vec3 Lrgb[LDIR_MAX_COUNT];
+uniform vec3 uWindowDir;
+uniform float uTime;                // TIME, IN SECONDS
+uniform float uBlobby;              // BLOBBY FLAG
+uniform float uOpacity;
+uniform mat4  uPhong;               // MATERIAL
+uniform sampler2D uSampler;
+uniform float uTexture;
+
+in vec3  vPos, vNor, vRGB;     // POSITION, NORMAL, COLOR
+in float vWeights[6];          // BLOBBY WEIGHTS
+in mat4  vBlobPhong;           // BLOBBY MATERIAL
+in vec2 vUV;
+
+out vec4 fragColor; // RESULT WILL GO HERE
+
+void main() {
+  Ldir[0] = -1. * normalize(uWindowDir);
+  //  Ldir[1] = normalize(vec3(-1., -.5, -2.));
+  //  Ldir[2] = normalize(vec3(-1., 0, 0.5));
+    Lrgb[0] = vec3(0.85, .75, .7);
+  //  Lrgb[1] = vec3(.8, .75, .7);
+  //  Lrgb[2] = vec3(.1, .15, .2);
+  mat4 phong = uBlobby > 0. ? vBlobPhong : uPhong;
+  vec3 ambient  = phong[0].rgb;
+  vec3 diffuse  = phong[1].rgb;
+  vec4 specular = phong[2].rgba;
+  vec4 t        = phong[3].rgba;
+
+  vec3 color = ambient + t.r * (.5 + dot(diffuse, diffuse));
+  vec3 N = normalize(vNor);
+  for (int n = 0 ; n < LDIR_MAX_COUNT ; n++) {
+    vec3 R = 2. * dot(Ldir[n], N) * N - Ldir[n];
+    color += Lrgb[n] * (diffuse * max(0., dot(Ldir[n], N)) + specular.rgb * pow(max(0., R.z), specular.w));
+  }
+  vec4 texture = texture(uSampler, vUV);
+  color *= mix(vec3(1.), texture.rgb, texture.a * uTexture);
+
+  fragColor = vec4(sqrt(color * vRGB), 1.0) * uOpacity;
+
 }
 `; 
 
@@ -331,7 +576,6 @@ function loadTexture(gl, url) {
   const image = new Image();
   image.src = basePath.concat(url);
   image.addEventListener("load", function () {
-    console.log("loaded")
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, image);
@@ -414,31 +658,6 @@ async function loadImages(gl) {
       ["stones_bump", "tiles", "wood", "brick_bump"],
       0
     );
-
-    // INSTRUCTIONS
-    //
-    // Just to show that this works, I attach a temporary canvas to the document,
-    // and this canvas has the texture images drawn to it (not WebGL).
-    // zoom out with command - since the images are large
-    //
-    // lookup texture atlas (one-to-many individual images):
-    //
-    // w.textureCatalogue.lookupByName("atlas1");
-
-    //
-    // it's faster if you know the direct ID
-    // w.textureCatalogue.lookupByID(1)
-
-    //
-    // lookup image stored in a texture atlas
-    // const texAtlas = ... some atlas
-    // const image = atlas.lookupImageByName('wood');
-
-    //
-    // direct access by ID is faster
-    //
-    // index of first image in this atlas
-    // const image = texAtlas.lookupImageByID(1)
   } catch (e) {
     console.error(e);
   }
@@ -1090,7 +1309,7 @@ export class Renderer {
     if (this._colorMaskNeedsReset) {
       gl.colorMask(true, true, true, true);
     }
-
+    window.views = views;
     renderList.initBuffer(this._gl);
     renderList.setTextureCatalogue(window.textureCatalogue);
     renderList.beginFrame();
@@ -1102,6 +1321,8 @@ export class Renderer {
         // console.log(...renderList.endFrame(i));
       }
     }
+    window.modeler.implicitSurfacesPgm.initBuffer(this._gl);
+    this._drawImplicitSurfaceObj(views);
   }
 
   _drawRenderPrimitiveSet(views, renderPrimitives) {
@@ -1251,15 +1472,14 @@ export class Renderer {
         RenderList_VERTEX_SOURCE,
         RenderList_FRAG_SOURCE
       );
-      // await loadImages(gl);
     }
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     renderList.program.use();
     let pgm = renderList.program;
-
     let drawArrays = () => {
       gl.drawArrays(
         triangleMode == 1 ? gl.TRIANGLES : gl.TRIANGLE_STRIP,
@@ -1267,30 +1487,15 @@ export class Renderer {
         shape.length / VERTEX_SIZE
       );
     };
-    if (false) {
-      console.log("1", views);
-      console.log("2", renderList);
-      console.log("3", shape);
-      console.log("4", matrix);
-      console.log("5", color);
-      console.log("6", opacity);
-      console.log("7", textureInfo);
-      console.log("8", fxMode);
-      console.log("9", triangleMode);
-      console.log("10", isToon);
-      console.log("11", isMirror);
-      console.log("12", isParticles);
-    }
-    gl.uniform1f(
-      gl.getUniformLocation(pgm.program, "uParticles"),
-      isParticles ? 1 : 0
-    );
+    let setUniform = (type, name, a, b, c, d, e, f) => {
+      let loc = gl.getUniformLocation(pgm.program, name);
+      (gl['uniform' + type])(loc, a, b, c, d, e, f);
+   }
 
     if (!renderList.vao) {
       renderList.initVAO(gl);
       gl.bindVertexArray(renderList.vao);
       gl.useProgram(pgm.program);
-      renderList.buffer = gl.createBuffer();
     }
     // if (shape != renderList.prev_shape) {
     renderList.buffer = gl.createBuffer();
@@ -1342,28 +1547,25 @@ export class Renderer {
       bpe * 8
     );
 
+    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    gl.enableVertexAttribArray(aWts0);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 9 * bpe);
+
+    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    gl.enableVertexAttribArray(aWts1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, VERTEX_SIZE * bpe, 12 * bpe);
+
 
     renderList.bufferAux = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, renderList.bufferAux);
     // }
-
-    gl.uniform1f(gl.getUniformLocation(pgm.program, "uBrightness"), 1.0);
-    gl.uniform4fv(
-      gl.getUniformLocation(pgm.program, "uColor"),
-      color.length == 4
-        ? color
-        : color.concat([opacity === undefined ? 1 : opacity])
-    );
-    gl.uniformMatrix4fv(
-      gl.getUniformLocation(pgm.program, "uModel"),
-      false,
-      matrix
-    );
-    gl.uniform1i(gl.getUniformLocation(pgm.program, "uFxMode"), fxMode);
-    gl.uniform3fv(
-      gl.getUniformLocation(pgm.program, "uWindowDir"),
-      this._globalLightDir1
-    );
+    setUniform('1f', 'uParticles', isParticles ? 1 : 0);
+    setUniform('1f', 'uBrightness', 1);
+    setUniform('1f', 'uBlobby', -1);
+    setUniform('4fv', 'uColor', color.length == 4 ? color: color.concat([opacity === undefined ? 1 : opacity]));
+    setUniform('Matrix4fv', 'uModel', false, matrix);
+    setUniform('1i', 'uFxMode', fxMode);
+    setUniform('3fv', 'uWindowDir', this._globalLightDir1);
 
     let uTex = [];
     for (let n = 0; n < gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS); n++) {
@@ -1383,49 +1585,32 @@ export class Renderer {
       // this.gl.bindTexture(this.gl.TEXTURE_2D, txtr);
       // renderList.textureCatalogue.setSlotByTextureInfo(txtr,2);
       gl.activeTexture(gl.TEXTURE0 + 2);
-      gl.uniform1f(
-        gl.getUniformLocation(pgm.program, "uTexScale"),
-        1
-      );
+      setUniform('1f', 'uTexScale', 1);
       gl.bindTexture(gl.TEXTURE_2D, txtr);
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+      setUniform('1i', 'uTexIndex', 2);
     } else if (textureInfo.isValid) {
       gl.activeTexture(gl.TEXTURE0 + 2);
 
       for (let i = 0; i < textureInfo.textures.length; i += 1) {
-        gl.uniform1f(
-          gl.getUniformLocation(pgm.program, "uTexScale"),
-          textureInfo.scale
-        );
+        setUniform('1f', 'uTexScale', textureInfo.scale);
 
         // if (renderList.textureCatalogue.slotToTextureID(i) != textureInfo.textures[i].ID) {
         renderList.textureCatalogue.setSlotByTextureInfo(
           textureInfo.textures[i],
           i + 2
         );
-        gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), 2);
+        setUniform('1i', 'uTexIndex', 2);
         //  }
       }
-      gl.uniform1i(
-        gl.getUniformLocation(pgm.program, "uBumpIndex"),
-        textureInfo.textures.length > 1 ? 0 : -1
-      );
+      setUniform('1i', 'uBumpIndex', textureInfo.textures.length > 1 ? 0 : -1);
     } else {
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uBumpIndex"), -1);
-      gl.uniform1i(gl.getUniformLocation(pgm.program, "uTexIndex"), -1);
+      setUniform('1i', 'uBumpIndex', -1);
+      setUniform('1i', 'uTexIndex', -1);
     }
 
     if (views.length == 1) {
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uProj"),
-        false,
-        views[0].projectionMatrix
-      );
-      gl.uniformMatrix4fv(
-        gl.getUniformLocation(pgm.program, "uView"),
-        false,
-        views[0].viewMatrix
-      );
+      setUniform('Matrix4fv', 'uProj', false, views[0].projectionMatrix);
+      setUniform('Matrix4fv', 'uView', false, views[0].viewMatrix);
       drawArrays();
     }
 
@@ -1434,32 +1619,155 @@ export class Renderer {
       if (views.length > 1) {
         let vp = view.viewport;
         gl.viewport(vp.x, vp.y, vp.width, vp.height);
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uView"),
-          false,
-          view.viewMatrix
-        );
-        gl.uniformMatrix4fv(
-          gl.getUniformLocation(pgm.program, "uProj"),
-          false,
-          view.projectionMatrix
-        );
+        setUniform('Matrix4fv', 'uProj', false, view.projectionMatrix);
+        setUniform('Matrix4fv', 'uView', false, view.viewMatrix);
       }
       if (isToon) {
-        gl.uniform1f(
-          gl.getUniformLocation(pgm.program, "uToon"),
-          0.005 * CG.norm(m.value().slice(0, 3))
-        );
+        setUniform('1f', 'uToon',  0.005 * CG.norm(m.value().slice(0, 3)));
         gl.cullFace(gl.FRONT);
         drawArrays();
         gl.cullFace(gl.BACK);
-        gl.uniform1f(gl.getUniformLocation(pgm.program, "uToon"), 0);
+        setUniform('1f', 'uToon',  0);
       }
       if (isMirror) gl.cullFace(gl.FRONT);
       drawArrays();
     }
     gl.cullFace(gl.BACK);
     renderList.prev_shape = shape;
+  }
+
+  _drawImplicitSurfaceObj(views,isTriangleMesh) {
+    let gl = window.modeler.gl;
+    if (!window.modeler.implicitSurfacesPgm.program) {
+      window.modeler.implicitSurfacesPgm.program = new Program(
+        gl,
+        ImplicitSurface_VERTEX_SOURCE,
+        ImplicitSurface_FRAG_SOURCE
+      );
+    }
+
+    window.modeler.implicitSurfacesPgm.program.use();
+    let pgm = window.modeler.implicitSurfacesPgm.program;
+    if (!window.modeler.implicitSurfacesPgm.vao) {
+      window.modeler.implicitSurfacesPgm.initVAO(gl);
+      gl.bindVertexArray(window.modeler.implicitSurfacesPgm.vao);
+      gl.useProgram(pgm.program);
+      window.modeler.implicitSurfacesPgm.initBuffer(gl);
+    }
+
+    let setUniform = (type, name, a, b, c, d, e, f) => {
+      let loc = gl.getUniformLocation(pgm.program, name);
+      (gl['uniform' + type])(loc, a, b, c, d, e, f);
+   }
+   
+   let drawArrays = () => {
+      gl.drawArrays(!isTriangleMesh ? gl.TRIANGLES : gl.TRIANGLE_STRIP, 0, window.modeler.implicitSurfacesPgm.mesh.length / VERTEX_SIZE);
+   }
+   
+    gl.bindBuffer(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.buffer);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    // gl.clearDepth(-1);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    // gl.bufferData(gl.ARRAY_BUFFER, window.modeler.implicitSurfacesPgm.mesh, gl.DYNAMIC_DRAW);
+    let bpe = Float32Array.BYTES_PER_ELEMENT;
+    let aPos = gl.getAttribLocation(pgm.program, "aPos");
+    let new_vertex_size = 16;
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(
+      aPos,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * new_vertex_size,
+      bpe * 0
+    );
+
+    let aRot = gl.getAttribLocation(pgm.program, "aRot");
+    gl.enableVertexAttribArray(aRot);
+    gl.vertexAttribPointer(
+      aRot,
+      3,
+      gl.FLOAT,
+      false,
+      bpe * new_vertex_size,
+      bpe * 3
+    );
+
+    let aUV = gl.getAttribLocation(pgm.program, "aUV");
+    gl.enableVertexAttribArray(aUV);
+    gl.vertexAttribPointer(
+      aUV,
+      2,
+      gl.FLOAT,
+      false,
+      bpe * new_vertex_size,
+      bpe * 6
+    );
+
+    let aRGB = gl.getAttribLocation(pgm.program, "aRGB");
+    gl.enableVertexAttribArray(aRGB);
+    gl.vertexAttribPointer(
+      aRGB,
+      1,
+      gl.FLOAT,
+      false,
+      bpe * new_vertex_size,
+      bpe * 8
+    );
+
+    let aWts0 = gl.getAttribLocation(pgm.program, 'aWts0');
+    gl.enableVertexAttribArray(aWts0);
+    gl.vertexAttribPointer(aWts0, 3, gl.FLOAT, false, new_vertex_size * bpe, 9 * bpe);
+
+    let aWts1 = gl.getAttribLocation(pgm.program, 'aWts1');
+    gl.enableVertexAttribArray(aWts1);
+    gl.vertexAttribPointer(aWts1, 3, gl.FLOAT, false, new_vertex_size * bpe, 12 * bpe);
+    // // setUniform('1f', 'uOpacity', window.modeler.implicitSurfacesPgm.opacity);
+    // // setUniform('Matrix4fv', 'uModel', false, window.modeler.implicitSurfacesPgm.M);
+    // // let material = materials[window.modeler.implicitSurfacesPgm.color];
+    // // let a = material.ambient, d = material.diffuse, s = material.specular;
+    // // setUniform('Matrix4fv', 'uPhong', false, [a[0],a[1],a[2],0, d[0],d[1],d[2],0, s[0],s[1],s[2],s[3], 0,0,0,0]);
+    // // setUniform('Matrix4fv', 'uBlobPhong'  , false, window.modeler.implicitSurfacesPgm.phongData);
+    // // setUniform('Matrix4fv', 'uMatrices'   , false, window.modeler.implicitSurfacesPgm.matrixData);
+    // // setUniform('Matrix4fv', 'uInvMatrices', false, window.modeler.implicitSurfacesPgm.invMatrixData);
+    // // setUniform('1f', 'uBlobby', window.modeler.implicitSurfacesPgm.blobby);
+    // // setUniform('1f', 'uNoisy', window.modeler.implicitSurfacesPgm.noisy);
+    // // setUniform('1f', 'uBrightness', 1);
+    setUniform('3fv', 'uWindowDir', this._globalLightDir1);
+
+    // if (views.length == 1) {
+    //   setUniform('Matrix4fv', 'uProj',  false, views[0].projectionMatrix);
+    //   setUniform('Matrix4fv', 'uView',  false, views[0].viewMatrix);
+    //   // drawArrays();
+    // } else {
+    //   for (let i = 0; i < views.length; ++i) {
+    //     let view = views[i];
+    //     if (views.length > 1) {
+    //       let vp = view.viewport;
+    //       gl.viewport(vp.x, vp.y, vp.width, vp.height);
+    //       setUniform('Matrix4fv', 'uProj',  false, view.projectionMatrix);
+    //       setUniform('Matrix4fv', 'uView',  false, view.viewMatrix);
+    //     }
+    //     // if (isToon) {
+    //     //   gl.uniform1f(
+    //     //     gl.getUniformLocation(pgm.program, "uToon"),
+    //     //     0.005 * CG.norm(m.value().slice(0, 3))
+    //     //   );
+    //     //   gl.cullFace(gl.FRONT);
+    //     //   gl.cullFace(gl.BACK);
+    //     //   gl.uniform1f(gl.getUniformLoca ation(pgm.program, "uToon"), 0);
+    //     // }
+    //     // if (isMirror) gl.cullFace(gl.FRONT);
+    //     // drawArrays();
+    //   }
+    // }
+    // gl.cullFace(gl.BACK);
+    window.modeler.animate();
+    gl.cullFace(gl.BACK);
   }
 
   _getRenderTexture(texture) {

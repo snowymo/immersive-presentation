@@ -12,18 +12,18 @@ let xPos = 0;
 let yPos = 1.5;
 let zPos = 1;
 let DemoText = function () {
-  this.background = null;
-  this.loadGLTF = false;
-  this.envInd = null;
+   this.background = null;
+   this.loadGLTF = false;
+   this.envInd = null;
 
-  this.display = () => {
-    m.save();
-       m.translate(0, 1.5, 0);
-       m.scale(0.1);
+   this.display = () => {
+      m.save();
+      m.translate(0, 1.5, 0);
+      m.scale(0.1);
 
-       renderList.mSquare().move(0, 4.5, 0)
-                           .turnY(time).color([10, 0, 0])
-                           .setBaseTexture("font.png");
+      renderList.mSquare().move(0, 4.5, 0)
+         .turnY(time).color([10, 0, 0])
+         .setBaseTexture("font.png");
 
        m.save();
           let t = Math.max(0, Math.min(1, .5 + Math.sin(time)));
@@ -73,7 +73,7 @@ document.addEventListener("keydown", (event) => {
     PT = new CG.ParticlesText(msg);
  });
 
-for (let n = 0 ; n < msg.length ; n++) {
+for (let n = 0; n < msg.length; n++) {
    let theta = Math.PI - 2 * Math.PI * n / msg.length;
    B[n] = [10 * Math.cos(theta), 5 * Math.sin(theta), 0];
    C[n] = B[n].slice();

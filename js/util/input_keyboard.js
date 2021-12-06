@@ -153,3 +153,5 @@ export const KEY_SPACE = 32;
 export const KEY_X = 88;
 export const KEY_Y = 89;
 export const KEY_Z = 90;
+export const KEY_ZERO = 48;
+export const KEY_ONE = 49;
