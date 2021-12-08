@@ -368,7 +368,9 @@ export function Modeler(gl) {
 
       implicitSurface.setBlobby(true);
       implicitSurface.setBlur(blur);
-      implicitSurface.setDivs(noiseState == 2 ? 50 : isRubber ? 100 : activeState() ? 50 : 100);
+      let num1 = window.vr? 25:50;
+      let num2 = window.vr? 50:100;
+      implicitSurface.setDivs(noiseState == 2 ? num1 : isRubber ? num2 : activeState() ? num1 : num2);
       implicitSurface.setFaceted(isFaceted);
       implicitSurface.setNoise(noiseState);
       implicitSurface.setTexture(isTextureSrc ? 'images/frl_texture.jpg' : '');
