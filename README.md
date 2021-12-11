@@ -10,7 +10,7 @@ install python3 if you haven't
 
 ***if the above is not working, try python run.py instead.***
 
-go to https://localhost:8000/sig21.html
+go to http://localhost:8000/sig21.html
 
 # How to access in public
 

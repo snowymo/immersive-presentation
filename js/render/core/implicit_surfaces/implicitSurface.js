@@ -164,6 +164,32 @@ function Blobs() {
          return [P, T];
       }
 
+      // FUNCTION TO SMOOTH MESH
+      let smoothMesh = (V, T) => { 
+         let W = [], A = [];
+         for (let i = 0 ; i < V.length ; i++   ) W.push(0);
+         for (let i = 0 ; i < V.length ; i += 3) A.push(0);
+         for (let k = 1 ; k >= 0 ; k--) {
+            W.fill(0);
+            A.fill(0);
+            for (let n = 0 ; n < T.length ; n += 3) {
+               let a = 3 * T[n], b = 3 * T[n+1], c = 3 * T[n+2];
+               let t = k > 0 ? Math.random() : .5;
+               for (let i = 0 ; i < 3 ; i++) {
+                  W[a + i] += V[b + i] * t + V[c + i] * (1-t);
+                  W[b + i] += V[c + i] * t + V[a + i] * (1-t);
+                  W[c + i] += V[a + i] * t + V[b + i] * (1-t);
+               }
+               A[a/3]++;
+               A[b/3]++;
+               A[c/3]++;
+            }
+            for (let n = 0 ; n < W.length ; n += 3)
+               for (let i = 0 ; i < 3 ; i++)
+                  V[n + i] = W[n + i] /= A[n/3];
+         }
+      }  
+
       // FILL THE VOLUME WITH VALUES FROM THE IMPLICIT FUNCTION
    
       let A = [0,0,0,0,0,0], B = [0,0,0,0,0,0], C = [0,0,0,0,0,0];
@@ -282,6 +308,8 @@ function Blobs() {
       let VT = marchingTetrahedra(volume, n, n);
       let V = VT[0];
       let T = VT[1];
+      if (V.length > 1000)
+         smoothMesh(V,T);
    
       // COMPUTE SURFACE NORMALS
    
@@ -749,7 +777,7 @@ export function ImplicitSurface(M, gl, pgm) {
             M[4*col + row] *= scale;
       }
       return M;
-   }
+   } 
 }
   
  
