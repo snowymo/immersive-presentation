@@ -35,6 +35,7 @@ import { demoRealSense } from "./demoRealSense.js";
 import { demoTemplate } from "./demoTemplate.js";
 //import { demoSyncTest } from "./demoSyncTest.js";
 //import { demoDraw } from "./demoDraw.js";
+import { demoText } from "./demoText.js";
 
 let loadGLTF = false;
 let curDemoEnv = [];
@@ -76,6 +77,7 @@ export let mainScene = () => {
   //if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
   //if (demoSyncTestState % 2) loadScene(demoSyncTest); else stopScene(demoSyncTest);
   //if (demoDrawState % 2) loadScene(demoDraw); else stopScene(demoDraw);
+  if (demoTextState % 2) loadScene(demoText); else stopScene(demoText);
 };
 
 function loadScene(demo) {
@@ -164,6 +166,6 @@ function showNameTag() {
 }
 
 //window.demoNames = "AirText,Bill,Chris,Hands,Ken,Mocap,NoiseGrid,Objects,Particles,Prajval,Planets,Rohail,RealSense,Speak,Text,SyncTest,Draw";
-window.demoNames = "Planets,RealSense,Template";
+window.demoNames = "Planets,RealSense,Template,Text";
 addDemoButtons(window.demoNames);
 window.addNameField();
