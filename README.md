@@ -12,6 +12,9 @@ install python3 if you haven't
 
 go to https://localhost:8000/sig21.html
 
+# For local corelink server
+Remeber to add [self signed certificates](/media/self_signed_certificates.jpg) to the browser 
+
 # How to access in public
 
 Ping me if you want to deploy the lastest main branch, or follow this link https://github.com/futurerealitylab/immersive-presentation/issues/9.
