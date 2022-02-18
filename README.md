@@ -23,3 +23,4 @@ Visit https://corelink.hpc.nyu.edu/metaroom/sig21.html
 
 [To test before merge](https://github.com/snowymo/immersive-presentation/wiki/Unit-Test)
 
+[Run realsense](https://github.com/snowymo/immersive-presentation/wiki/Running-branch-realsense_stream)
